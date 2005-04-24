@@ -7,6 +7,8 @@ import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
+    private static boolean printedNoDotWarning = false;
+
     public boolean write(Table table, File graphDir, LineWriter out) {
         File dotFile = new File(graphDir, table.getName() + ".dot");
         File graphFile = new File(graphDir, table.getName() + ".png");
@@ -21,8 +23,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             out.writeln("  <a name='graph'><IMG SRC=\"../graphs/" + graphFile.getName() + "\" USEMAP=\"#tables\" BORDER=\"0\"></a>");
             DotRunner.writeMap(dotFile, out);
         } catch (IOException noDot) {
-            System.err.println("Warning: Failed to run dot.");
-            System.err.println("   Download it from www.graphviz.org and make sure dot is in your path.");
+            printNoDotWarning();
             return false;
         }
 
@@ -41,8 +42,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             DotRunner.writeMap(dotFile, out);
             writeFooter(out);
         } catch (IOException noDot) {
-            System.err.println("Warning: Failed to run dot.");
-            System.err.println("   Download it from www.graphviz.org and make sure dot is in your path.");
+            printNoDotWarning();
             return false;
         }
 
@@ -57,5 +57,15 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         writeLegend(false, out);
         out.writeln("</td></tr></table>");
         out.writeln("<IMG SRC=\"graphs/" + graphFile.getName() + "\" USEMAP=\"#tables\" BORDER=\"0\">");
+    }
+
+    private void printNoDotWarning() {
+        if (!printedNoDotWarning) {
+            printedNoDotWarning = true;
+            System.err.println();
+            System.err.println("Warning: Failed to run dot.");
+            System.err.println("   Download it from www.graphviz.org and make sure dot is in your path.");
+            System.err.println("   Generated pages will not contain a graphical view of table relationships.");
+        }
     }
 }
