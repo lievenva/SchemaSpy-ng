@@ -34,7 +34,7 @@ public class DotFormatter {
 
         Set relatedTables = getImmediateRelatives(table);
 
-        formatter.writeNode(table, "", true, true, out);
+        formatter.writeNode(table, "", true, true, true, out);
         Set relationships = formatter.getRelationships(table);
         tablesWritten.add(table);
 
@@ -45,7 +45,7 @@ public class DotFormatter {
             if (!tablesWritten.add(relatedTable))
                 continue; // already written
 
-            formatter.writeNode(relatedTable, "", true, false, out);
+            formatter.writeNode(relatedTable, "", true, false, false, out);
             relationships.addAll(formatter.getRelationships(relatedTable, table));
         }
 
@@ -61,7 +61,7 @@ public class DotFormatter {
                 if (!tablesWritten.add(cousin))
                     continue; // already written
                 relationships.addAll(formatter.getRelationships(cousin, relatedTable));
-                formatter.writeNode(cousin, "", false, false, out);
+                formatter.writeNode(cousin, "", false, false, false, out);
             }
         }
 
@@ -126,7 +126,7 @@ public class DotFormatter {
             Table table = (Table)iter.next();
             boolean isOrphan = table.getMaxParents() == 0 && table.getMaxChildren() == 0;
             if (onlyOrphans && isOrphan || !onlyOrphans && !isOrphan) {
-                formatter.writeNode(table, "tables/", true, false, out);
+                formatter.writeNode(table, "tables/", true, false, onlyOrphans && isOrphan, out);
                 ++numWritten;
             }
         }

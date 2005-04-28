@@ -1,14 +1,14 @@
 package net.sourceforge.schemaspy.model;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class TableColumn implements Serializable {
     private final Table table;
@@ -36,7 +36,7 @@ public class TableColumn implements Serializable {
             buf.append(decimalDigits);
         }
         detailedSize = buf.toString();
-        
+
         isNullable = rs.getString("NULLABLE").equalsIgnoreCase("YES");
         defaultValue = rs.getString("COLUMN_DEF");
         id = new Integer(rs.getInt("ORDINAL_POSITION"));
@@ -61,7 +61,7 @@ public class TableColumn implements Serializable {
     public int getLength() {
 	return length;
     }
-    
+
     public String getDetailedSize() {
         return detailedSize;
     }
