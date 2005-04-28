@@ -18,6 +18,8 @@ public class TableColumn implements Serializable {
     private final int length;
     private final String detailedSize;
     private final boolean isNullable;
+    private       boolean isAutoUpdated;
+    private       boolean isVirtual;
     private final Object defaultValue;
     private final Map parents = new HashMap();
     private final Map children = new TreeMap(new ColumnComparator());
@@ -43,23 +45,23 @@ public class TableColumn implements Serializable {
     }
 
     public Table getTable() {
-	return table;
+        return table;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public Object getId() {
-	return id;
+        return id;
     }
 
     public String getType() {
-	return type;
+        return type;
     }
 
     public int getLength() {
-	return length;
+        return length;
     }
 
     public String getDetailedSize() {
@@ -67,39 +69,47 @@ public class TableColumn implements Serializable {
     }
 
     public boolean isNullable() {
-	return isNullable;
+        return isNullable;
+    }
+
+    public boolean isAutoUpdated() {
+        return isAutoUpdated;
+    }
+
+    public boolean isVirtual() {
+        return isVirtual;
     }
 
     public Object getDefaultValue() {
-	return defaultValue;
+        return defaultValue;
     }
 
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {
-	parents.put(parent, constraint);
-	table.addedParent();
+        parents.put(parent, constraint);
+        table.addedParent();
     }
 
     public void removeParent(TableColumn parent) {
-	parents.remove(parent);
+        parents.remove(parent);
     }
 
     public void unlinkParents() {
-	for (Iterator iter = parents.keySet().iterator(); iter.hasNext(); ) {
-	    TableColumn parent = (TableColumn)iter.next();
-	    parent.removeChild(this);
-	}
-	parents.clear();
+        for (Iterator iter = parents.keySet().iterator(); iter.hasNext(); ) {
+            TableColumn parent = (TableColumn)iter.next();
+            parent.removeChild(this);
+        }
+        parents.clear();
     }
 
     public Set getParents() {
-	return parents.keySet();
+        return parents.keySet();
     }
 
     /**
      * returns the constraint that connects this column to the specified column (this 'child' column to specified 'parent' column)
      */
     public ForeignKeyConstraint getParentConstraint(TableColumn parent) {
-	return (ForeignKeyConstraint)parents.get(parent);
+        return (ForeignKeyConstraint)parents.get(parent);
     }
 
     /**
@@ -107,67 +117,85 @@ public class TableColumn implements Serializable {
      * @return
      */
     public ForeignKeyConstraint removeAParentFKConstraint() {
-	for (Iterator iter = parents.keySet().iterator(); iter.hasNext(); ) {
-	    TableColumn relatedColumn = (TableColumn)iter.next();
-	    ForeignKeyConstraint constraint = (ForeignKeyConstraint)parents.remove(relatedColumn);
-	    relatedColumn.removeChild(this);
-	    return constraint;
-	}
+        for (Iterator iter = parents.keySet().iterator(); iter.hasNext(); ) {
+            TableColumn relatedColumn = (TableColumn)iter.next();
+            ForeignKeyConstraint constraint = (ForeignKeyConstraint)parents.remove(relatedColumn);
+            relatedColumn.removeChild(this);
+            return constraint;
+        }
 
-	return null;
+        return null;
     }
 
     public ForeignKeyConstraint removeAChildFKConstraint() {
-	for (Iterator iter = children.keySet().iterator(); iter.hasNext(); ) {
-	    TableColumn relatedColumn = (TableColumn)iter.next();
-	    ForeignKeyConstraint constraint = (ForeignKeyConstraint)children.remove(relatedColumn);
-	    relatedColumn.removeParent(this);
-	    return constraint;
-	}
+        for (Iterator iter = children.keySet().iterator(); iter.hasNext(); ) {
+            TableColumn relatedColumn = (TableColumn)iter.next();
+            ForeignKeyConstraint constraint = (ForeignKeyConstraint)children.remove(relatedColumn);
+            relatedColumn.removeParent(this);
+            return constraint;
+        }
 
-	return null;
+        return null;
     }
 
     public void addChild(TableColumn child, ForeignKeyConstraint constraint) {
-	children.put(child, constraint);
-	table.addedChild();
+        children.put(child, constraint);
+        table.addedChild();
     }
 
     public void removeChild(TableColumn child) {
-	children.remove(child);
+        children.remove(child);
     }
 
     public void unlinkChildren() {
-	for (Iterator iter = children.keySet().iterator(); iter.hasNext(); ) {
-	    TableColumn child = (TableColumn)iter.next();
-	    child.removeParent(this);
-	}
-	children.clear();
+        for (Iterator iter = children.keySet().iterator(); iter.hasNext(); ) {
+            TableColumn child = (TableColumn)iter.next();
+            child.removeParent(this);
+        }
+        children.clear();
     }
 
     public Set getChildren() {
-	return children.keySet();
+        return children.keySet();
     }
 
     /**
      * returns the constraint that connects the specified column to this column (specified 'child' to this 'parent' column)
      */
     public ForeignKeyConstraint getChildConstraint(TableColumn child) {
-	return (ForeignKeyConstraint)children.get(child);
+        return (ForeignKeyConstraint)children.get(child);
     }
 
     public String toString() {
-	return getName();
+        return getName();
+    }
+
+    /**
+     * setIsAutoUpdated
+     *
+     * @param isAutoUpdated boolean
+     */
+    public void setIsAutoUpdated(boolean isAutoUpdated) {
+        this.isAutoUpdated = isAutoUpdated;
+    }
+
+    /**
+     * setIsVirtual
+     *
+     * @param virtual boolean
+     */
+    public void setIsVirtual(boolean isVirtual) {
+        this.isVirtual = isVirtual;
     }
 
     private class ColumnComparator implements Comparator, Serializable {
-	public int compare(Object object1, Object object2) {
-	    TableColumn column1 = (TableColumn)object1;
-	    TableColumn column2 = (TableColumn)object2;
-	    int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-	    if (rc == 0)
-		rc = column1.getName().compareTo(column2.getName());
-	    return rc;
-	}
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            if (rc == 0)
+                rc = column1.getName().compareTo(column2.getName());
+            return rc;
+        }
     }
 }

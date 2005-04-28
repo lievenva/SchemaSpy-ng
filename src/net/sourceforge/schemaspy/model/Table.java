@@ -73,6 +73,13 @@ public class Table implements Serializable {
         checkConstraints.put(name, text);
     }
 
+    /**
+     *
+     * @param rs ResultSet from DatabaseMetaData.getImportedKeys()
+     * @param tables Map
+     * @param meta DatabaseMetaData
+     * @throws SQLException
+     */
     private void addForeignKey(ResultSet rs, Map tables, DatabaseMetaData meta) throws SQLException {
         String name = rs.getString("FK_NAME");
 
@@ -457,6 +464,19 @@ public class Table implements Serializable {
 
     public String toString() {
 	return getName();
+    }
+
+    /**
+     * setVersionColumns
+     *
+     * @param rs ResultSet result of DatabaseMetaData.getVersionColumns()
+     */
+    public void setVersionColumns(ResultSet rs) throws SQLException {
+        String columnName = rs.getString("COLUMN_NAME");
+
+        TableColumn column = getColumn(columnName);
+        column.setIsAutoUpdated(true);
+        column.setIsVirtual(rs.getShort("PSEUDO_COLUMN") == DatabaseMetaData.versionColumnPseudo);
     }
 
     private static class ByIndexColumnComparator implements Comparator, Serializable {

@@ -82,6 +82,23 @@ public class Database {
                 rs.close();
         }
 
+        try {
+            rs = metadata.getVersionColumns(null, schema, "%");
+
+            while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
+                Table table = (Table)tables.get(tableName);
+                table.setVersionColumns(rs);
+            }
+        } catch (SQLException noVersionColumns) {
+            // we don't want to totally blow up on this one
+            System.err.println();
+            System.err.println("Unable to get version columns: " + noVersionColumns);
+        } finally {
+            if (rs != null)
+                rs.close();
+        }
+
         String selectCheckConstraintsSql = properties.getProperty("selectCheckConstraintsSql");
         if (selectCheckConstraintsSql != null) {
             PreparedStatement stmt = null;
