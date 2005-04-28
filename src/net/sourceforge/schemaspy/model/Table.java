@@ -131,7 +131,7 @@ public class Table implements Serializable {
         ResultSet rs = null;
 
         try {
-            rs = meta.getColumns(null, "%", getName(), "%");
+            rs = meta.getColumns(null, getSchema(), getName(), "%");
 
             while (rs.next())
                 addColumn(rs);
