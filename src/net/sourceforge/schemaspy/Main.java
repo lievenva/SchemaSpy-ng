@@ -418,6 +418,8 @@ public class Main {
             System.out.println("   -help                 detailed help");
             System.out.println("   -dbhelp               display databaseType-specific help");
             System.out.println();
+            System.out.println("Go to http://schemaspy.sourceforge.net for more details or the latest version.");
+            System.out.println();
         }
 
         if (!detailed) {
