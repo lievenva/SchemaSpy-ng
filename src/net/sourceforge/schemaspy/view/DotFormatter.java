@@ -98,7 +98,7 @@ public class DotFormatter {
         out.writeln("digraph tables {");
         out.writeln("  graph [");
         out.writeln("    rankdir=\"RL\"");
-        out.writeln("    bgcolor=\"" + new CssFormatter().getBodyBackground() + "\"");
+        out.writeln("    bgcolor=\"" + StyleSheet.getBodyBackground() + "\"");
         out.writeln("    concentrate=\"true\"");
         out.writeln("  ];");
         out.writeln("  node [");

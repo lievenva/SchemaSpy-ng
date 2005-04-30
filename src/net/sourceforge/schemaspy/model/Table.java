@@ -475,8 +475,10 @@ public class Table implements Serializable {
         String columnName = rs.getString("COLUMN_NAME");
 
         TableColumn column = getColumn(columnName);
-        column.setIsAutoUpdated(true);
-        column.setIsVirtual(rs.getShort("PSEUDO_COLUMN") == DatabaseMetaData.versionColumnPseudo);
+        if (column != null) {
+            column.setIsAutoUpdated(true);
+            column.setIsVirtual(rs.getShort("PSEUDO_COLUMN") == DatabaseMetaData.versionColumnPseudo);
+        }
     }
 
     private static class ByIndexColumnComparator implements Comparator, Serializable {

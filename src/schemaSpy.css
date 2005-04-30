@@ -1,0 +1,91 @@
+/* these three entries must be first and in this order or toggling visibility won't work */
+.legend {
+    text-align: left;
+}
+
+.tableKey {
+    display: none;
+    text-align: right;
+}
+
+.constraint {
+    display: none;
+    text-align: right;
+}
+
+/* required colors MUST be specified in RGB hex notation or the graphs won't have correct colors */
+
+/* background-color must be specified for body to propagate into graphs */
+body  {
+    color: #000000;
+    background-color: #F7F7F7;
+    font-family: arial, geneva, helvetica, sans-serif;
+}
+
+/* background-color must be specified for th to propagate into graphs */
+th {
+    background-color: #9BAB96;
+    text-align: left;
+}
+
+/* background-color must be specified for td to propagate into graphs */
+td {
+    background-color: #ffffff;
+}
+
+h1 {
+    font-size: 125%;
+}
+
+/* background must be specified for .primaryKey to propagate into graphs */
+.primaryKey {
+    background: #BED1B8;
+}
+
+/* background must be specified for .indexedColumn to propagate into graphs */
+.indexedColumn {
+    background: #F4F7DA;
+}
+
+/* background must be specified for .selectedTable to propagate into graphs */
+.selectedTable {
+    background: #A9AB96;
+}
+
+table {
+    border-style: none;
+    margin: 0;
+}
+
+.impliedRelationship {
+    font-style: italic;
+    text-decoration: underline;
+    color: #183118
+}
+
+.dataTable {
+    font-size: 85%;
+    background-color: #F7F7F7;
+}
+
+.heading {
+    background: #F7F7F7;
+}
+
+.signature {
+    font-size: 105%;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.tableHolder {
+    background-color: #F7F7F7;
+}
+
+a:link {
+    color: #489148;
+}
+
+a:visited {
+    color: #183118;
+}
