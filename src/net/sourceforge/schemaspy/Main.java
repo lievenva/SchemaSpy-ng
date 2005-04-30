@@ -1,10 +1,14 @@
 package net.sourceforge.schemaspy;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -33,7 +37,6 @@ import java.util.jar.JarInputStream;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
-import net.sourceforge.schemaspy.view.CssFormatter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesFormatter;
 import net.sourceforge.schemaspy.view.HtmlConstraintIndexFormatter;
@@ -41,6 +44,7 @@ import net.sourceforge.schemaspy.view.HtmlGraphFormatter;
 import net.sourceforge.schemaspy.view.HtmlMainIndexFormatter;
 import net.sourceforge.schemaspy.view.HtmlTableFormatter;
 import net.sourceforge.schemaspy.view.JavaScriptFormatter;
+import net.sourceforge.schemaspy.view.StyleSheet;
 import net.sourceforge.schemaspy.view.TextFormatter;
 
 public class Main {
@@ -48,7 +52,17 @@ public class Main {
         try {
             List args = new ArrayList(Arrays.asList(argv)); // can't mod the original
             if (args.size() == 0 || args.remove("-h") || args.remove("-?") || args.remove("?") || args.remove("/?")) {
-                dumpUsage(null);
+                dumpUsage(null, false, false);
+                System.exit(1);
+            }
+
+            if (args.remove("-help")) {
+                dumpUsage(null, true, false);
+                System.exit(1);
+            }
+
+            if (args.remove("-dbhelp")) {
+                dumpUsage(null, true, true);
                 System.exit(1);
             }
 
@@ -86,16 +100,25 @@ public class Main {
 
             String user = getParam(args, "-u", true, false);
             String password = getParam(args, "-p", false, false);
-            boolean schemaInSql = false;
             String schema = null;
             try {
-                schemaInSql = Boolean.valueOf(properties.getProperty("schemaInSql")).booleanValue();
                 schema = getParam(args, "-s", false, true).toUpperCase();
             } catch (Exception schemaNotSpecified) {
                 schema = user.toUpperCase();
             }
 
-            ConnectionURLBuilder urlBuilder = new ConnectionURLBuilder(dbType, args, properties);
+            String css = getParam(args, "-css", false, false);
+            if (css == null)
+                css = "schemaSpy.css";
+
+            ConnectionURLBuilder urlBuilder = null;
+            try {
+                urlBuilder = new ConnectionURLBuilder(dbType, args, properties);
+            } catch (IllegalArgumentException badParam) {
+                dumpUsage(badParam.getMessage(), false, true);
+                System.exit(1);
+            }
+
             String dbName = urlBuilder.getDbName().toUpperCase();
 
             if (args.size() != 0) {
@@ -105,6 +128,9 @@ public class Main {
                 }
                 System.out.println();
             }
+
+            if (generateHtml)
+                StyleSheet.init(new BufferedReader(getStyleSheet(css)));
 
             Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), properties, propertiesLoadedFrom.toString());
             DatabaseMetaData meta = connection.getMetaData();
@@ -148,7 +174,7 @@ public class Main {
                 }
 
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.css")));
-                new CssFormatter().write(out);
+                StyleSheet.write(out);
                 out.close();
                 out = new LineWriter(new FileWriter(new File(outputDir, "tables/schemaSpy.js")));
                 new JavaScriptFormatter().write(out);
@@ -235,7 +261,7 @@ public class Main {
         } catch (IllegalArgumentException badParam) {
             System.err.println();
             badParam.printStackTrace();
-            dumpUsage(badParam.getMessage());
+            dumpUsage(badParam.getMessage(), false, false);
         } catch (Exception exc) {
             System.err.println();
             exc.printStackTrace();
@@ -369,38 +395,58 @@ public class Main {
         }
     }
 
-    private static void dumpUsage(String errorMessage) {
+    private static void dumpUsage(String errorMessage, boolean detailed, boolean detailedDb) {
         if (errorMessage != null) {
             System.err.println("*** " + errorMessage + " ***");
-            System.err.println();
-        }
-        System.err.println("SchemaSpy generates an HTML representation of a database's relationships.");
-        System.err.println();
-        System.err.println("It also generates an 'insertionOrder.txt file that is ordered by the database's");
-        System.err.println("referential integrity dependencies and the associated ");
-        System.err.println("remove/restoreRecursiveConstraints.sql files to deal with recursive constraints.");
-        System.err.println();
-        System.err.println("Usage:");
-        System.err.println(" java -jar " + getLoadedFromJar() + " [-t databaseType] -u user -p password -o outputDirectory [-nohtml][-noimplied]");
-
-        System.err.println();
-        System.err.println("Built-in database types and their required connection parameters:");
-        Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
-        for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
-            String dbType = iter.next().toString();
-            Properties properties = add(new Properties(), ResourceBundle.getBundle(dbType));
-            new ConnectionURLBuilder(dbType, null, properties).dumpUsage();
         }
 
-        System.err.println();
-        System.err.println("ora is the default if '-t' is not specified.");
-        System.err.println();
-        System.err.println("You can use your own database types by specifying the filespec of a .properties file with -t.");
-        System.err.println("Grab one out of " + getLoadedFromJar() + " and modify it to suit your needs.");
-        System.err.println();
-        System.err.println("Sample usage using the default database type (implied -t ora):");
-        System.err.println(" java -jar schemaSpy.jar -db epdb -s sonedba -u devuser -p devuser -o output");
-        System.err.println();
+        if (detailed) {
+            System.out.println("SchemaSpy generates an HTML representation of a database's relationships.");
+            System.out.println();
+        }
+
+        if (!detailedDb) {
+            System.out.println("Usage:");
+            System.out.println(" java -jar " + getLoadedFromJar() + " [options]");
+            System.out.println("   -t databaseType       defaults to ora (see -dbhelp)");
+            System.out.println("   -u user");
+            System.out.println("   -p password           defaults to no password");
+            System.out.println("   -o outputDirectory");
+            System.out.println("   -css styleSheet.css   defaults to schemaSpy.css");
+            System.out.println("   -nohtml               defaults to generate html");
+            System.out.println("   -noimplied            defaults to generate implied relationships");
+            System.out.println("   -help                 detailed help");
+            System.out.println("   -dbhelp               display databaseType-specific help");
+            System.out.println();
+        }
+
+        if (!detailed) {
+            System.out.println(" java -jar " + getLoadedFromJar() + " -help to display detailed help");
+            System.out.println();
+        }
+
+        if (detailedDb) {
+            System.out.println("Built-in database types and their required connection parameters:");
+            Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
+            for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
+                String dbType = iter.next().toString();
+                Properties properties = add(new Properties(), ResourceBundle.getBundle(dbType));
+                new ConnectionURLBuilder(dbType, null, properties).dumpUsage();
+            }
+            System.out.println();
+        }
+
+        if (detailed || detailedDb) {
+            System.out.println("You can use your own database types by specifying the filespec of a .properties file with -t.");
+            System.out.println("Grab one out of " + getLoadedFromJar() + " and modify it to suit your needs.");
+            System.out.println();
+        }
+
+        if (detailed) {
+            System.out.println("Sample usage using the default database type (implied -t ora):");
+            System.out.println(" java -jar schemaSpy.jar -db epdb -s sonedba -u devuser -p devuser -o output");
+            System.out.println();
+        }
     }
 
     public static String getLoadedFromJar() {
@@ -412,7 +458,7 @@ public class Main {
         int paramIndex = args.indexOf(paramId);
         if (paramIndex < 0) {
             if (required) {
-                dumpUsage("Parameter '" + paramId + "' missing." + (dbTypeSpecific ? "  It is required for this database type." : ""));
+                dumpUsage("Parameter '" + paramId + "' missing." + (dbTypeSpecific ? "  It is required for this database type." : ""), !dbTypeSpecific, dbTypeSpecific);
                 System.exit(1);
             } else {
                 return null;
@@ -530,5 +576,18 @@ public class Main {
         }
 
         return databaseTypes;
+    }
+
+    private static Reader getStyleSheet(String cssName) throws IOException {
+        File cssFile = new File(cssName);
+        if (cssFile.exists())
+            return new FileReader(cssFile);
+        cssFile = new File(System.getProperty("user.dir"), cssName);
+        if (cssFile.exists())
+            return new FileReader(cssFile);
+        Reader css = new InputStreamReader(StyleSheet.class.getClassLoader().getResourceAsStream(cssName));
+        if (css == null)
+            throw new IllegalStateException("Unable to find requested style sheet: " + cssName);
+        return css;
     }
 }
