@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,13 @@ public class DBAnalyzer {
     }
 
 
+    /**
+     * Returns a <code>List</code> of all of the <code>ForeignKeyConstraint</code>s
+     * used by the specified tables.
+     *
+     * @param tables Collection
+     * @return List
+     */
     public static List getForeignKeyConstraints(Collection tables) {
         List constraints = new ArrayList();
         Iterator iter = tables.iterator();
@@ -119,6 +127,54 @@ public class DBAnalyzer {
         }
 
         return new ArrayList(withoutIndexes);
+    }
+
+    public static List getTablesWithIncrementingColumnNames(Collection tables) {
+        List denormalizedTables = new ArrayList();
+
+        Iterator tableIter = tables.iterator();
+        while (tableIter.hasNext()) {
+            Table table = (Table)tableIter.next();
+            Map columnPrefixes = new HashMap();
+
+            Iterator columnIter = table.getColumns().iterator();
+            while (columnIter.hasNext()) {
+                // search for columns that start with the same prefix
+                // and end in an incrementing number
+                TableColumn column = (TableColumn)columnIter.next();
+
+                String columnName = column.getName();
+                String numbers = null;
+                for (int i = columnName.length() - 1; i > 0; --i) {
+                    if (Character.isDigit(columnName.charAt(i))) {
+                        numbers = String.valueOf(columnName.charAt(i)) + numbers == null ? "" : numbers;
+                    } else {
+                        break;
+                    }
+                }
+
+                // attempt to detect where they had an existing column
+                // and added a "column2" type of column (we'll call this one "1")
+                if (numbers == null) {
+                    numbers = "1";
+                    columnName = columnName + numbers;
+                }
+
+                // see if we've already found a column with the same prefix
+                // that had a numeric suffix +/- 1.
+                String prefix = columnName.substring(0, columnName.length() - numbers.length());
+                long numeric = Long.parseLong(numbers);
+                Long existing = (Long)columnPrefixes.get(prefix);
+                if (existing != null && Math.abs(existing.longValue() - numeric) == 1) {
+                    // found one so add it to our list and stop evaluating this table
+                    denormalizedTables.add(table);
+                    break;
+                }
+                columnPrefixes.put(prefix, new Long(numeric));
+            }
+        }
+
+        return denormalizedTables;
     }
 
     public static List sortColumnsByTable(List columns) {
