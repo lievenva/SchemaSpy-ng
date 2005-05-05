@@ -1,6 +1,7 @@
 package net.sourceforge.schemaspy.model;
 
 import java.io.Serializable;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
@@ -24,6 +25,13 @@ public class TableColumn implements Serializable {
     private final Map parents = new HashMap();
     private final Map children = new TreeMap(new ColumnComparator());
 
+    /**
+     * Create a column associated with a table.
+     *
+     * @param table Table the table that this column belongs to
+     * @param rs ResultSet returned from <code>java.sql.DatabaseMetaData.getColumns()</code>.
+     * @throws SQLException
+     */
     TableColumn(Table table, ResultSet rs) throws SQLException {
         this.table = table;
         name = rs.getString("COLUMN_NAME");
@@ -39,7 +47,7 @@ public class TableColumn implements Serializable {
         }
         detailedSize = buf.toString();
 
-        isNullable = rs.getString("NULLABLE").equalsIgnoreCase("YES");
+        isNullable = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
         defaultValue = rs.getString("COLUMN_DEF");
         id = new Integer(rs.getInt("ORDINAL_POSITION"));
     }
