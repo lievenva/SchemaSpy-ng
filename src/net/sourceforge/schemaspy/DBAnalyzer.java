@@ -9,9 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
@@ -114,11 +112,7 @@ public class DBAnalyzer {
      * Return a list of <code>Table</code>s that have neither an index nor a primary key.
      */
     public static List getTablesWithoutIndexes(Collection tables) {
-        Set withoutIndexes = new TreeSet(new Comparator() {
-            public int compare(Object object1, Object object2) {
-                return ((Table)object1).getName().compareTo(((Table)object2).getName());
-            }
-        });
+        List withoutIndexes = new ArrayList();
 
         for (Iterator tablesIter = tables.iterator(); tablesIter.hasNext(); ) {
             Table table = (Table)tablesIter.next();
@@ -126,7 +120,7 @@ public class DBAnalyzer {
                 withoutIndexes.add(table);
         }
 
-        return new ArrayList(withoutIndexes);
+        return sortTablesByName(withoutIndexes);
     }
 
     public static List getTablesWithIncrementingColumnNames(Collection tables) {
@@ -174,7 +168,30 @@ public class DBAnalyzer {
             }
         }
 
-        return denormalizedTables;
+        return sortTablesByName(denormalizedTables);
+    }
+
+    public static List getTablesWithOneColumn(Collection tables) {
+        List singleColumnTables = new ArrayList();
+
+        Iterator iter = tables.iterator();
+        while (iter.hasNext()) {
+            Table table = (Table)iter.next();
+            if (table.getColumns().size() == 1)
+                singleColumnTables.add(table);
+        }
+
+        return sortTablesByName(singleColumnTables);
+    }
+
+    public static List sortTablesByName(List tables) {
+        Collections.sort(tables, new Comparator() {
+            public int compare(Object object1, Object object2) {
+                return ((Table)object1).getName().compareTo(((Table)object2).getName());
+            }
+        });
+
+        return tables;
     }
 
     public static List sortColumnsByTable(List columns) {
