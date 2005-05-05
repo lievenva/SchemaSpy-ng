@@ -107,6 +107,8 @@ public class Main {
                 schema = user.toUpperCase();
             }
 
+            String classpath = getParam(args, "-cp", false, false);
+
             String css = getParam(args, "-css", false, false);
             if (css == null)
                 css = "schemaSpy.css";
@@ -132,7 +134,12 @@ public class Main {
             if (generateHtml)
                 StyleSheet.init(new BufferedReader(getStyleSheet(css)));
 
-            Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), properties, propertiesLoadedFrom.toString());
+            String driverClass = properties.getProperty("driver");
+            String driverPath = properties.getProperty("driverPath");
+            if (classpath != null)
+                driverPath = classpath + File.pathSeparator + driverPath;
+
+            Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), driverClass, driverPath, propertiesLoadedFrom.toString());
             DatabaseMetaData meta = connection.getMetaData();
 
             if (generateHtml) {
@@ -255,7 +262,7 @@ public class Main {
 
             if (generateHtml) {
                 System.out.println();
-                System.out.println("Wrote table relationship details to directory '" + outputDir + "' in " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
+                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + outputDir + "' in " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
                 System.out.println("Start with " + new File(outputDir, "index.html"));
             }
         } catch (IllegalArgumentException badParam) {
@@ -268,17 +275,17 @@ public class Main {
         }
     }
 
-    private static Connection getConnection(String user, String password, String connectionURL, Properties properties, String propertiesLoadedFrom) throws SQLException, MalformedURLException {
+    private static Connection getConnection(String user, String password, String connectionURL,
+                      String driverClass, String driverPath, String propertiesLoadedFrom) throws SQLException, MalformedURLException {
         System.out.println("Using database properties:");
         System.out.println("    " + propertiesLoadedFrom);
-
-        String driverClass = properties.getProperty("driver");
-        String driverPath = properties.getProperty("driverPath");
 
         List classpath = new ArrayList();
         StringTokenizer tokenizer = new StringTokenizer(driverPath, File.pathSeparator);
         while (tokenizer.hasMoreTokens()) {
-            classpath.add(new File(tokenizer.nextToken()).toURL());
+            File pathElement = new File(tokenizer.nextToken());
+            if (pathElement.exists())
+                classpath.add(pathElement.toURL());
         }
 
         URLClassLoader loader = new URLClassLoader((URL[])classpath.toArray(new URL[0]));
@@ -408,11 +415,15 @@ public class Main {
         if (!detailedDb) {
             System.out.println("Usage:");
             System.out.println(" java -jar " + getLoadedFromJar() + " [options]");
-            System.out.println("   -t databaseType       defaults to ora (see -dbhelp)");
-            System.out.println("   -u user");
+            System.out.println("   -t databaseType       type of database - defaults to ora");
+            System.out.println("                           use -dbhelp for a list of built-in types");
+            System.out.println("   -u user               connect to the database with this user id");
+            System.out.println("   -s schema             defaults to the specified user");
             System.out.println("   -p password           defaults to no password");
-            System.out.println("   -o outputDirectory");
+            System.out.println("   -o outputDirectory    directory to place the generated output in");
             System.out.println("   -css styleSheet.css   defaults to schemaSpy.css");
+            System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
+            System.out.println("                           in driverPath in [databaseType].properties");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
             System.out.println("   -help                 detailed help");
