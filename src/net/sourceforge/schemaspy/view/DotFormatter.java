@@ -36,7 +36,7 @@ public class DotFormatter {
         Set relatedTables = getImmediateRelatives(table, includeImplied, wroteImplied);
 
         formatter.writeNode(table, "", true, true, true, out);
-        Set relationships = formatter.getRelationships(table, includeImplied, new boolean[1]);
+        Set relationships = formatter.getRelationships(table, includeImplied);
         tablesWritten.add(table);
 
         // write immediate relatives first
@@ -126,15 +126,15 @@ public class DotFormatter {
         out.writeln("  ];");
     }
 
-    public int writeRelationships(Collection tables, boolean includeImplied, boolean[] wroteImplied, LineWriter out) throws IOException {
-        return write(tables, false, includeImplied, wroteImplied, out);
+    public int writeRelationships(Collection tables, boolean includeImplied, LineWriter out) throws IOException {
+        return write(tables, false, includeImplied, out);
     }
 
     public int writeOrphans(Collection tables, LineWriter out) throws IOException {
-        return write(tables, true, false, new boolean[1], out);
+        return write(tables, true, false, out);
     }
 
-    private int write(Collection tables, boolean onlyOrphans, boolean includeImplied, boolean[] wroteImplied, LineWriter out) throws IOException {
+    private int write(Collection tables, boolean onlyOrphans, boolean includeImplied, LineWriter out) throws IOException {
         DotTableFormatter formatter = new DotTableFormatter();
         int numWritten = 0;
         writeDotHeader(includeImplied ? "allRelationshipsGraph" : "realRelationshipsGraph", out);
@@ -155,7 +155,7 @@ public class DotFormatter {
             iter = tables.iterator();
 
             while (iter.hasNext())
-                relationships.addAll(formatter.getRelationships((Table)iter.next(), includeImplied, wroteImplied));
+                relationships.addAll(formatter.getRelationships((Table)iter.next(), includeImplied));
 
             iter = relationships.iterator();
             while (iter.hasNext())

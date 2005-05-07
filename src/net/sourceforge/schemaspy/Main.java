@@ -192,13 +192,13 @@ public class Main {
                 graphsDir.mkdir();
                 String dotBaseFilespec = "relationships_";
                 out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".dot")));
-                boolean showRelationships = new DotFormatter().writeRelationships(tables, false, new boolean[1], out) > 0;
+                boolean showRelationships = new DotFormatter().writeRelationships(tables, false, out) > 0;
                 out.close();
 
                 if (showRelationships) {
                     if (hasImplied) {
                         out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_all_.dot")));
-                        new DotFormatter().writeRelationships(tables, true, new boolean[1], out);
+                        new DotFormatter().writeRelationships(tables, true, out);
                         out.close();
                     }
 
