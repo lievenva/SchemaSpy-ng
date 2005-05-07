@@ -171,19 +171,20 @@ public class Main {
                 else
                     impliedConstraints = new ArrayList();
 
+                boolean hasImplied = false;
                 HtmlTableFormatter tableFormatter = new HtmlTableFormatter();
                 for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
-                    tableFormatter.write(db, table, outputDir, out);
+                    hasImplied |= tableFormatter.write(db, table, outputDir, out);
                     out.close();
                 }
 
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.css")));
                 StyleSheet.write(out);
                 out.close();
-                out = new LineWriter(new FileWriter(new File(outputDir, "tables/schemaSpy.js")));
+                out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.js")));
                 new JavaScriptFormatter().write(out);
                 out.close();
 
@@ -191,12 +192,18 @@ public class Main {
                 graphsDir.mkdir();
                 String dotBaseFilespec = "relationships_";
                 out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".dot")));
-                boolean showRelationships = new DotFormatter().writeRelationships(tables, out) > 0;
+                boolean showRelationships = new DotFormatter().writeRelationships(tables, false, new boolean[1], out) > 0;
                 out.close();
 
                 if (showRelationships) {
+                    if (hasImplied) {
+                        out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_all_.dot")));
+                        new DotFormatter().writeRelationships(tables, true, new boolean[1], out);
+                        out.close();
+                    }
+
                     out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    showRelationships = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, out);
+                    showRelationships = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, hasImplied, out);
                     out.close();
                 }
 
@@ -207,7 +214,7 @@ public class Main {
 
                 if (showOrphans) {
                     out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    showOrphans = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, out);
+                    showOrphans = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, false, out);
                     out.close();
                 }
 

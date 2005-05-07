@@ -23,19 +23,20 @@ public class DotFormatter {
      * @param table Table
      * @param out LineWriter
      * @throws IOException
-     * @return int
+     * @return boolean <code>true</code> if implied relationships were written
      */
-    public void writeRelationships(Table table, LineWriter out) throws IOException {
+    public boolean writeRelationships(Table table, boolean includeImplied, LineWriter out) throws IOException {
         Set tablesWritten = new HashSet();
+        boolean[] wroteImplied = new boolean[1];
 
         DotTableFormatter formatter = new DotTableFormatter();
 
-        writeDotHeader(out);
+        writeDotHeader(includeImplied ? "allRelationshipsGraph" : "realRelationshipsGraph", out);
 
-        Set relatedTables = getImmediateRelatives(table);
+        Set relatedTables = getImmediateRelatives(table, includeImplied, wroteImplied);
 
         formatter.writeNode(table, "", true, true, true, out);
-        Set relationships = formatter.getRelationships(table);
+        Set relationships = formatter.getRelationships(table, includeImplied, new boolean[1]);
         tablesWritten.add(table);
 
         // write immediate relatives first
@@ -46,21 +47,21 @@ public class DotFormatter {
                 continue; // already written
 
             formatter.writeNode(relatedTable, "", true, false, false, out);
-            relationships.addAll(formatter.getRelationships(relatedTable, table));
+            relationships.addAll(formatter.getRelationships(relatedTable, table, includeImplied));
         }
 
         // next write 'cousins' (2nd degree of separation)
         iter = relatedTables.iterator();
         while (iter.hasNext()) {
             Table relatedTable = (Table)iter.next();
-            Set cousins = getImmediateRelatives(relatedTable);
+            Set cousins = getImmediateRelatives(relatedTable, includeImplied, wroteImplied);
 
             Iterator cousinsIter = cousins.iterator();
             while (cousinsIter.hasNext()) {
                 Table cousin = (Table)cousinsIter.next();
                 if (!tablesWritten.add(cousin))
                     continue; // already written
-                relationships.addAll(formatter.getRelationships(cousin, relatedTable));
+                relationships.addAll(formatter.getRelationships(cousin, relatedTable, includeImplied));
                 formatter.writeNode(cousin, "", false, false, false, out);
             }
         }
@@ -70,15 +71,33 @@ public class DotFormatter {
             out.writeln(iter.next().toString());
 
         out.writeln("}");
+        return wroteImplied[0];
     }
 
-    private Set getImmediateRelatives(Table table) {
+    /**
+     * I have having to use an array of one boolean to return another value...ugh
+     */
+    private Set getImmediateRelatives(Table table, boolean includeImplied, boolean[] foundImplied) {
         Set relatedColumns = new HashSet();
         Iterator iter = table.getColumns().iterator();
         while (iter.hasNext()) {
             TableColumn column = (TableColumn)iter.next();
-            relatedColumns.addAll(column.getChildren());
-            relatedColumns.addAll(column.getParents());
+            Iterator childIter = column.getChildren().iterator();
+            while (childIter.hasNext()) {
+                TableColumn childColumn = (TableColumn)childIter.next();
+                boolean implied = column.getChildConstraint(childColumn).isImplied();
+                foundImplied[0] |= implied;
+                if (!implied || includeImplied)
+                    relatedColumns.add(childColumn);
+            }
+            Iterator parentIter = column.getParents().iterator();
+            while (parentIter.hasNext()) {
+                TableColumn parentColumn = (TableColumn)parentIter.next();
+                boolean implied = column.getParentConstraint(parentColumn).isImplied();
+                foundImplied[0] |= implied;
+                if (!implied || includeImplied)
+                    relatedColumns.add(parentColumn);
+            }
         }
 
         Set relatedTables = new HashSet();
@@ -94,8 +113,8 @@ public class DotFormatter {
     }
 
 
-    private void writeDotHeader(LineWriter out) throws IOException {
-        out.writeln("digraph tables {");
+    private void writeDotHeader(String name, LineWriter out) throws IOException {
+        out.writeln("digraph " + name + " {");
         out.writeln("  graph [");
         out.writeln("    rankdir=\"RL\"");
         out.writeln("    bgcolor=\"" + StyleSheet.getBodyBackground() + "\"");
@@ -107,24 +126,24 @@ public class DotFormatter {
         out.writeln("  ];");
     }
 
-    public int writeRelationships(Collection tables, LineWriter out) throws IOException {
-        return write(tables, false, out);
+    public int writeRelationships(Collection tables, boolean includeImplied, boolean[] wroteImplied, LineWriter out) throws IOException {
+        return write(tables, false, includeImplied, wroteImplied, out);
     }
 
     public int writeOrphans(Collection tables, LineWriter out) throws IOException {
-        return write(tables, true, out);
+        return write(tables, true, false, new boolean[1], out);
     }
 
-    private int write(Collection tables, boolean onlyOrphans, LineWriter out) throws IOException {
+    private int write(Collection tables, boolean onlyOrphans, boolean includeImplied, boolean[] wroteImplied, LineWriter out) throws IOException {
         DotTableFormatter formatter = new DotTableFormatter();
         int numWritten = 0;
-        writeDotHeader(out);
+        writeDotHeader(includeImplied ? "allRelationshipsGraph" : "realRelationshipsGraph", out);
 
         Iterator iter = tables.iterator();
 
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
-            boolean isOrphan = table.getMaxParents() == 0 && table.getMaxChildren() == 0;
+            boolean isOrphan = table.isOrphan(includeImplied);
             if (onlyOrphans && isOrphan || !onlyOrphans && !isOrphan) {
                 formatter.writeNode(table, "tables/", true, false, onlyOrphans && isOrphan, out);
                 ++numWritten;
@@ -136,7 +155,7 @@ public class DotFormatter {
             iter = tables.iterator();
 
             while (iter.hasNext())
-                relationships.addAll(formatter.getRelationships((Table)iter.next()));
+                relationships.addAll(formatter.getRelationships((Table)iter.next(), includeImplied, wroteImplied));
 
             iter = relationships.iterator();
             while (iter.hasNext())

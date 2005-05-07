@@ -481,6 +481,35 @@ public class Table implements Serializable {
         }
     }
 
+    /**
+     * isOrphan
+     *
+     * @param withImpliedRelationships boolean
+     * @return boolean
+     */
+    public boolean isOrphan(boolean withImpliedRelationships) {
+        if (withImpliedRelationships)
+            return getMaxParents() == 0 && getMaxChildren() == 0;
+
+        Iterator iter = getColumns().iterator();
+        while (iter.hasNext()) {
+            TableColumn column = (TableColumn)iter.next();
+            Iterator parentIter = column.getParents().iterator();
+            while (parentIter.hasNext()) {
+                TableColumn parentColumn = (TableColumn)parentIter.next();
+                if (!column.getParentConstraint(parentColumn).isImplied())
+                    return false;
+            }
+            Iterator childIter = column.getChildren().iterator();
+            while (childIter.hasNext()) {
+                TableColumn childColumn = (TableColumn)childIter.next();
+                if (!column.getChildConstraint(childColumn).isImplied())
+                    return false;
+            }
+        }
+        return true;
+    }
+
     private static class ByIndexColumnComparator implements Comparator, Serializable {
 	public int compare(Object object1, Object object2) {
 	    TableColumn column1 = (TableColumn)object1;
