@@ -28,9 +28,9 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             html.write(table.getName());
             html.write("'>Close relationships:</b>");
             if (hasImpliedRelationships) {
-                html.writeln("<form action=''");
-                html.writeln("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('../graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
-                html.writeln("  Include implied");
+                html.writeln("<form action=''>");
+                html.write("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('../graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
+                html.writeln("Include implied");
                 html.writeln("</form>");
             } else {
                 html.writeln("<br/>");
@@ -133,8 +133,8 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.writeln("<br/><a href='index.html'>Tables</a>");
         if (hasImpliedRelationships) {
             html.writeln("<p/><form action=''>");
-            html.writeln("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('graphs/summary/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('graphs/summary/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
-            html.writeln("  Include implied relationships");
+            html.write("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('graphs/summary/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('graphs/summary/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
+            html.writeln("Include implied relationships");
             html.writeln("</form>");
         }
 
