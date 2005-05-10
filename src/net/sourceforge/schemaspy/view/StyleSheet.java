@@ -2,7 +2,9 @@ package net.sourceforge.schemaspy.view;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import net.sourceforge.schemaspy.LineWriter;
@@ -15,6 +17,7 @@ public class StyleSheet {
     private static String primaryKeyBackgroundColor;
     private static String indexedColumnBackgroundColor;
     private static String selectedTableBackgroundColor;
+    private static final List ids = new ArrayList();
 
     public static void init(BufferedReader cssReader) throws IOException {
         String lineSeparator = System.getProperty("line.separator");
@@ -41,6 +44,7 @@ public class StyleSheet {
             String token = tokenizer.nextToken().trim();
             if (id == null) {
                 id = token.toLowerCase();
+                ids.add(id);
             } else {
                 Map attribs = parseAttributes(token);
                 if (id.equals("body"))
@@ -99,5 +103,12 @@ public class StyleSheet {
 
     public static String getSelectedTableBackground() {
         return selectedTableBackgroundColor;
+    }
+
+    public static int getOffsetOf(String id) {
+        int offset = ids.indexOf(id.toLowerCase());
+        if (offset == -1)
+            throw new IllegalArgumentException(id);
+        return offset;
     }
 }

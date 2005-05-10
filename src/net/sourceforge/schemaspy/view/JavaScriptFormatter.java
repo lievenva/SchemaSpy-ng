@@ -54,6 +54,13 @@ public class JavaScriptFormatter {
         out.writeln("      graphType.click();");
         out.writeln("    }");
         out.writeln("  }");
+        out.writeln("  var removeImpliedOrphans = document.getElementById('removeImpliedOrphans');");
+        out.writeln("  if (removeImpliedOrphans) {");
+        out.writeln("    if (removeImpliedOrphans.checked) {");
+        out.writeln("      removeImpliedOrphans.checked=false;");
+        out.writeln("      removeImpliedOrphans.click();");
+        out.writeln("    }");
+        out.writeln("  }");
         out.writeln("}");
     }
 }

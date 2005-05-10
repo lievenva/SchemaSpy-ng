@@ -88,6 +88,20 @@ public class DBAnalyzer {
         return constraints;
     }
 
+    public static List getOrphans(Collection tables, boolean includeImplied) {
+        List orphans = new ArrayList();
+
+        Iterator iter = tables.iterator();
+        while (iter.hasNext()) {
+            Table table = (Table)iter.next();
+            if (table.isOrphan(includeImplied)) {
+                orphans.add(table);
+            }
+        }
+
+        return sortTablesByName(orphans);
+    }
+
     /**
      * Return a list of <code>TableColumn</code>s that are both nullable
      * and have an index that specifies that they must be unique (a rather strange combo).

@@ -1,18 +1,3 @@
-/* these three entries must be first and in this order or toggling visibility won't work */
-.legend {
-    text-align: left;
-}
-
-.tableKey {
-    display: none;
-    text-align: right;
-}
-
-.constraint {
-    display: none;
-    text-align: right;
-}
-
 /* required colors MUST be specified in RGB hex notation or the graphs won't have correct colors */
 
 /* background-color must be specified for body to propagate into graphs */
@@ -80,6 +65,23 @@ table {
 
 .tableHolder {
     background-color: #F7F7F7;
+}
+
+.legend {
+    text-align: left;
+}
+
+.tableKey {
+    display: none;
+    text-align: right;
+}
+
+.constraint {
+    display: none;
+    text-align: right;
+}
+
+.impliedNotOrphan {
 }
 
 a:link {

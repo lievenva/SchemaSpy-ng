@@ -1,7 +1,12 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import net.sourceforge.schemaspy.LineWriter;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
@@ -9,7 +14,7 @@ import net.sourceforge.schemaspy.model.Table;
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static boolean printedNoDotWarning = false;
 
-    public boolean write(Table table, File graphDir, boolean hasImpliedRelationships, LineWriter out) {
+    public boolean write(Table table, File graphDir, boolean hasImpliedRelationships, LineWriter html) {
         File dotFile = new File(graphDir, table.getName() + ".dot");
         File allDotFile = new File(graphDir, table.getName() + "_all_.dot");
         File graphFile = new File(graphDir, table.getName() + ".png");
@@ -19,23 +24,23 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             if (!DotRunner.generateGraph(dotFile, graphFile))
                 return false;
 
-            out.write("<br/><b title='Tables/views within two degrees of separation from ");
-            out.write(table.getName());
-            out.write("'>Close relationships:</b>");
+            html.write("<br/><b title='Tables/views within two degrees of separation from ");
+            html.write(table.getName());
+            html.write("'>Close relationships:</b>");
             if (hasImpliedRelationships) {
-                out.writeln("<form action=''");
-                out.writeln("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('../graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
-                out.writeln("  Include implied");
-                out.writeln("</form>");
+                html.writeln("<form action=''");
+                html.writeln("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('../graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
+                html.writeln("  Include implied");
+                html.writeln("</form>");
             } else {
-                out.writeln("<br/>");
+                html.writeln("<br/>");
             }
 
-            out.writeln("  <a name='graph'><img src=\"../graphs/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
-            DotRunner.writeMap(dotFile, out);
+            html.writeln("  <a name='graph'><img src=\"../graphs/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
+            DotRunner.writeMap(dotFile, html);
             if (hasImpliedRelationships) {
                 DotRunner.generateGraph(allDotFile, allGraphFile);
-                DotRunner.writeMap(allDotFile, out);
+                DotRunner.writeMap(allDotFile, html);
             }
         } catch (IOException noDot) {
             printNoDotWarning();
@@ -45,7 +50,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         return true;
     }
 
-    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasImpliedRelationships, LineWriter out) throws IOException {
+    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         File dotFile = new File(graphDir, dotBaseFilespec + ".dot");
         File graphFile = new File(graphDir, dotBaseFilespec + ".png");
         File allDotFile = new File(graphDir, dotBaseFilespec + "_all_.dot");
@@ -55,16 +60,16 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             if (!DotRunner.generateGraph(dotFile, graphFile))
                 return false;
 
-            writeHeader(db, graphFile, allGraphFile, hasImpliedRelationships, out);
-            out.writeln("  <a name='graph'><img src=\"graphs/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
-            DotRunner.writeMap(dotFile, out);
+            writeRelationshipsHeader(db, graphFile, allGraphFile, "Relationships Graph", hasImpliedRelationships, html);
+            html.writeln("  <a name='graph'><img src=\"graphs/summary/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
+            DotRunner.writeMap(dotFile, html);
 
             if (hasImpliedRelationships) {
                 DotRunner.generateGraph(allDotFile, allGraphFile);
-                DotRunner.writeMap(allDotFile, out);
+                DotRunner.writeMap(allDotFile, html);
             }
 
-            writeFooter(out);
+            writeFooter(html);
         } catch (IOException noDot) {
             printNoDotWarning();
             return false;
@@ -73,20 +78,85 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         return true;
     }
 
-    private void writeHeader(Database db, File graphFile, File allGraphFile, boolean hasImpliedRelationships, LineWriter out) throws IOException {
-        writeHeader(db, null, "Graphical View", out);
-        out.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        out.writeln("<br/><a href='index.html'>Tables</a>");
-        if (hasImpliedRelationships) {
-            out.writeln("<p/><form action=''>");
-            out.writeln("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
-            out.writeln("  Include implied relationships");
-            out.writeln("</form>");
+    public boolean writeOrphans(Database db, List orphanTables, File graphDir, LineWriter html) throws IOException {
+        Set orphansWithImpliedRelationships = new HashSet();
+        Iterator iter = orphanTables.iterator();
+        while (iter.hasNext()) {
+            Table table = (Table)iter.next();
+            if (!table.isOrphan(true)){
+                orphansWithImpliedRelationships.add(table);
+            }
         }
 
-        out.writeln("<td class='tableHolder' align='right' valign='top'>");
-        writeLegend(false, out);
-        out.writeln("</td></tr></table>");
+        writeOrphansHeader(db, "Utility Tables Graph", !orphansWithImpliedRelationships.isEmpty(), html);
+
+        html.writeln("<a name='graph'>");
+        try {
+            iter = orphanTables.iterator();
+            while (iter.hasNext()) {
+                Table table = (Table)iter.next();
+                String dotBaseFilespec = table.getName();
+
+                File dotFile = new File(graphDir, dotBaseFilespec + ".dot");
+                File graphFile = new File(graphDir, dotBaseFilespec + ".png");
+
+                LineWriter dot = new LineWriter(new FileWriter(dotFile));
+                new DotFormatter().writeOrphan(table, dot);
+                dot.close();
+                if (!DotRunner.generateGraph(dotFile, graphFile))
+                    return false;
+                html.write("  <img src=\"graphs/summary/" + graphFile.getName() + "\" usemap=\"#" + table + "\" border=\"0\" alt=\"\" align=\"top\"");
+                if (orphansWithImpliedRelationships.contains(table))
+                    html.write(" class='impliedNotOrphan'");
+                html.writeln(">");
+            }
+
+            iter = orphanTables.iterator();
+            while (iter.hasNext()) {
+                Table table = (Table)iter.next();
+                String dotBaseFilespec = table.getName();
+
+                File dotFile = new File(graphDir, dotBaseFilespec + ".dot");
+                DotRunner.writeMap(dotFile, html);
+            }
+
+            return true;
+        } finally {
+            html.writeln("</a>");
+            writeFooter(html);
+        }
+    }
+
+    private void writeRelationshipsHeader(Database db, File graphFile, File allGraphFile, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+        writeHeader(db, null, title, html);
+        html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
+        html.writeln("<br/><a href='index.html'>Tables</a>");
+        if (hasImpliedRelationships) {
+            html.writeln("<p/><form action=''>");
+            html.writeln("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
+            html.writeln("  Include implied relationships");
+            html.writeln("</form>");
+        }
+
+        html.writeln("<td class='tableHolder' align='right' valign='top'>");
+        writeLegend(false, html);
+        html.writeln("</td></tr></table>");
+    }
+
+    private void writeOrphansHeader(Database db, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+        writeHeader(db, null, title, html);
+        html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
+        html.writeln("<br/><a href='index.html'>Tables</a>");
+        if (hasImpliedRelationships) {
+            html.writeln("<p/><form action=''>");
+            html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");
+            html.writeln("  Hide tables with implied relationships");
+            html.writeln("</form>");
+        }
+
+        html.writeln("<td class='tableHolder' align='right' valign='top'>");
+        writeLegend(false, html);
+        html.writeln("</td></tr></table>");
     }
 
     private void printNoDotWarning() {

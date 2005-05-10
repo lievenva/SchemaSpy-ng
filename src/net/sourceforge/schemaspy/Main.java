@@ -67,6 +67,8 @@ public class Main {
             }
 
             long start = System.currentTimeMillis();
+            long startGraphing = start;
+            long startSummarizing = start;
 
             // allow '=' in param specs
             args = fixupArgs(args);
@@ -82,15 +84,10 @@ public class Main {
                 }
             }
 
-            File tablesDir = new File(outputDir, "tables");
-            if (generateHtml && !tablesDir.isDirectory()) {
-                if (!tablesDir.mkdir()) {
-                    System.err.println("Failed to create directory '" + tablesDir + "'");
-                    System.exit(2);
-                }
+            if (generateHtml) {
+                new File(outputDir, "tables").mkdir();
+                new File(outputDir, "graphs/summary").mkdirs();
             }
-
-            new File(outputDir, "graphs").mkdir();
 
             String dbType = getParam(args, "-t", false, false);
             if (dbType == null)
@@ -160,7 +157,8 @@ public class Main {
 
             if (generateHtml) {
                 List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
-                System.out.println();
+                startGraphing = System.currentTimeMillis();
+                System.out.println("(" + (startGraphing - start) / 1000 + "sec)");
                 System.out.print("Writing/graphing results");
 
                 // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
@@ -174,7 +172,6 @@ public class Main {
                 boolean hasImplied = false;
                 HtmlTableFormatter tableFormatter = new HtmlTableFormatter();
                 for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
-                    System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
                     hasImplied |= tableFormatter.write(db, table, outputDir, out);
@@ -188,14 +185,19 @@ public class Main {
                 new JavaScriptFormatter().write(out);
                 out.close();
 
-                File graphsDir = new File(outputDir, "graphs");
-                graphsDir.mkdir();
+                startSummarizing = System.currentTimeMillis();
+                System.out.println("(" + (startSummarizing - startGraphing) / 1000 + "sec)");
+                System.out.print("Writing/graphing summary");
+                System.out.print(".");
+
+                File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships_";
                 out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".dot")));
                 boolean showRelationships = new DotFormatter().writeRelationships(tables, false, out) > 0;
                 out.close();
 
                 if (showRelationships) {
+                    System.out.print(".");
                     if (hasImplied) {
                         out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_all_.dot")));
                         new DotFormatter().writeRelationships(tables, true, out);
@@ -207,28 +209,25 @@ public class Main {
                     out.close();
                 }
 
+                System.out.print(".");
                 dotBaseFilespec = "utilities_";
-                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".dot")));
-                boolean showOrphans = new DotFormatter().writeOrphans(tables, out) > 0;
+                out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
+                boolean showOrphans = new HtmlGraphFormatter().writeOrphans(db, DBAnalyzer.getOrphans(tables, false), graphsDir, out);
                 out.close();
 
-                if (showOrphans) {
-                    out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    showOrphans = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, false, out);
-                    out.close();
-                }
-
+                System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
                 HtmlMainIndexFormatter indexFormatter = new HtmlMainIndexFormatter();
                 indexFormatter.write(db, tables, showRelationships, showOrphans, out);
                 out.close();
 
+                System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "constraintIndex.html")), 256 * 1024);
                 HtmlConstraintIndexFormatter constraintIndexFormatter = new HtmlConstraintIndexFormatter();
                 constraintIndexFormatter.write(db, constraints, tables, out);
                 out.close();
 
-                new File(outputDir, "anomolies.html").delete(); // oops...mis-spelled it
+                System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
                 HtmlAnomaliesFormatter anomaliesFormatter = new HtmlAnomaliesFormatter();
                 anomaliesFormatter.write(db, tables, impliedConstraints, out);
@@ -268,8 +267,9 @@ public class Main {
 //            }
 
             if (generateHtml) {
-                System.out.println();
-                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + outputDir + "' in " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
+                long end = System.currentTimeMillis();
+                System.out.println("(" + (end - startSummarizing) / 1000 + "sec)");
+                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + outputDir + "' in " + (end - start) / 1000 + " seconds.");
                 System.out.println("Start with " + new File(outputDir, "index.html"));
             }
         } catch (IllegalArgumentException badParam) {

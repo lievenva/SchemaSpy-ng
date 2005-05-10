@@ -1,11 +1,14 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import net.sourceforge.schemaspy.DBAnalyzer;
 import net.sourceforge.schemaspy.LineWriter;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
@@ -127,14 +130,6 @@ public class DotFormatter {
     }
 
     public int writeRelationships(Collection tables, boolean includeImplied, LineWriter out) throws IOException {
-        return write(tables, false, includeImplied, out);
-    }
-
-    public int writeOrphans(Collection tables, LineWriter out) throws IOException {
-        return write(tables, true, false, out);
-    }
-
-    private int write(Collection tables, boolean onlyOrphans, boolean includeImplied, LineWriter out) throws IOException {
         DotTableFormatter formatter = new DotTableFormatter();
         int numWritten = 0;
         writeDotHeader(includeImplied ? "allRelationshipsGraph" : "realRelationshipsGraph", out);
@@ -143,27 +138,31 @@ public class DotFormatter {
 
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
-            boolean isOrphan = table.isOrphan(includeImplied);
-            if (onlyOrphans && isOrphan || !onlyOrphans && !isOrphan) {
-                formatter.writeNode(table, "tables/", true, false, onlyOrphans && isOrphan, out);
+            if (!table.isOrphan(includeImplied)) {
+                formatter.writeNode(table, "tables/", true, false, false, out);
                 ++numWritten;
             }
         }
 
-        if (!onlyOrphans) { // orphans don't have relationships so don't even try
-            Set relationships = new TreeSet();
-            iter = tables.iterator();
+        Set relationships = new TreeSet();
+        iter = tables.iterator();
 
-            while (iter.hasNext())
-                relationships.addAll(formatter.getRelationships((Table)iter.next(), includeImplied));
+        while (iter.hasNext())
+            relationships.addAll(formatter.getRelationships((Table)iter.next(), includeImplied));
 
-            iter = relationships.iterator();
-            while (iter.hasNext())
-                out.writeln(iter.next().toString());
-        }
+        iter = relationships.iterator();
+        while (iter.hasNext())
+            out.writeln(iter.next().toString());
 
         out.writeln("}");
 
         return numWritten;
+    }
+
+    public void writeOrphan(Table table, LineWriter dot) throws IOException {
+        DotTableFormatter formatter = new DotTableFormatter();
+        writeDotHeader(table.getName(), dot);
+        formatter.writeNode(table, "tables/", true, false, true, dot);
+        dot.writeln("}");
     }
 }
