@@ -20,10 +20,7 @@ public class HtmlFormatter {
         out.writeln("  <META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=ISO-8859-1'>");
         out.writeln("  <SCRIPT LANGUAGE='JavaScript' TYPE='text/javascript' SRC='" + (table == null ? "" : "../") + "schemaSpy.js'></SCRIPT>");
         out.writeln("</HEAD>");
-//        if (table != null)
-            out.writeln("<BODY onload='syncOptions()'>");
-//        else
-//            out.writeln("<BODY>");
+        out.writeln("<BODY onload='syncOptions()'>");
         out.writeln("<table width='100%'>");
         out.writeln(" <tr>");
         out.write("  <td class='heading' valign='top'><h1>");
@@ -78,20 +75,17 @@ public class HtmlFormatter {
     }
 
     protected void writeLegend(boolean tableDetails, LineWriter out) throws IOException {
-        out.write(" <table border='0' ");
-        if (tableDetails)
-            out.write("class='legend' ");
-        out.writeln("style='text-align: left;'>");
+        out.writeln(" <table class='legend' border='0'>");
         out.writeln("  <tr><td class='dataTable'>Legend:</td></tr>");
         out.writeln("  <tr><td>");
-        out.writeln("   <table border='1' style='text-align: left;'>");
+        out.writeln("   <table class='dataTable' border='1'>");
         out.writeln("    <tbody>");
-        out.writeln("    <tr class='dataTable'><td class='primaryKey'>Primary key columns</td></tr>");
-        out.writeln("    <tr class='dataTable'><td class='indexedColumn'>Columns with indexes</td></tr>");
+        out.writeln("    <tr><td class='primaryKey'>Primary key columns</td></tr>");
+        out.writeln("    <tr><td class='indexedColumn'>Columns with indexes</td></tr>");
         if (tableDetails)
-            out.writeln("    <tr class='dataTable'><td class='impliedRelationship'>Implied relationships</tr>");
-        out.writeln("    <tr class='dataTable'><td class='tableHolder'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
-        out.writeln("    <tr class='dataTable'><td class='tableHolder'>Dashed arrows represent" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
+            out.writeln("    <tr class='impliedRelationship'><td>Implied relationships</td></tr>");
+        out.writeln("    <tr><td class='tableHolder'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
+        out.writeln("    <tr><td class='tableHolder'>Dashed arrows represent" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
         out.writeln("   </table>");
         out.writeln("  </td></tr>");
         out.writeln(" </table>");

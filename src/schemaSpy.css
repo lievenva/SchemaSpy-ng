@@ -43,6 +43,7 @@ table {
 }
 
 .impliedRelationship {
+    display: none;
     font-style: italic;
     text-decoration: underline;
     color: #183118

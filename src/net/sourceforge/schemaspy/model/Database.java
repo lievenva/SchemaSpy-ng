@@ -78,7 +78,6 @@ public class Database {
 
             rs = metadata.getTables(null, schema, "%", types);
 
-            System.err.println("maxThreads:" + maxThreads);
             TableCreator creator;
             if (maxThreads == 1) {
                 creator = new TableCreator();

@@ -26,15 +26,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
 
             html.write("<br/><b title='Tables/views within two degrees of separation from ");
             html.write(table.getName());
-            html.write("'>Close relationships:</b>");
-            if (hasImpliedRelationships) {
-                html.writeln("<form action=''>");
-                html.write("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('../graphs/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
-                html.writeln("Include implied");
-                html.writeln("</form>");
-            } else {
-                html.writeln("<br/>");
-            }
+            html.write("'>Close relationships:</b><br/>");
 
             html.writeln("  <a name='graph'><img src=\"../graphs/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
             DotRunner.writeMap(dotFile, html);
