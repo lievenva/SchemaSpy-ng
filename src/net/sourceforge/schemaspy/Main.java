@@ -37,6 +37,7 @@ import java.util.jar.JarInputStream;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.ConnectionURLBuilder;
 import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesFormatter;
