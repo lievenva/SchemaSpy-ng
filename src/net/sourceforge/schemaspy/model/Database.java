@@ -2,20 +2,23 @@ package net.sourceforge.schemaspy.model;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Properties;
-import java.sql.PreparedStatement;
+import java.util.Set;
 
 public class Database {
-    private final String name;
+    private final String databaseName;
     private final String schema;
     private final Map tables = new HashMap();
     private final Map views = new HashMap();
@@ -23,18 +26,18 @@ public class Database {
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties) throws SQLException, MissingResourceException {
+    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, int maxThreads) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
-        this.name = name;
+        this.databaseName = name;
         this.schema = schema;
-        initTables(schema, this.meta, properties);
+        initTables(schema, this.meta, properties, maxThreads);
         initViews(schema, this.meta, connection, properties);
         connectTables(this.meta);
     }
 
     public String getName() {
-        return name;
+        return databaseName;
     }
 
     public String getSchema() {
@@ -65,18 +68,35 @@ public class Database {
         }
     }
 
-    private void initTables(String schema, DatabaseMetaData metadata, Properties properties) throws SQLException {
+    private void initTables(String schema, final DatabaseMetaData metadata, final Properties properties, final int maxThreads) throws SQLException {
         String[] types = {"TABLE"};
         ResultSet rs = null;
 
         try {
+            // creating tables takes a LONG time (based on JProbe analysis).
+            // it's actually DatabaseMetaData.getIndexInfo() that's the pig.
+
             rs = metadata.getTables(null, schema, "%", types);
 
-            while (rs.next()) {
-                System.out.print('.');
-                Table table = new Table(this, rs, metadata, properties);
-                tables.put(table.getName().toUpperCase(), table);
+            System.err.println("maxThreads:" + maxThreads);
+            TableCreator creator;
+            if (maxThreads == 1) {
+                creator = new TableCreator();
+            } else {
+                creator = new ThreadedTableCreator(maxThreads);
+
+                // "prime the pump" so if there's a database problem we'll probably see it now
+                // and not in a secondary thread
+                if (rs.next()) {
+                    new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                }
             }
+
+            while (rs.next()) {
+                creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+            }
+
+            creator.join();
         } finally {
             if (rs != null)
                 rs.close();
@@ -153,6 +173,101 @@ public class Database {
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
             table.connectForeignKeys(tables, metadata);
+        }
+    }
+
+    /**
+     * Single-threaded implementation of a class that creates tables
+     */
+    private class TableCreator {
+        /**
+         * Create a table and put it into <code>tables</code>
+         */
+        void create(String schemaName, String tableName, Properties properties) throws SQLException {
+            createImpl(schemaName, tableName, properties);
+        }
+
+        protected void createImpl(String schemaName, String tableName, Properties properties) throws SQLException {
+            Table table = new Table(Database.this, schemaName, tableName, meta, properties);
+            tables.put(table.getName().toUpperCase(), table);
+            System.out.print('.');
+        }
+
+        /**
+         * Wait for all of the tables to be created.
+         * By default this does nothing since this implementation isn't threaded.
+         */
+        void join() {
+        }
+    }
+
+    /**
+     * Multi-threaded implementation of a class that creates tables
+     */
+    private class ThreadedTableCreator extends TableCreator {
+        final Set threads = Collections.synchronizedSet(new HashSet());
+        final int maxThreads;
+
+        // local alias that's thread safe while this method is running
+        final Map threadSafeTables = Collections.synchronizedMap(tables);
+
+        ThreadedTableCreator(int maxThreads) {
+            this.maxThreads = maxThreads;
+        }
+
+        void create(final String schemaName, final String tableName, final Properties properties) throws SQLException {
+            // wait for enough 'room'
+            while (threads.size() >= maxThreads) {
+                synchronized (threads) {
+                    try {
+                        threads.wait();
+                    } catch (InterruptedException interrupted) {
+                    }
+                }
+            }
+
+            Thread runner = new Thread() {
+                public void run() {
+                    try {
+                        createImpl(schemaName, tableName, properties);
+                    } catch (SQLException exc) {
+                        exc.printStackTrace();
+
+                        // wrapping exceptions weren't introduced 'til 1.4...can't require that yet
+                        throw new RuntimeException(exc.toString());
+                    } finally {
+                        synchronized (threads) {
+                            threads.remove(this);
+                            threads.notify();
+                        }
+                    }
+                }
+            };
+
+            threads.add(runner);
+            runner.start();
+        }
+
+        /**
+         * Wait for all the started threads to complete
+         */
+        public void join() {
+            while (true) {
+                Thread thread;
+
+                synchronized (threads) {
+                    Iterator iter = threads.iterator();
+                    if (!iter.hasNext())
+                        break;
+
+                    thread = (Thread)iter.next();
+                }
+
+                try {
+                    thread.join();
+                } catch (InterruptedException exc) {
+                }
+            }
         }
     }
 }

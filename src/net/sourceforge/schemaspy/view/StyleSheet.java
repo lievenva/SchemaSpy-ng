@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import net.sourceforge.schemaspy.LineWriter;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class StyleSheet {
     private static String css;

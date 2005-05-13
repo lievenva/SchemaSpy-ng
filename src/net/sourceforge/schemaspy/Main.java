@@ -37,6 +37,7 @@ import java.util.jar.JarInputStream;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesFormatter;
 import net.sourceforge.schemaspy.view.HtmlConstraintIndexFormatter;
@@ -110,6 +111,22 @@ public class Main {
             if (css == null)
                 css = "schemaSpy.css";
 
+            int maxThreads = Integer.MAX_VALUE;
+            String threads = properties.getProperty("dbThreads");
+            if (threads == null)
+                threads = properties.getProperty("dbthreads");
+            if (threads != null)
+                maxThreads = Integer.parseInt(threads);
+            threads = getParam(args, "-dbThreads", false, false);
+            if (threads == null)
+                threads = getParam(args, "-dbthreads", false, false);
+            if (threads != null)
+                maxThreads = Integer.parseInt(threads);
+            if (maxThreads < 0)
+                maxThreads = Integer.MAX_VALUE;
+            else if (maxThreads == 0)
+                maxThreads = 1;
+
             ConnectionURLBuilder urlBuilder = null;
             try {
                 urlBuilder = new ConnectionURLBuilder(dbType, args, properties);
@@ -148,7 +165,7 @@ public class Main {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties);
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties, maxThreads);
             Database db = spy.getDatabase();
 
             LineWriter out;
@@ -172,6 +189,7 @@ public class Main {
                 boolean hasImplied = false;
                 HtmlTableFormatter tableFormatter = new HtmlTableFormatter();
                 for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
+                    System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
                     hasImplied |= tableFormatter.write(db, table, outputDir, out);
@@ -431,6 +449,9 @@ public class Main {
             System.out.println("   -css styleSheet.css   defaults to schemaSpy.css");
             System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
             System.out.println("                           in driverPath in [databaseType].properties");
+            System.out.println("   -dbthreads            max concurrent threads when accessing metadata");
+            System.out.println("                           defaults to -1 (no limit)");
+            System.out.println("                           use 1 if you get 'already closed' type errors");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
             System.out.println("   -help                 detailed help");

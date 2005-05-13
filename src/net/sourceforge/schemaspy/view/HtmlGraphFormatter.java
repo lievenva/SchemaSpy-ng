@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import net.sourceforge.schemaspy.LineWriter;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static boolean printedNoDotWarning = false;
@@ -103,8 +103,14 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 LineWriter dot = new LineWriter(new FileWriter(dotFile));
                 new DotFormatter().writeOrphan(table, dot);
                 dot.close();
-                if (!DotRunner.generateGraph(dotFile, graphFile))
+                try {
+                    if (!DotRunner.generateGraph(dotFile, graphFile))
+                        return false;
+                } catch (IOException noDot) {
+                    printNoDotWarning();
                     return false;
+                }
+
                 html.write("  <img src=\"graphs/summary/" + graphFile.getName() + "\" usemap=\"#" + table + "\" border=\"0\" alt=\"\" align=\"top\"");
                 if (orphansWithImpliedRelationships.contains(table))
                     html.write(" class='impliedNotOrphan'");

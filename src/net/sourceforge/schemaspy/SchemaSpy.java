@@ -10,8 +10,8 @@ import net.sourceforge.schemaspy.model.Database;
 public class SchemaSpy {
     private final Database database;
 
-    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, Properties properties) throws SQLException, MalformedURLException {
-        database = new Database(connection, meta, dbName, schema, properties);
+    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, Properties properties, int maxThreads) throws SQLException, MalformedURLException {
+        database = new Database(connection, meta, dbName, schema, properties, maxThreads);
     }
 
     public Database getDatabase() {

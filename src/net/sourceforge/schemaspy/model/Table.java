@@ -35,9 +35,9 @@ public class Table implements Serializable {
     private int maxParents;
     private boolean oracleSelectIndexesBug = false;
 
-    public Table(Database db, ResultSet rs, DatabaseMetaData meta, Properties properties) throws SQLException {
-        schema = rs.getString("TABLE_SCHEM");
-        name = rs.getString("TABLE_NAME");
+    public Table(Database db, String schema, String name, DatabaseMetaData meta, Properties properties) throws SQLException {
+        this.schema = schema;
+        this.name = name;
         initColumns(meta);
         initIndexes(db, meta, properties);
         initPrimaryKeys(meta);
@@ -137,14 +137,16 @@ public class Table implements Serializable {
     private void initColumns(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = null;
 
-        try {
-            rs = meta.getColumns(null, getSchema(), getName(), "%");
+        synchronized (Table.class) {
+            try {
+                rs = meta.getColumns(null, getSchema(), getName(), "%");
 
-            while (rs.next())
-                addColumn(rs);
-        } finally {
-            if (rs != null)
-                rs.close();
+                while (rs.next())
+                    addColumn(rs);
+            } finally {
+                if (rs != null)
+                    rs.close();
+            }
         }
     }
 
@@ -256,23 +258,23 @@ public class Table implements Serializable {
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public Object getTablespace() {
-	return tablespace;
+        return tablespace;
     }
 
     public Object getId() {
-	return id;
+        return id;
     }
 
     public Map getCheckConstraints() {
-	return checkConstraints;
+        return checkConstraints;
     }
 
     public Set getIndexes() {
-	return new HashSet(indexes.values());
+        return new HashSet(indexes.values());
     }
 
     public List getPrimaryColumns() {
@@ -280,7 +282,7 @@ public class Table implements Serializable {
     }
 
     public TableColumn getColumn(String columnName) {
-	return (TableColumn)columns.get(columnName.toUpperCase());
+        return (TableColumn)columns.get(columnName.toUpperCase());
     }
 
     /**
@@ -288,137 +290,137 @@ public class Table implements Serializable {
      * @return
      */
     public List getColumns() {
-	Set sorted = new TreeSet(new ByIndexColumnComparator());
-	sorted.addAll(columns.values());
-	return new ArrayList(sorted);
+        Set sorted = new TreeSet(new ByIndexColumnComparator());
+        sorted.addAll(columns.values());
+        return new ArrayList(sorted);
     }
 
     public int getMaxParents() {
-	return maxParents;
+        return maxParents;
     }
 
     public void addedParent() {
-	maxParents++;
+        maxParents++;
     }
 
     public void unlinkParents() {
-	for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    column.unlinkParents();
-	}
+        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            column.unlinkParents();
+        }
     }
 
     public boolean isRoot() {
-	for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    if (!column.getParents().isEmpty()) {
-		return false;
-	    }
-	}
+        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            if (!column.getParents().isEmpty()) {
+                return false;
+            }
+        }
 
-	return true;
+        return true;
     }
 
     public int getMaxChildren() {
-	return maxChildren;
+        return maxChildren;
     }
 
     public void addedChild() {
-	maxChildren++;
+        maxChildren++;
     }
 
     public void unlinkChildren() {
-	for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    column.unlinkChildren();
-	}
+        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            column.unlinkChildren();
+        }
     }
 
     public boolean isLeaf() {
-	for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    if (!column.getChildren().isEmpty()) {
-		return false;
-	    }
-	}
+        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            if (!column.getChildren().isEmpty()) {
+                return false;
+            }
+        }
 
-	return true;
+        return true;
     }
 
     public ForeignKeyConstraint removeSelfReferencingConstraint() {
-	ForeignKeyConstraint recursiveConstraint = getSelfReferencingConstraint();
-	if (recursiveConstraint != null) {
-	    TableColumn childColumn = (TableColumn)recursiveConstraint.getChildColumns().get(0);
-	    TableColumn parentColumn = (TableColumn)recursiveConstraint.getParentColumns().get(0);
-	    childColumn.removeParent(parentColumn);
-	    parentColumn.removeChild(childColumn);
-	    return recursiveConstraint;
-	}
+        ForeignKeyConstraint recursiveConstraint = getSelfReferencingConstraint();
+        if (recursiveConstraint != null) {
+            TableColumn childColumn = (TableColumn)recursiveConstraint.getChildColumns().get(0);
+            TableColumn parentColumn = (TableColumn)recursiveConstraint.getParentColumns().get(0);
+            childColumn.removeParent(parentColumn);
+            parentColumn.removeChild(childColumn);
+            return recursiveConstraint;
+        }
 
-	return null;
+        return null;
     }
 
     private ForeignKeyConstraint getSelfReferencingConstraint() {
-	for (Iterator columnIter = getColumns().iterator(); columnIter.hasNext(); ) {
-	    TableColumn column = (TableColumn)columnIter.next();
-	    for (Iterator parentColumnIter = column.getParents().iterator(); parentColumnIter.hasNext(); ) {
-		TableColumn parentColumn = (TableColumn)parentColumnIter.next();
-		ForeignKeyConstraint recursiveConstraint = column.getParentConstraint(parentColumn);
-		if (parentColumn.getTable().getName().equals(getName())) {
-		    return column.getParentConstraint(parentColumn);
-		}
-	    }
-	}
-	return null;
+        for (Iterator columnIter = getColumns().iterator(); columnIter.hasNext(); ) {
+            TableColumn column = (TableColumn)columnIter.next();
+            for (Iterator parentColumnIter = column.getParents().iterator(); parentColumnIter.hasNext(); ) {
+                TableColumn parentColumn = (TableColumn)parentColumnIter.next();
+                ForeignKeyConstraint recursiveConstraint = column.getParentConstraint(parentColumn);
+                if (parentColumn.getTable().getName().equals(getName())) {
+                    return column.getParentConstraint(parentColumn);
+                }
+            }
+        }
+        return null;
     }
 
     public int getNumChildren() {
-	int numChildren = 0;
+        int numChildren = 0;
 
-	for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    numChildren += column.getChildren().size();
-	}
+        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            numChildren += column.getChildren().size();
+        }
 
-	return numChildren;
+        return numChildren;
     }
 
     public int getNumParents() {
-	int numParents = 0;
+        int numParents = 0;
 
-	for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    numParents += column.getParents().size();
-	}
+        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            numParents += column.getParents().size();
+        }
 
-	return numParents;
+        return numParents;
     }
 
     public ForeignKeyConstraint removeAForeignKeyConstraint() {
-	final List columns = getColumns();
-	int numParents = 0;
-	int numChildren = 0;
-	// remove either a child or parent, chosing which based on which has the
-	// least number of foreign key associations (when either gets to zero then
-	// the table can be pruned)
-	for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    numParents += column.getParents().size();
-	    numChildren += column.getChildren().size();
-	}
+        final List columns = getColumns();
+        int numParents = 0;
+        int numChildren = 0;
+        // remove either a child or parent, chosing which based on which has the
+        // least number of foreign key associations (when either gets to zero then
+        // the table can be pruned)
+        for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            numParents += column.getParents().size();
+            numChildren += column.getChildren().size();
+        }
 
-	for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
-	    TableColumn column = (TableColumn)iter.next();
-	    ForeignKeyConstraint constraint;
-	    if (numParents <= numChildren)
-		constraint = column.removeAParentFKConstraint();
-	    else
-		constraint = column.removeAChildFKConstraint();
-	    if (constraint != null)
-		return constraint;
-	}
+        for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            ForeignKeyConstraint constraint;
+            if (numParents <= numChildren)
+                constraint = column.removeAParentFKConstraint();
+            else
+                constraint = column.removeAChildFKConstraint();
+            if (constraint != null)
+                return constraint;
+        }
 
-	return null;
+        return null;
     }
 
     public boolean isView() {
@@ -463,7 +465,7 @@ public class Table implements Serializable {
     }
 
     public String toString() {
-	return getName();
+        return getName();
     }
 
     /**
@@ -511,15 +513,15 @@ public class Table implements Serializable {
     }
 
     private static class ByIndexColumnComparator implements Comparator, Serializable {
-	public int compare(Object object1, Object object2) {
-	    TableColumn column1 = (TableColumn)object1;
-	    TableColumn column2 = (TableColumn)object2;
-	    if (column1.getId() == null || column2.getId() == null)
-		return column1.getName().compareTo(column2.getName());
-	    if (column1.getId() instanceof Number)
-		return ((Number)column1.getId()).intValue() - ((Number)column2.getId()).intValue();
-	    return column1.getId().toString().compareTo(column2.getId().toString());
-	}
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            if (column1.getId() == null || column2.getId() == null)
+                return column1.getName().compareTo(column2.getName());
+            if (column1.getId() instanceof Number)
+                return ((Number)column1.getId()).intValue() - ((Number)column2.getId()).intValue();
+            return column1.getId().toString().compareTo(column2.getId().toString());
+        }
     }
 
     private static class ByCheckConstraintStringsComparator implements Comparator, Serializable {

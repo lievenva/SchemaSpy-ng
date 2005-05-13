@@ -1,11 +1,9 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
-import net.sourceforge.schemaspy.LineWriter;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
     protected void writeHeader(Database db, Table table, String text, LineWriter out) throws IOException {

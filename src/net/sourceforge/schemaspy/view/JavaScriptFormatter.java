@@ -1,7 +1,7 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
-import net.sourceforge.schemaspy.LineWriter;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class JavaScriptFormatter {
     public void write(LineWriter out) throws IOException {
