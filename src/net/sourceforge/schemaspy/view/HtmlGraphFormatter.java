@@ -154,8 +154,13 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
         html.writeln("<br/><a href='index.html'>Back to Tables</a>");
         if (hasImpliedRelationships) {
-            html.writeln("<p/><form action=''>");
-            html.write("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('graphs/summary/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('graphs/summary/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
+            html.writeln("<p/><form name='options' action=''>");
+            html.write("  <input type='checkbox' id='graphType' onclick=\"");
+            html.write("if (!this.checked)");
+            html.write(" selectGraph('graphs/summary/" + graphFile.getName() + "', '#realRelationshipsGraph'); ");
+            html.write("else");
+            html.write(" selectGraph('graphs/summary/" + allGraphFile.getName() + "', '#allRelationshipsGraph');");
+            html.write("\">");
             html.writeln("Include implied relationships");
             html.writeln("</form>");
         }
