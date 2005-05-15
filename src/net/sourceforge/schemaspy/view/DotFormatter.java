@@ -25,19 +25,21 @@ public class DotFormatter {
      * @throws IOException
      * @return boolean <code>true</code> if implied relationships were written
      */
-    public boolean writeRelationships(Table table, boolean includeImplied, LineWriter out) throws IOException {
+    public WriteStats writeRelationships(Table table, boolean includeImplied, boolean twoDegreesOfSeparation, LineWriter out) throws IOException {
         Set tablesWritten = new HashSet();
+        WriteStats stats = new WriteStats();
         boolean[] wroteImplied = new boolean[1];
 
         DotTableFormatter formatter = new DotTableFormatter();
 
-        writeDotHeader(includeImplied ? "allRelationshipsGraph" : "realRelationshipsGraph", out);
+        writeDotHeader(includeImplied ? "allRelationshipsGraph" : (twoDegreesOfSeparation ? "realRelationshipsGraph" : "focusedRelationshipsGraph"), out);
 
         Set relatedTables = getImmediateRelatives(table, includeImplied, wroteImplied);
 
         formatter.writeNode(table, "", true, true, true, out);
         Set relationships = formatter.getRelationships(table, includeImplied);
         tablesWritten.add(table);
+        stats.wroteTable(table);
 
         // write immediate relatives first
         Iterator iter = relatedTables.iterator();
@@ -47,22 +49,26 @@ public class DotFormatter {
                 continue; // already written
 
             formatter.writeNode(relatedTable, "", true, false, false, out);
+            stats.wroteTable(relatedTable);
             relationships.addAll(formatter.getRelationships(relatedTable, table, includeImplied));
         }
 
         // next write 'cousins' (2nd degree of separation)
-        iter = relatedTables.iterator();
-        while (iter.hasNext()) {
-            Table relatedTable = (Table)iter.next();
-            Set cousins = getImmediateRelatives(relatedTable, includeImplied, wroteImplied);
+        if (twoDegreesOfSeparation) {
+            iter = relatedTables.iterator();
+            while (iter.hasNext()) {
+                Table relatedTable = (Table)iter.next();
+                Set cousins = getImmediateRelatives(relatedTable, includeImplied, wroteImplied);
 
-            Iterator cousinsIter = cousins.iterator();
-            while (cousinsIter.hasNext()) {
-                Table cousin = (Table)cousinsIter.next();
-                if (!tablesWritten.add(cousin))
-                    continue; // already written
-                relationships.addAll(formatter.getRelationships(cousin, relatedTable, includeImplied));
-                formatter.writeNode(cousin, "", false, false, false, out);
+                Iterator cousinsIter = cousins.iterator();
+                while (cousinsIter.hasNext()) {
+                    Table cousin = (Table)cousinsIter.next();
+                    if (!tablesWritten.add(cousin))
+                        continue; // already written
+                    relationships.addAll(formatter.getRelationships(cousin, relatedTable, includeImplied));
+                    formatter.writeNode(cousin, "", false, false, false, out);
+                    stats.wroteTable(cousin);
+                }
             }
         }
 
@@ -71,7 +77,8 @@ public class DotFormatter {
             out.writeln(iter.next().toString());
 
         out.writeln("}");
-        return wroteImplied[0];
+        stats.setWroteImplied(wroteImplied[0]);
+        return stats;
     }
 
     /**

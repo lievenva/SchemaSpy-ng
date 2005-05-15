@@ -14,11 +14,13 @@ import net.sourceforge.schemaspy.util.LineWriter;
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static boolean printedNoDotWarning = false;
 
-    public boolean write(Table table, File graphDir, boolean hasImpliedRelationships, LineWriter html) {
+    public boolean write(Table table, File graphDir, WriteStats stats, LineWriter html) {
         File dotFile = new File(graphDir, table.getName() + ".dot");
-        File allDotFile = new File(graphDir, table.getName() + "_all_.dot");
         File graphFile = new File(graphDir, table.getName() + ".png");
+        File allDotFile = new File(graphDir, table.getName() + "_all_.dot");
         File allGraphFile = new File(graphDir, table.getName() + "_all_.png");
+        File focusedDotFile = new File(graphDir, table.getName() + "_focused_.dot");
+        File focusedGraphFile = new File(graphDir, table.getName() + "_focused_.png");
 
         try {
             if (!DotRunner.generateGraph(dotFile, graphFile))
@@ -26,13 +28,35 @@ public class HtmlGraphFormatter extends HtmlFormatter {
 
             html.write("<br/><b title='Tables/views within two degrees of separation from ");
             html.write(table.getName());
-            html.write("'>Close relationships:</b><br/>");
-
-            html.writeln("  <a name='graph'><img src=\"../graphs/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
+            html.write("'>Close relationships</b>");
+            if (stats.wroteFocused()) {
+                html.writeln("<span class='degrees' id='degrees'>");
+                html.write("&nbsp;&nbsp;within <input type='radio' name='degrees' id='oneDegree' onclick=\"");
+                html.write("if (!this.checked)");
+                html.write(" selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); ");
+                html.write("else");
+                html.write(" selectGraph('../graphs/" + focusedGraphFile.getName() + "', '#focusedRelationshipsGraph');");
+                html.writeln("\" checked>one");
+                html.write("  <input type='radio' name='degrees' id='twoDegrees' onclick=\"");
+                html.write("if (this.checked)");
+                html.write(" selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); ");
+                html.write("else");
+                html.write(" selectGraph('../graphs/" + focusedGraphFile.getName() + "', '#focusedRelationshipsGraph');");
+                html.writeln("\">two degrees of separation");
+                html.writeln("</span><b>:</b>");
+            }
+            String map = stats.wroteFocused() ? "#focusedRelationshipsGraph" : "#realRelationshipsGraph";
+            if (stats.wroteFocused())
+                graphFile = focusedGraphFile;
+            html.writeln("  <a name='graph'><img src='../graphs/" + graphFile.getName() + "' usemap='" + map + "' id='relationships' border='0' alt='' align='left'></a>");
             DotRunner.writeMap(dotFile, html);
-            if (hasImpliedRelationships) {
+            if (stats.wroteImplied()) {
                 DotRunner.generateGraph(allDotFile, allGraphFile);
                 DotRunner.writeMap(allDotFile, html);
+            }
+            if (stats.wroteFocused()) {
+                DotRunner.generateGraph(focusedDotFile, focusedGraphFile);
+                DotRunner.writeMap(focusedDotFile, html);
             }
         } catch (IOException noDot) {
             printNoDotWarning();
@@ -53,7 +77,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 return false;
 
             writeRelationshipsHeader(db, graphFile, allGraphFile, "Relationships Graph", hasImpliedRelationships, html);
-            html.writeln("  <a name='graph'><img src=\"graphs/summary/" + graphFile.getName() + "\" usemap=\"#realRelationshipsGraph\" id='relationships' border=\"0\" alt=\"\"></a>");
+            html.writeln("  <a name='graph'><img src='graphs/summary/" + graphFile.getName() + "' usemap='#realRelationshipsGraph' id='relationships' border='0' alt=''></a>");
             DotRunner.writeMap(dotFile, html);
 
             if (hasImpliedRelationships) {
@@ -103,7 +127,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                     return false;
                 }
 
-                html.write("  <img src=\"graphs/summary/" + graphFile.getName() + "\" usemap=\"#" + table + "\" border=\"0\" alt=\"\" align=\"top\"");
+                html.write("  <img src='graphs/summary/" + graphFile.getName() + "' usemap='#" + table + "' border='0' alt='' align='top'");
                 if (orphansWithImpliedRelationships.contains(table))
                     html.write(" class='impliedNotOrphan'");
                 html.writeln(">");
@@ -128,7 +152,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     private void writeRelationshipsHeader(Database db, File graphFile, File allGraphFile, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        html.writeln("<br/><a href='index.html'>Tables</a>");
+        html.writeln("<br/><a href='index.html'>Back to Tables</a>");
         if (hasImpliedRelationships) {
             html.writeln("<p/><form action=''>");
             html.write("  <input type='checkbox' id='graphType' onclick=\"if (!this.checked) selectGraph('graphs/summary/" + graphFile.getName() + "', '#realRelationshipsGraph'); else selectGraph('graphs/summary/" + allGraphFile.getName() + "', '#allRelationshipsGraph');\">");
@@ -144,7 +168,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     private void writeOrphansHeader(Database db, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        html.writeln("<br/><a href='index.html'>Tables</a>");
+        html.writeln("<br/><a href='index.html'>Back to Tables</a>");
         if (hasImpliedRelationships) {
             html.writeln("<p/><form action=''>");
             html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");

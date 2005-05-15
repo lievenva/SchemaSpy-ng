@@ -153,7 +153,7 @@ public class Main {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
-                    hasImplied |= tableFormatter.write(db, table, outputDir, out);
+                    hasImplied |= tableFormatter.write(db, table, outputDir, 1, out).wroteImplied();
                     out.close();
                 }
 
