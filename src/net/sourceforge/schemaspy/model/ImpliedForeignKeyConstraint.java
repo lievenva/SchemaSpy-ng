@@ -1,9 +1,7 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.Serializable;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
+import java.io.*;
+import java.sql.*;
 
 public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint implements Serializable {
     public ImpliedForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) throws SQLException {

@@ -161,7 +161,7 @@ public class Main {
                 StyleSheet.write(out);
                 out.close();
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.js")));
-                new JavaScriptFormatter().write(out);
+                JavaScriptFormatter.write(out);
                 out.close();
 
                 startSummarizing = System.currentTimeMillis();

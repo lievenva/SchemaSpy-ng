@@ -31,13 +31,16 @@ public class DBAnalyzer {
 	    }
 	});
 
+        int duplicatePrimaries = 0;
+
         // gather all the primary key columns and columns without parents
 	for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
 	    Table table = (Table)iter.next();
 	    List tablePrimaries = table.getPrimaryColumns();
             if (tablePrimaries.size() == 1) { // can't match up multiples...yet...
                 for (Iterator primariesIter = tablePrimaries.iterator(); primariesIter.hasNext(); ) {
-                    allPrimaries.put(primariesIter.next(), table);
+                    if (allPrimaries.put(primariesIter.next(), table) != null)
+                        ++duplicatePrimaries;
                 }
             }
 
@@ -47,6 +50,12 @@ public class DBAnalyzer {
 		    columnsWithoutParents.add(column);
 	    }
 	}
+
+        // if more than half of the tables have the same primary key then
+        // it's most likey a database where primary key names aren't unique
+        // (e.g. they all have a primary key named 'ID')
+        if (duplicatePrimaries > allPrimaries.size())
+            return new ArrayList();
 
 	sortColumnsByTable(columnsWithoutParents);
 

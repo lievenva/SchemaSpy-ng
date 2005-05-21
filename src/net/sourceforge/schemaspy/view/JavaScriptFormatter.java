@@ -4,7 +4,7 @@ import java.io.IOException;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class JavaScriptFormatter {
-    public void write(LineWriter out) throws IOException {
+    public static void write(LineWriter out) throws IOException {
         out.writeln("function toggle(styleIndex) {");
         out.writeln("  var rules = document.styleSheets[0].cssRules;");
         out.writeln("  if (rules == null) rules = document.styleSheets[0].rules;");
