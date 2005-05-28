@@ -153,7 +153,7 @@ public class Main {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
-                    hasImplied |= tableFormatter.write(db, table, outputDir, 1, out).wroteImplied();
+                    hasImplied |= tableFormatter.write(db, table, outputDir, out).wroteImplied();
                     out.close();
                 }
 
@@ -171,14 +171,14 @@ public class Main {
 
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships_";
-                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".dot")));
+                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_1degree_.dot")));
                 boolean showRelationships = new DotFormatter().writeRelationships(tables, false, out) > 0;
                 out.close();
 
                 if (showRelationships) {
                     System.out.print(".");
                     if (hasImplied) {
-                        out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_all_.dot")));
+                        out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_implied2degrees_.dot")));
                         new DotFormatter().writeRelationships(tables, true, out);
                         out.close();
                     }

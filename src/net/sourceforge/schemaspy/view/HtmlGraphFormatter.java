@@ -1,62 +1,56 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import net.sourceforge.schemaspy.model.Database;
-import net.sourceforge.schemaspy.model.Table;
-import net.sourceforge.schemaspy.util.LineWriter;
+import java.io.*;
+import java.util.*;
+import net.sourceforge.schemaspy.model.*;
+import net.sourceforge.schemaspy.util.*;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static boolean printedNoDotWarning = false;
 
     public boolean write(Table table, File graphDir, WriteStats stats, LineWriter html) {
-        File dotFile = new File(graphDir, table.getName() + ".dot");
-        File graphFile = new File(graphDir, table.getName() + ".png");
-        File allDotFile = new File(graphDir, table.getName() + "_all_.dot");
-        File allGraphFile = new File(graphDir, table.getName() + "_all_.png");
-        File focusedDotFile = new File(graphDir, table.getName() + "_focused_.dot");
-        File focusedGraphFile = new File(graphDir, table.getName() + "_focused_.png");
+        File oneDegreeDotFile = new File(graphDir, table.getName() + "_1degree_.dot");
+        File oneDegreeGraphFile = new File(graphDir, table.getName() + "_1degree_.png");
+        File impliedDotFile = new File(graphDir, table.getName() + "_implied2degrees_.dot");
+        File impliedGraphFile = new File(graphDir, table.getName() + "_implied2degrees_.png");
+        File twoDegreesDotFile = new File(graphDir, table.getName() + "_2degrees_.dot");
+        File twoDegreesGraphFile = new File(graphDir, table.getName() + "_2degrees_.png");
 
         try {
-            if (!DotRunner.generateGraph(dotFile, graphFile))
+            if (!DotRunner.generateGraph(oneDegreeDotFile, oneDegreeGraphFile))
                 return false;
 
             html.write("<br/><b title='Tables/views within two degrees of separation from ");
             html.write(table.getName());
             html.write("'>Close relationships</b>");
-            if (stats.wroteFocused()) {
+            if (stats.wroteTwoDegrees()) {
                 html.writeln("<span class='degrees' id='degrees'>");
                 html.write("&nbsp;&nbsp;within <input type='radio' name='degrees' id='oneDegree' onclick=\"");
                 html.write("if (!this.checked)");
-                html.write(" selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); ");
+                html.write(" selectGraph('../graphs/" + twoDegreesGraphFile.getName() + "', '#twoDegreesRelationshipsGraph');");
                 html.write("else");
-                html.write(" selectGraph('../graphs/" + focusedGraphFile.getName() + "', '#focusedRelationshipsGraph');");
+                html.write(" selectGraph('../graphs/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
                 html.writeln("\" checked>one");
                 html.write("  <input type='radio' name='degrees' id='twoDegrees' onclick=\"");
                 html.write("if (this.checked)");
-                html.write(" selectGraph('../graphs/" + graphFile.getName() + "', '#realRelationshipsGraph'); ");
+                html.write(" selectGraph('../graphs/" + twoDegreesGraphFile.getName() + "', '#twoDegreesRelationshipsGraph');");
                 html.write("else");
-                html.write(" selectGraph('../graphs/" + focusedGraphFile.getName() + "', '#focusedRelationshipsGraph');");
+                html.write(" selectGraph('../graphs/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
                 html.writeln("\">two degrees of separation");
                 html.writeln("</span><b>:</b>");
             }
-            String map = stats.wroteFocused() ? "#focusedRelationshipsGraph" : "#realRelationshipsGraph";
-            if (stats.wroteFocused())
-                graphFile = focusedGraphFile;
-            html.writeln("  <a name='graph'><img src='../graphs/" + graphFile.getName() + "' usemap='" + map + "' id='relationships' border='0' alt='' align='left'></a>");
-            DotRunner.writeMap(dotFile, html);
+            String map = stats.wroteTwoDegrees() ? "#twoDegreesRelationshipsGraph" : "#oneDegreeRelationshipsGraph";
+            if (stats.wroteTwoDegrees())
+                oneDegreeGraphFile = twoDegreesGraphFile;
+            html.writeln("  <a name='graph'><img src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='" + map + "' id='relationships' border='0' alt='' align='left'></a>");
+            DotRunner.writeMap(oneDegreeDotFile, html);
             if (stats.wroteImplied()) {
-                DotRunner.generateGraph(allDotFile, allGraphFile);
-                DotRunner.writeMap(allDotFile, html);
+                DotRunner.generateGraph(impliedDotFile, impliedGraphFile);
+                DotRunner.writeMap(impliedDotFile, html);
             }
-            if (stats.wroteFocused()) {
-                DotRunner.generateGraph(focusedDotFile, focusedGraphFile);
-                DotRunner.writeMap(focusedDotFile, html);
+            if (stats.wroteTwoDegrees()) {
+                DotRunner.generateGraph(twoDegreesDotFile, twoDegreesGraphFile);
+                DotRunner.writeMap(twoDegreesDotFile, html);
             }
         } catch (IOException noDot) {
             printNoDotWarning();
@@ -67,22 +61,22 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     }
 
     public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasImpliedRelationships, LineWriter html) throws IOException {
-        File dotFile = new File(graphDir, dotBaseFilespec + ".dot");
-        File graphFile = new File(graphDir, dotBaseFilespec + ".png");
-        File allDotFile = new File(graphDir, dotBaseFilespec + "_all_.dot");
-        File allGraphFile = new File(graphDir, dotBaseFilespec + "_all_.png");
+        File oneDegreeDotFile = new File(graphDir, dotBaseFilespec + "_1degree_.dot");
+        File oneDegreeGraphFile = new File(graphDir, dotBaseFilespec + "_1degree_.png");
+        File impliedDotFile = new File(graphDir, dotBaseFilespec + "_implied2degrees_.dot");
+        File impliedGraphFile = new File(graphDir, dotBaseFilespec + "_implied2degrees_.png");
 
         try {
-            if (!DotRunner.generateGraph(dotFile, graphFile))
+            if (!DotRunner.generateGraph(oneDegreeDotFile, oneDegreeGraphFile))
                 return false;
 
-            writeRelationshipsHeader(db, graphFile, allGraphFile, "Relationships Graph", hasImpliedRelationships, html);
-            html.writeln("  <a name='graph'><img src='graphs/summary/" + graphFile.getName() + "' usemap='#realRelationshipsGraph' id='relationships' border='0' alt=''></a>");
-            DotRunner.writeMap(dotFile, html);
+            writeRelationshipsHeader(db, oneDegreeGraphFile, impliedGraphFile, "Relationships Graph", hasImpliedRelationships, html);
+            html.writeln("  <a name='graph'><img src='graphs/summary/" + oneDegreeGraphFile.getName() + "' usemap='#twoDegreesRelationshipsGraph' id='relationships' border='0' alt=''></a>");
+            DotRunner.writeMap(oneDegreeDotFile, html);
 
             if (hasImpliedRelationships) {
-                DotRunner.generateGraph(allDotFile, allGraphFile);
-                DotRunner.writeMap(allDotFile, html);
+                DotRunner.generateGraph(impliedDotFile, impliedGraphFile);
+                DotRunner.writeMap(impliedDotFile, html);
             }
 
             writeFooter(html);
@@ -113,8 +107,8 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 Table table = (Table)iter.next();
                 String dotBaseFilespec = table.getName();
 
-                File dotFile = new File(graphDir, dotBaseFilespec + ".dot");
-                File graphFile = new File(graphDir, dotBaseFilespec + ".png");
+                File dotFile = new File(graphDir, dotBaseFilespec + "_1degree_.dot");
+                File graphFile = new File(graphDir, dotBaseFilespec + "_1degree_.png");
 
                 LineWriter dot = new LineWriter(new FileWriter(dotFile));
                 new DotFormatter().writeOrphan(table, dot);
@@ -138,7 +132,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 Table table = (Table)iter.next();
                 String dotBaseFilespec = table.getName();
 
-                File dotFile = new File(graphDir, dotBaseFilespec + ".dot");
+                File dotFile = new File(graphDir, dotBaseFilespec + "_1degree_.dot");
                 DotRunner.writeMap(dotFile, html);
             }
 
@@ -149,7 +143,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         }
     }
 
-    private void writeRelationshipsHeader(Database db, File graphFile, File allGraphFile, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    private void writeRelationshipsHeader(Database db, File oneDegreeGraphFile, File impliedGraphFile, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
         html.writeln("<br/><a href='index.html'>Back to Tables</a>");
@@ -157,9 +151,9 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             html.writeln("<p/><form name='options' action=''>");
             html.write("  <input type='checkbox' id='graphType' onclick=\"");
             html.write("if (!this.checked)");
-            html.write(" selectGraph('graphs/summary/" + graphFile.getName() + "', '#realRelationshipsGraph'); ");
+            html.write(" selectGraph('graphs/summary/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
             html.write("else");
-            html.write(" selectGraph('graphs/summary/" + allGraphFile.getName() + "', '#allRelationshipsGraph');");
+            html.write(" selectGraph('graphs/summary/" + impliedGraphFile.getName() + "', '#impliedTwoDegreesRelationshipsGraph');");
             html.write("\">");
             html.writeln("Include implied relationships");
             html.writeln("</form>");

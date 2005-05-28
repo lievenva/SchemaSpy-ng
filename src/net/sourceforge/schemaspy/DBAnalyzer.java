@@ -207,6 +207,24 @@ public class DBAnalyzer {
         return sortTablesByName(singleColumnTables);
     }
 
+    public static List getUnreferencedPrimaryKeys(Collection tables) {
+        List unreferencedPrimaryKeys = new ArrayList();
+
+        Iterator iter = tables.iterator();
+        while (iter.hasNext()) {
+            Table table = (Table)iter.next();
+            Iterator primaryIter = table.getPrimaryColumns().iterator();
+            while (primaryIter.hasNext()) {
+                TableColumn column = (TableColumn)primaryIter.next();
+                if (column.getChildren().isEmpty()) {
+                    unreferencedPrimaryKeys.add(column);
+                }
+            }
+        }
+
+        return sortColumnsByTable(unreferencedPrimaryKeys);
+    }
+
     public static List sortTablesByName(List tables) {
         Collections.sort(tables, new Comparator() {
             public int compare(Object object1, Object object2) {

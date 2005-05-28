@@ -6,7 +6,7 @@ public class WriteStats {
     private int numTables;
     private int numViews;
     private boolean wroteImplied;
-    private boolean wroteFocused;
+    private boolean wroteTwoDegrees;
 
     public void wroteTable(Table table) {
         if (table.isView())
@@ -19,8 +19,8 @@ public class WriteStats {
         this.wroteImplied = wroteImplied;
     }
 
-    public void setWroteFocused(boolean wroteFocused) {
-        this.wroteFocused = wroteFocused;
+    public void setWroteTwoDegrees(boolean wroteFocused) {
+        this.wroteTwoDegrees = wroteFocused;
     }
 
     public int getNumTablesWritten() {
@@ -35,7 +35,7 @@ public class WriteStats {
         return wroteImplied;
     }
 
-    public boolean wroteFocused() {
-        return wroteFocused;
+    public boolean wroteTwoDegrees() {
+        return wroteTwoDegrees;
     }
 }

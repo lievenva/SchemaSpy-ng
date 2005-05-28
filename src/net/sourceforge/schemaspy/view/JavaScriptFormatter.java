@@ -65,10 +65,10 @@ public class JavaScriptFormatter {
         out.writeln("    var oneDegree = document.getElementById('oneDegree');");
         out.writeln("    var twoDegrees = document.getElementById('twoDegrees');");
         out.writeln("    var useMap = document.getElementById('relationships').useMap;");
-        out.writeln("    if (oneDegree.checked && useMap != '#focusedRelationshipsGraph') {");
+        out.writeln("    if (oneDegree.checked && useMap != '#oneDegreeRelationshipsGraph') {");
         out.writeln("      oneDegree.checked=false;");
         out.writeln("      oneDegree.click();");
-        out.writeln("    } else if (twoDegrees.checked && useMap != '#realRelationshipsGraph') {");
+        out.writeln("    } else if (twoDegrees.checked && useMap != '#twoDegreesRelationshipsGraph') {");
         out.writeln("      twoDegrees.checked=false;");
         out.writeln("      twoDegrees.click();");
         out.writeln("    }");

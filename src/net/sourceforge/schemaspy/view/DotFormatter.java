@@ -32,7 +32,7 @@ public class DotFormatter {
 
         DotTableFormatter formatter = new DotTableFormatter();
 
-        writeDotHeader(includeImplied ? "allRelationshipsGraph" : (twoDegreesOfSeparation ? "realRelationshipsGraph" : "focusedRelationshipsGraph"), out);
+        writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph"), out);
 
         Set relatedTables = getImmediateRelatives(table, includeImplied, wroteImplied);
 
@@ -136,7 +136,7 @@ public class DotFormatter {
     public int writeRelationships(Collection tables, boolean includeImplied, LineWriter out) throws IOException {
         DotTableFormatter formatter = new DotTableFormatter();
         int numWritten = 0;
-        writeDotHeader(includeImplied ? "allRelationshipsGraph" : "realRelationshipsGraph", out);
+        writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : "twoDegreesRelationshipsGraph", out);
 
         Iterator iter = tables.iterator();
 
