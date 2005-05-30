@@ -136,7 +136,7 @@ public class DotFormatter {
     public int writeRelationships(Collection tables, boolean includeImplied, LineWriter out) throws IOException {
         DotTableFormatter formatter = new DotTableFormatter();
         int numWritten = 0;
-        writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : "twoDegreesRelationshipsGraph", out);
+        writeDotHeader(includeImplied ? "impliedRelationshipsGraph" : "relationshipsGraph", out);
 
         Iterator iter = tables.iterator();
 

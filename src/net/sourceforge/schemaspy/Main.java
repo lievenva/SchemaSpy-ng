@@ -170,15 +170,15 @@ public class Main {
                 System.out.print(".");
 
                 File graphsDir = new File(outputDir, "graphs/summary");
-                String dotBaseFilespec = "relationships_";
-                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_1degree_.dot")));
+                String dotBaseFilespec = "relationships";
+                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.dot")));
                 boolean showRelationships = new DotFormatter().writeRelationships(tables, false, out) > 0;
                 out.close();
 
                 if (showRelationships) {
                     System.out.print(".");
                     if (hasImplied) {
-                        out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + "_implied2degrees_.dot")));
+                        out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".implied.dot")));
                         new DotFormatter().writeRelationships(tables, true, out);
                         out.close();
                     }
@@ -189,7 +189,7 @@ public class Main {
                 }
 
                 System.out.print(".");
-                dotBaseFilespec = "utilities_";
+                dotBaseFilespec = "utilities";
                 out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
                 boolean showOrphans = new HtmlGraphFormatter().writeOrphans(db, DBAnalyzer.getOrphans(tables, false), graphsDir, out);
                 out.close();
@@ -201,7 +201,7 @@ public class Main {
                 out.close();
 
                 System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "constraintIndex.html")), 256 * 1024);
+                out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
                 HtmlConstraintIndexFormatter constraintIndexFormatter = new HtmlConstraintIndexFormatter();
                 constraintIndexFormatter.write(db, constraints, tables, out);
                 out.close();
