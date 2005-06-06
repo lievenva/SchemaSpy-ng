@@ -250,6 +250,12 @@ public class Main {
                 System.out.println("(" + (end - startSummarizing) / 1000 + "sec)");
                 System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + outputDir + "' in " + (end - start) / 1000 + " seconds.");
                 System.out.println("Start with " + new File(outputDir, "index.html"));
+
+                if (tables.isEmpty()) {
+                    System.out.println();
+                    System.out.println("No tables were found in the specified schema (" + schema + ").");
+                    System.out.println("Make sure you specify a valid schema with the -s option.");
+                }
             }
         } catch (IllegalArgumentException badParam) {
             System.err.println();

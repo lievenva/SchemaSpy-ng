@@ -2,6 +2,9 @@ package net.sourceforge.schemaspy.view;
 
 import net.sourceforge.schemaspy.model.Table;
 
+/**
+ * Simple ugly hack that provides details of what was written.
+ */
 public class WriteStats {
     private int numTables;
     private int numViews;
