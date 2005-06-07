@@ -151,6 +151,14 @@ public class Main {
                 boolean hasRelationships = numRelationships > 0;
                 out.close();
 
+                // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
+                // here unless they want that behavior
+                List impliedConstraints = null;
+                if (includeImpliedConstraints)
+                    impliedConstraints = DBAnalyzer.getImpliedConstraints(tables);
+                else
+                    impliedConstraints = new ArrayList();
+
                 List orphans = DBAnalyzer.getOrphans(tables);
                 boolean hasOrphans = !orphans.isEmpty();
 
@@ -190,13 +198,6 @@ public class Main {
                 out.close();
 
                 System.out.print(".");
-                // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
-                // here unless they want that behavior
-                List impliedConstraints = null;
-                if (includeImpliedConstraints)
-                    impliedConstraints = DBAnalyzer.getImpliedConstraints(tables);
-                else
-                    impliedConstraints = new ArrayList();
                 out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
                 HtmlAnomaliesFormatter anomaliesFormatter = new HtmlAnomaliesFormatter();
                 anomaliesFormatter.write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
