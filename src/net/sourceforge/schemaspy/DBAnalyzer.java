@@ -1,19 +1,8 @@
 package net.sourceforge.schemaspy;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
-import net.sourceforge.schemaspy.model.Table;
-import net.sourceforge.schemaspy.model.TableColumn;
-import net.sourceforge.schemaspy.model.TableIndex;
+import java.sql.*;
+import java.util.*;
+import net.sourceforge.schemaspy.model.*;
 
 public class DBAnalyzer {
     public static List getImpliedConstraints(Collection tables) throws SQLException {
@@ -164,7 +153,7 @@ public class DBAnalyzer {
                 String numbers = null;
                 for (int i = columnName.length() - 1; i > 0; --i) {
                     if (Character.isDigit(columnName.charAt(i))) {
-                        numbers = String.valueOf(columnName.charAt(i)) + numbers == null ? "" : numbers;
+                        numbers = String.valueOf(columnName.charAt(i)) + (numbers == null ? "" : numbers);
                     } else {
                         break;
                     }
@@ -205,24 +194,6 @@ public class DBAnalyzer {
         }
 
         return sortTablesByName(singleColumnTables);
-    }
-
-    public static List getUnreferencedPrimaryKeys(Collection tables) {
-        List unreferencedPrimaryKeys = new ArrayList();
-
-        Iterator iter = tables.iterator();
-        while (iter.hasNext()) {
-            Table table = (Table)iter.next();
-            Iterator primaryIter = table.getPrimaryColumns().iterator();
-            while (primaryIter.hasNext()) {
-                TableColumn column = (TableColumn)primaryIter.next();
-                if (column.getChildren().isEmpty()) {
-                    unreferencedPrimaryKeys.add(column);
-                }
-            }
-        }
-
-        return sortColumnsByTable(unreferencedPrimaryKeys);
     }
 
     public static List sortTablesByName(List tables) {
