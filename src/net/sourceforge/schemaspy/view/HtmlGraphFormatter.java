@@ -63,7 +63,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         return true;
     }
 
-    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         File relationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.dot");
         File relationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.png");
         File impliedDotFile = new File(graphDir, dotBaseFilespec + ".implied.dot");
@@ -73,7 +73,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             if (!DotRunner.generateGraph(relationshipsDotFile, relationshipsGraphFile))
                 return false;
 
-            writeRelationshipsHeader(db, relationshipsGraphFile, impliedGraphFile, "Relationships Graph", hasImpliedRelationships, html);
+            writeRelationshipsHeader(db, relationshipsGraphFile, impliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
             html.writeln("  <a name='graph'><img src='graphs/summary/" + relationshipsGraphFile.getName() + "' usemap='#relationshipsGraph' id='relationships' border='0' alt=''></a>");
             DotRunner.writeMap(relationshipsDotFile, html);
 
@@ -91,7 +91,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         return true;
     }
 
-    public boolean writeOrphans(Database db, List orphanTables, File graphDir, LineWriter html) throws IOException {
+    public boolean writeOrphans(Database db, List orphanTables, boolean hasRelationships, File graphDir, LineWriter html) throws IOException {
         Set orphansWithImpliedRelationships = new HashSet();
         Iterator iter = orphanTables.iterator();
         while (iter.hasNext()) {
@@ -101,7 +101,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             }
         }
 
-        writeOrphansHeader(db, "Utility Tables Graph", !orphansWithImpliedRelationships.isEmpty(), html);
+        writeOrphansHeader(db, "Utility Tables Graph", hasRelationships, !orphansWithImpliedRelationships.isEmpty(), html);
 
         html.writeln("<a name='graph'>");
         try {
@@ -146,10 +146,15 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         }
     }
 
-    private void writeRelationshipsHeader(Database db, File relationshipsGraphFile, File impliedGraphFile, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    private void writeRelationshipsHeader(Database db, File relationshipsGraphFile, File impliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        html.writeln("<br/><a href='index.html'>Back to Tables</a>");
+        html.write("<br/><a href='index.html'>Tables</a>&nbsp;&nbsp;");
+        if (hasOrphans)
+            html.write("<a href='utilities.html' title='Graphical view of tables with neither parents nor children'>Utility Tables Graph</a>&nbsp;&nbsp;");
+        html.write("<a href='constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a>&nbsp;&nbsp;");
+        html.writeln("<a href='anomalies.html' title=\"Things that aren't quite right\">Anomalies</a>");
+
         if (hasImpliedRelationships) {
             html.writeln("<p/><form name='options' action=''>");
             html.write("  <input type='checkbox' id='graphType' onclick=\"");
@@ -167,10 +172,14 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.writeln("</td></tr></table>");
     }
 
-    private void writeOrphansHeader(Database db, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    private void writeOrphansHeader(Database db, String title, boolean hasRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        html.writeln("<br/><a href='index.html'>Back to Tables</a>");
+        html.writeln("<br/><a href='index.html'>Tables</a>");
+        if (hasRelationships)
+            html.write("<a href='relationships.html' title='Graphical view of table relationships'>Relationships Graph</a>&nbsp;&nbsp;");
+        html.write("<a href='constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a>&nbsp;&nbsp;");
+        html.writeln("<a href='anomalies.html' title=\"Things that aren't quite right\">Anomalies</a>");
         if (hasImpliedRelationships) {
             html.writeln("<p/><form action=''>");
             html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");

@@ -86,13 +86,13 @@ public class DBAnalyzer {
         return constraints;
     }
 
-    public static List getOrphans(Collection tables, boolean includeImplied) {
+    public static List getOrphans(Collection tables) {
         List orphans = new ArrayList();
 
         Iterator iter = tables.iterator();
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
-            if (table.isOrphan(includeImplied)) {
+            if (table.isOrphan(false)) {
                 orphans.add(table);
             }
         }

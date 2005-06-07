@@ -139,11 +139,57 @@ public class Main {
             }
 
             if (generateHtml) {
-                List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
-                startGraphing = System.currentTimeMillis();
-                System.out.println("(" + (startGraphing - start) / 1000 + "sec)");
-                System.out.print("Writing/graphing results");
+                startSummarizing = System.currentTimeMillis();
+                System.out.println("(" + (startSummarizing - start) / 1000 + "sec)");
+                System.out.print("Writing/graphing summary");
+                System.out.print(".");
 
+                File graphsDir = new File(outputDir, "graphs/summary");
+                String dotBaseFilespec = "relationships";
+                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.dot")));
+                int numRelationships =  new DotFormatter().writeRelationships(tables, false, out);
+                boolean hasRelationships = numRelationships > 0;
+                out.close();
+
+                List orphans = DBAnalyzer.getOrphans(tables);
+                boolean hasOrphans = !orphans.isEmpty();
+
+                if (hasRelationships) {
+                    System.out.print(".");
+
+                    File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.dot");
+                    out = new LineWriter(new FileWriter(impliedDotFile));
+                    int numImplied = new DotFormatter().writeRelationships(tables, true, out) - numRelationships;
+                    out.close();
+                    boolean hasImplied = numImplied != 0;
+                    if (!hasImplied)
+                        impliedDotFile.delete();
+
+                    out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
+                    hasRelationships = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, out);
+                    out.close();
+                }
+
+                System.out.print(".");
+                dotBaseFilespec = "utilities";
+                out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
+                hasOrphans = new HtmlGraphFormatter().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
+                out.close();
+
+                System.out.print(".");
+                out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
+                HtmlMainIndexFormatter indexFormatter = new HtmlMainIndexFormatter();
+                indexFormatter.write(db, tables, hasRelationships, hasOrphans, out);
+                out.close();
+
+                System.out.print(".");
+                List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
+                out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
+                HtmlConstraintIndexFormatter constraintIndexFormatter = new HtmlConstraintIndexFormatter();
+                constraintIndexFormatter.write(db, constraints, tables, hasRelationships, hasOrphans, out);
+                out.close();
+
+                System.out.print(".");
                 // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
                 // here unless they want that behavior
                 List impliedConstraints = null;
@@ -151,14 +197,22 @@ public class Main {
                     impliedConstraints = DBAnalyzer.getImpliedConstraints(tables);
                 else
                     impliedConstraints = new ArrayList();
+                out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
+                HtmlAnomaliesFormatter anomaliesFormatter = new HtmlAnomaliesFormatter();
+                anomaliesFormatter.write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
+                out.close();
 
-                boolean hasImplied = false;
+
+                startGraphing = System.currentTimeMillis();
+                System.out.println("(" + (startGraphing - startSummarizing) / 1000 + "sec)");
+                System.out.print("Writing/graphing results");
+
                 HtmlTableFormatter tableFormatter = new HtmlTableFormatter();
                 for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
-                    hasImplied |= tableFormatter.write(db, table, outputDir, out).wroteImplied();
+                    tableFormatter.write(db, table, hasRelationships, hasOrphans, outputDir, out);
                     out.close();
                 }
 
@@ -167,54 +221,6 @@ public class Main {
                 out.close();
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.js")));
                 JavaScriptFormatter.write(out);
-                out.close();
-
-                startSummarizing = System.currentTimeMillis();
-                System.out.println("(" + (startSummarizing - startGraphing) / 1000 + "sec)");
-                System.out.print("Writing/graphing summary");
-                System.out.print(".");
-
-                File graphsDir = new File(outputDir, "graphs/summary");
-                String dotBaseFilespec = "relationships";
-                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.dot")));
-                boolean showRelationships = new DotFormatter().writeRelationships(tables, false, out) > 0;
-                out.close();
-
-                if (showRelationships) {
-                    System.out.print(".");
-                    if (hasImplied) {
-                        out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".implied.dot")));
-                        new DotFormatter().writeRelationships(tables, true, out);
-                        out.close();
-                    }
-
-                    out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    showRelationships = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, hasImplied, out);
-                    out.close();
-                }
-
-                System.out.print(".");
-                dotBaseFilespec = "utilities";
-                out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                boolean showOrphans = new HtmlGraphFormatter().writeOrphans(db, DBAnalyzer.getOrphans(tables, false), graphsDir, out);
-                out.close();
-
-                System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
-                HtmlMainIndexFormatter indexFormatter = new HtmlMainIndexFormatter();
-                indexFormatter.write(db, tables, showRelationships, showOrphans, out);
-                out.close();
-
-                System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
-                HtmlConstraintIndexFormatter constraintIndexFormatter = new HtmlConstraintIndexFormatter();
-                constraintIndexFormatter.write(db, constraints, tables, out);
-                out.close();
-
-                System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
-                HtmlAnomaliesFormatter anomaliesFormatter = new HtmlAnomaliesFormatter();
-                anomaliesFormatter.write(db, tables, impliedConstraints, out);
                 out.close();
             }
 
