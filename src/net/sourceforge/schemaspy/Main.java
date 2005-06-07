@@ -133,6 +133,11 @@ public class Main {
             Collection tables = new ArrayList(db.getTables());
             tables.addAll(db.getViews());
 
+            if (tables.isEmpty()) {
+                dumpNoTablesMessage(schema, user, meta);
+                System.exit(2);
+            }
+
             if (generateHtml) {
                 List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
                 startGraphing = System.currentTimeMillis();
@@ -250,12 +255,6 @@ public class Main {
                 System.out.println("(" + (end - startSummarizing) / 1000 + "sec)");
                 System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + outputDir + "' in " + (end - start) / 1000 + " seconds.");
                 System.out.println("Start with " + new File(outputDir, "index.html"));
-
-                if (tables.isEmpty()) {
-                    System.out.println();
-                    System.out.println("No tables were found in the specified schema (" + schema + ").");
-                    System.out.println("Make sure you specify a valid schema with the -s option.");
-                }
             }
         } catch (IllegalArgumentException badParam) {
             System.err.println();
@@ -264,6 +263,35 @@ public class Main {
         } catch (Exception exc) {
             System.err.println();
             exc.printStackTrace();
+        }
+    }
+
+    /**
+     * dumpNoDataMessage
+     *
+     * @param schema String
+     * @param user String
+     * @param meta DatabaseMetaData
+     */
+    private static void dumpNoTablesMessage(String schema, String user, DatabaseMetaData meta) throws SQLException {
+        System.out.println();
+        System.out.println();
+        System.out.println("No tables or views were found in schema " + schema + ".");
+        List schemas = getSchemas(meta);
+        if (schemas.contains(schema) || schemas.contains(schema.toUpperCase()) || schemas.contains(schema.toLowerCase())) {
+            System.out.println("The schema exists in the database, but the user you specified (" + user + ")");
+            System.out.println("  might not have rights to read its contents.");
+        } else {
+            System.out.println("The schema does not exist in the database.");
+            System.out.println("Make sure you specify a valid schema with the -s option and that the user");
+            System.out.println("  specified (" + user + ") can read from the schema.");
+        }
+        System.out.println();
+        System.out.println(schemas.size() + " schemas exist in this database (some are system schemas):");
+        System.out.println();
+        Iterator iter = schemas.iterator();
+        while (iter.hasNext()) {
+            System.out.print(iter.next() + " ");
         }
     }
 
@@ -455,6 +483,23 @@ public class Main {
             System.out.println(" java -jar schemaSpy.jar -db epdb -s sonedba -u devuser -p devuser -o output");
             System.out.println();
         }
+    }
+
+    /**
+     * dumpSchemas
+     *
+     * @param meta DatabaseMetaData
+     */
+    private static List getSchemas(DatabaseMetaData meta) throws SQLException {
+        List schemas = new ArrayList();
+
+        ResultSet rs = meta.getSchemas();
+        while (rs.next()) {
+            schemas.add(rs.getString("TABLE_SCHEM"));
+        }
+        rs.close();
+
+        return schemas;
     }
 
     public static String getLoadedFromJar() {
