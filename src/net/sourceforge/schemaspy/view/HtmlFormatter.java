@@ -1,26 +1,25 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.IOException;
-import net.sourceforge.schemaspy.model.Database;
-import net.sourceforge.schemaspy.model.Table;
-import net.sourceforge.schemaspy.util.LineWriter;
+import java.io.*;
+import net.sourceforge.schemaspy.model.*;
+import net.sourceforge.schemaspy.util.*;
 
 public class HtmlFormatter {
     protected void writeHeader(Database db, Table table, String text, LineWriter out) throws IOException {
         out.writeln("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>");
-        out.writeln("<HTML>");
-        out.writeln("<HEAD>");
-        out.write("  <TITLE>SchemaSpy - ");
+        out.writeln("<html>");
+        out.writeln("<head>");
+        out.write("  <title>SchemaSpy - ");
         out.write(getDescription(db, table, text, false));
-        out.writeln("</TITLE>");
-        out.write("  <LINK rel=stylesheet href='");
+        out.writeln("</title>");
+        out.write("  <link rel=stylesheet href='");
         if (table != null)
             out.write("../");
         out.writeln("schemaSpy.css' type='text/css'>");
-        out.writeln("  <META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=ISO-8859-1'>");
+        out.writeln("  <meta HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=ISO-8859-1'>");
         out.writeln("  <SCRIPT LANGUAGE='JavaScript' TYPE='text/javascript' SRC='" + (table == null ? "" : "../") + "schemaSpy.js'></SCRIPT>");
-        out.writeln("</HEAD>");
-        out.writeln("<BODY onload='syncOptions()'>");
+        out.writeln("</head>");
+        out.writeln("<body onload='syncOptions()'>");
         out.writeln("<table width='100%'>");
         out.writeln(" <tr>");
         out.write("  <td class='heading' valign='top'><h1>");
@@ -74,10 +73,19 @@ public class HtmlFormatter {
         return description.toString();
     }
 
+    protected boolean sourceForgeLogoEnabled() {
+        // I hate this hack, but I don't want to have to pass this boolean everywhere...
+        return System.getProperty("sourceforgelogo") != null;
+    }
+
     protected void writeLegend(boolean tableDetails, LineWriter out) throws IOException {
         out.writeln(" <table class='legend' border='0'>");
-        out.writeln("  <tr><td class='dataTable'>Legend:</td></tr>");
-        out.writeln("  <tr><td>");
+        out.writeln("  <tr>");
+        out.writeln("   <td class='dataTable' valign='bottom'>Legend:</td>");
+        if (sourceForgeLogoEnabled())
+            out.writeln("   <td class='tableHolder' align='right' valign='top'><a href=\"http://sourceforge.net\"><img src=\"http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1\" alt=\"SourceForge.net Logo\" border=\"0\" height=\"31\" width=\"88\"></a></td>");
+        out.writeln("  </tr>");
+        out.writeln("  <tr><td colspan='2'>");
         out.writeln("   <table class='dataTable' border='1'>");
         out.writeln("    <tbody>");
         out.writeln("    <tr><td class='primaryKey'>Primary key columns</td></tr>");
@@ -92,7 +100,7 @@ public class HtmlFormatter {
     }
 
     protected void writeFooter(LineWriter out) throws IOException {
-        out.writeln("</BODY>");
-        out.writeln("</HTML>");
+        out.writeln("</body>");
+        out.writeln("</html>");
     }
 }

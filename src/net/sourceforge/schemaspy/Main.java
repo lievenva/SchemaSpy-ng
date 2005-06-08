@@ -72,21 +72,12 @@ public class Main {
             if (css == null)
                 css = "schemaSpy.css";
 
-            int maxThreads = Integer.MAX_VALUE;
-            String threads = properties.getProperty("dbThreads");
-            if (threads == null)
-                threads = properties.getProperty("dbthreads");
-            if (threads != null)
-                maxThreads = Integer.parseInt(threads);
-            threads = getParam(args, "-dbThreads", false, false);
-            if (threads == null)
-                threads = getParam(args, "-dbthreads", false, false);
-            if (threads != null)
-                maxThreads = Integer.parseInt(threads);
-            if (maxThreads < 0)
-                maxThreads = Integer.MAX_VALUE;
-            else if (maxThreads == 0)
-                maxThreads = 1;
+            int maxDbThreads = getMaxDbThreads(args, properties);
+
+            if (!args.remove("-nologo")) {
+                // nasty hack, but passing this info everywhere churns my stomach
+                System.setProperty("sourceforgelogo", "true");
+            }
 
             ConnectionURLBuilder urlBuilder = null;
             try {
@@ -126,7 +117,7 @@ public class Main {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties, maxThreads);
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties, maxDbThreads);
             Database db = spy.getDatabase();
 
             LineWriter out;
@@ -271,6 +262,33 @@ public class Main {
             System.err.println();
             exc.printStackTrace();
         }
+    }
+
+    /**
+     * getMaxDbThreads
+     *
+     * @param args List
+     * @param properties Properties
+     * @return int
+     */
+    private static int getMaxDbThreads(List args, Properties properties) {
+        int maxThreads = Integer.MAX_VALUE;
+        String threads = properties.getProperty("dbThreads");
+        if (threads == null)
+            threads = properties.getProperty("dbthreads");
+        if (threads != null)
+            maxThreads = Integer.parseInt(threads);
+        threads = getParam(args, "-dbThreads", false, false);
+        if (threads == null)
+            threads = getParam(args, "-dbthreads", false, false);
+        if (threads != null)
+            maxThreads = Integer.parseInt(threads);
+        if (maxThreads < 0)
+            maxThreads = Integer.MAX_VALUE;
+        else if (maxThreads == 0)
+            maxThreads = 1;
+
+        return maxThreads;
     }
 
     /**
@@ -456,6 +474,8 @@ public class Main {
             System.out.println("                           use 1 if you get 'already closed' type errors");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
+            System.out.println("   -nologo               don't put SourceForge logo on generated pages");
+            System.out.println("                           (please don't disable unless absolutely necessary)");
             System.out.println("   -help                 detailed help");
             System.out.println("   -dbhelp               display databaseType-specific help");
             System.out.println();
@@ -464,7 +484,7 @@ public class Main {
         }
 
         if (!detailed) {
-            System.out.println(" java -jar " + getLoadedFromJar() + " -help to display detailed help");
+            System.out.println(" java -jar " + getLoadedFromJar() + " -help to display more detailed help");
             System.out.println();
         }
 
