@@ -61,9 +61,9 @@ public class Main {
             String password = getParam(args, "-p", false, false);
             String schema = null;
             try {
-                schema = getParam(args, "-s", false, true).toUpperCase();
+                schema = getParam(args, "-s", false, true);
             } catch (Exception schemaNotSpecified) {
-                schema = user.toUpperCase();
+                schema = user;
             }
 
             String classpath = getParam(args, "-cp", false, false);
@@ -87,7 +87,7 @@ public class Main {
                 System.exit(1);
             }
 
-            String dbName = urlBuilder.getDbName().toUpperCase();
+            String dbName = urlBuilder.getDbName();
 
             if (args.size() != 0) {
                 System.out.print("Warning: Unrecognized option(s):");
@@ -303,13 +303,14 @@ public class Main {
         System.out.println();
         System.out.println("No tables or views were found in schema " + schema + ".");
         List schemas = getSchemas(meta);
-        if (schemas.contains(schema) || schemas.contains(schema.toUpperCase()) || schemas.contains(schema.toLowerCase())) {
+        if (schemas.contains(schema)) {
             System.out.println("The schema exists in the database, but the user you specified (" + user + ")");
             System.out.println("  might not have rights to read its contents.");
         } else {
             System.out.println("The schema does not exist in the database.");
             System.out.println("Make sure you specify a valid schema with the -s option and that the user");
             System.out.println("  specified (" + user + ") can read from the schema.");
+            System.out.println("Note that schema names are usually case sensitive.");
         }
         System.out.println();
         System.out.println(schemas.size() + " schemas exist in this database (some are system schemas):");
