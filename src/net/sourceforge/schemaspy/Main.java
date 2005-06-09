@@ -492,10 +492,27 @@ public class Main {
         if (detailedDb) {
             System.out.println("Built-in database types and their required connection parameters:");
             Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
+            class DbPropLoader {
+                Properties load(String dbType) {
+                    ResourceBundle bundle = ResourceBundle.getBundle(dbType);
+                    Properties properties;
+                    try {
+                        String baseDbType = bundle.getString("extends");
+                        int lastSlash = dbType.lastIndexOf('/');
+                        if (lastSlash != -1)
+                            baseDbType = dbType.substring(0, dbType.lastIndexOf("/") + 1) + baseDbType;
+                        properties = load(baseDbType);
+                    } catch (MissingResourceException doesntExtend) {
+                        properties = new Properties();
+                    }
+
+                    return add(properties, bundle);
+                }
+            }
+
             for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
                 String dbType = iter.next().toString();
-                Properties properties = add(new Properties(), ResourceBundle.getBundle(dbType));
-                new ConnectionURLBuilder(dbType, null, properties).dumpUsage();
+                new ConnectionURLBuilder(dbType, null, new DbPropLoader().load(dbType)).dumpUsage();
             }
             System.out.println();
         }
