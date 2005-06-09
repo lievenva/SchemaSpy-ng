@@ -20,7 +20,7 @@ public class HtmlFormatter {
         out.writeln("  <SCRIPT LANGUAGE='JavaScript' TYPE='text/javascript' SRC='" + (table == null ? "" : "../") + "schemaSpy.js'></SCRIPT>");
         out.writeln("</head>");
         out.writeln("<body onload='syncOptions()'>");
-        out.writeln("<table width='100%'>");
+        out.writeln("<table width='100%' border='0' cellpadding='0'>");
         out.writeln(" <tr>");
         out.write("  <td class='heading' valign='top'><h1>");
         if (table == null)
