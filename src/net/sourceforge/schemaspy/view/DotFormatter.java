@@ -1,42 +1,36 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-import net.sourceforge.schemaspy.model.Table;
-import net.sourceforge.schemaspy.model.TableColumn;
-import net.sourceforge.schemaspy.util.LineWriter;
+import java.io.*;
+import java.util.*;
+import net.sourceforge.schemaspy.model.*;
+import net.sourceforge.schemaspy.util.*;
 
 /**
  * Format table data into .dot format to feed to GraphVis' dot program.
  *
  * @author John Currier
- * @version 1.0
  */
 public class DotFormatter {
     /**
      * Write relationships associated with the given table
      *
      * @param table Table
-     * @param out LineWriter
+     * @param dot LineWriter
      * @throws IOException
      * @return boolean <code>true</code> if implied relationships were written
      */
-    public WriteStats writeRelationships(Table table, boolean includeImplied, boolean twoDegreesOfSeparation, LineWriter out) throws IOException {
+    public WriteStats writeRelationships(Table table, boolean includeImplied, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
         Set tablesWritten = new HashSet();
         WriteStats stats = new WriteStats();
         boolean[] wroteImplied = new boolean[1];
 
         DotTableFormatter formatter = new DotTableFormatter();
 
-        writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph"), out);
+        writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph"), dot);
 
         Set relatedTables = getImmediateRelatives(table, includeImplied, wroteImplied);
 
-        formatter.writeNode(table, "", true, true, true, out);
+        formatter.writeNode(table, "", true, true, true, dot);
         Set relationships = formatter.getRelationships(table, includeImplied);
         tablesWritten.add(table);
         stats.wroteTable(table);
@@ -48,7 +42,7 @@ public class DotFormatter {
             if (!tablesWritten.add(relatedTable))
                 continue; // already written
 
-            formatter.writeNode(relatedTable, "", true, false, false, out);
+            formatter.writeNode(relatedTable, "", true, false, false, dot);
             stats.wroteTable(relatedTable);
             relationships.addAll(formatter.getRelationships(relatedTable, table, includeImplied));
         }
@@ -66,7 +60,7 @@ public class DotFormatter {
                     if (!tablesWritten.add(cousin))
                         continue; // already written
                     relationships.addAll(formatter.getRelationships(cousin, relatedTable, includeImplied));
-                    formatter.writeNode(cousin, "", false, false, false, out);
+                    formatter.writeNode(cousin, "", false, false, false, dot);
                     stats.wroteTable(cousin);
                 }
             }
@@ -74,9 +68,9 @@ public class DotFormatter {
 
         iter = new TreeSet(relationships).iterator();
         while (iter.hasNext())
-            out.writeln(iter.next().toString());
+            dot.writeln(iter.next().toString());
 
-        out.writeln("}");
+        dot.writeln("}");
         stats.setWroteImplied(wroteImplied[0]);
         return stats;
     }
@@ -120,30 +114,30 @@ public class DotFormatter {
     }
 
 
-    private void writeDotHeader(String name, LineWriter out) throws IOException {
-        out.writeln("digraph " + name + " {");
-        out.writeln("  graph [");
-        out.writeln("    rankdir=\"RL\"");
-        out.writeln("    bgcolor=\"" + StyleSheet.getBodyBackground() + "\"");
-        out.writeln("    concentrate=\"true\"");
-        out.writeln("  ];");
-        out.writeln("  node [");
-        out.writeln("    fontsize=\"11\"");
-        out.writeln("    shape=\"plaintext\"");
-        out.writeln("  ];");
+    private void writeDotHeader(String name, LineWriter dot) throws IOException {
+        dot.writeln("digraph " + name + " {");
+        dot.writeln("  graph [");
+        dot.writeln("    rankdir=\"RL\"");
+        dot.writeln("    bgcolor=\"" + StyleSheet.getBodyBackground() + "\"");
+        dot.writeln("    concentrate=\"true\"");
+        dot.writeln("  ];");
+        dot.writeln("  node [");
+        dot.writeln("    fontsize=\"11\"");
+        dot.writeln("    shape=\"plaintext\"");
+        dot.writeln("  ];");
     }
 
-    public int writeRelationships(Collection tables, boolean includeImplied, LineWriter out) throws IOException {
+    public int writeRelationships(Collection tables, boolean includeImplied, LineWriter dot) throws IOException {
         DotTableFormatter formatter = new DotTableFormatter();
         int numWritten = 0;
-        writeDotHeader(includeImplied ? "impliedRelationshipsGraph" : "relationshipsGraph", out);
+        writeDotHeader(includeImplied ? "impliedRelationshipsGraph" : "relationshipsGraph", dot);
 
         Iterator iter = tables.iterator();
 
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
             if (!table.isOrphan(includeImplied)) {
-                formatter.writeNode(table, "tables/", true, false, false, out);
+                formatter.writeNode(table, "tables/", true, false, false, dot);
                 ++numWritten;
             }
         }
@@ -156,9 +150,9 @@ public class DotFormatter {
 
         iter = relationships.iterator();
         while (iter.hasNext())
-            out.writeln(iter.next().toString());
+            dot.writeln(iter.next().toString());
 
-        out.writeln("}");
+        dot.writeln("}");
 
         return numWritten;
     }

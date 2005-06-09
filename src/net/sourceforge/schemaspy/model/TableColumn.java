@@ -163,12 +163,18 @@ public class TableColumn implements Serializable {
         children.clear();
     }
 
+    /**
+     * Returns <code>Set</code> of <code>TableColumn</code>s that have a real (or implied) foreign key that
+     * references this <code>TableColumn</code>.
+     * @return Set
+     */
     public Set getChildren() {
         return children.keySet();
     }
 
     /**
-     * returns the constraint that connects the specified column to this column (specified 'child' to this 'parent' column)
+     * returns the constraint that connects the specified column to this column
+     * (specified 'child' to this 'parent' column)
      */
     public ForeignKeyConstraint getChildConstraint(TableColumn child) {
         return (ForeignKeyConstraint)children.get(child);

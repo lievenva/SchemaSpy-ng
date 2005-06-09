@@ -1,24 +1,9 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.io.*;
+import java.lang.reflect.*;
+import java.sql.*;
+import java.util.*;
 
 public class Table implements Serializable {
     private final String schema;
@@ -385,12 +370,44 @@ public class Table implements Serializable {
         return numChildren;
     }
 
+    public int getNumRealChildren() {
+        int numChildren = 0;
+
+        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            Iterator childIter = column.getChildren().iterator();
+            while (childIter.hasNext()) {
+                TableColumn childColumn = (TableColumn)childIter.next();
+                if (!column.getChildConstraint(childColumn).isImplied())
+                    ++numChildren;
+            }
+        }
+
+        return numChildren;
+    }
+
     public int getNumParents() {
         int numParents = 0;
 
         for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
             TableColumn column = (TableColumn)iter.next();
             numParents += column.getParents().size();
+        }
+
+        return numParents;
+    }
+
+    public int getNumRealParents() {
+        int numParents = 0;
+
+        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            Iterator parentIter = column.getParents().iterator();
+            while (parentIter.hasNext()) {
+                TableColumn parentColumn = (TableColumn)parentIter.next();
+                if (!column.getParentConstraint(parentColumn).isImplied())
+                    ++numParents;
+            }
         }
 
         return numParents;
