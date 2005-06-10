@@ -12,12 +12,14 @@ public class TableIndex implements Comparable, Serializable {
     private final Object id;
     private final String name;
     private final boolean isUnique;
+    private final String sortOrder;
     private boolean isPrimary;
     private final List columns = new ArrayList();
 
     public TableIndex(ResultSet rs) throws SQLException {
         name = rs.getString("INDEX_NAME");
         isUnique = !rs.getBoolean("NON_UNIQUE");
+        sortOrder = rs.getString("ASC_OR_DESC");
         id = null;
     }
 
@@ -52,6 +54,10 @@ public class TableIndex implements Comparable, Serializable {
 
     public boolean isUnique() {
 	return isUnique;
+    }
+
+    public boolean isAscending() {
+        return sortOrder == null || sortOrder.equals("A");
     }
 
     public String getColumnsAsString() {
