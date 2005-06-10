@@ -1,21 +1,9 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
+import java.sql.*;
+import java.text.*;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.Properties;
-import java.util.Set;
 
 public class Database {
     private final String databaseName;
@@ -86,13 +74,18 @@ public class Database {
 
                 // "prime the pump" so if there's a database problem we'll probably see it now
                 // and not in a secondary thread
-                if (rs.next()) {
-                    new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                while (rs.next()) {
+                    if (rs.getString("TABLE_TYPE").equals("TABLE")) {  // some databases (MySQL) return more than we wanted
+                        new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                        break;
+                    }
                 }
             }
 
             while (rs.next()) {
-                creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                if (rs.getString("TABLE_TYPE").equals("TABLE")) {  // some databases (MySQL) return more than we wanted
+                    creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                }
             }
 
             creator.join();
@@ -157,9 +150,11 @@ public class Database {
             rs = metadata.getTables(null, schema, "%", types);
 
             while (rs.next()) {
-                System.out.print('.');
-                Table view = new View(this, rs, metadata, properties.getProperty("selectViewSql"));
-                views.put(view.getName().toUpperCase(), view);
+                if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
+                    System.out.print('.');
+                    Table view = new View(this, rs, metadata, properties.getProperty("selectViewSql"));
+                    views.put(view.getName().toUpperCase(), view);
+                }
             }
         } finally {
             if (rs != null)
