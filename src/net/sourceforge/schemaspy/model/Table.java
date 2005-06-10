@@ -15,7 +15,7 @@ public class Table implements Serializable {
     private final Object tablespace;
     private final Object id;
     private final Map checkConstraints = new TreeMap(new ByCheckConstraintStringsComparator());
-    private final int numRecords;
+    private final int numRows;
     private int maxChildren;
     private int maxParents;
     private boolean oracleSelectIndexesBug = false;
@@ -29,7 +29,7 @@ public class Table implements Serializable {
 
         tablespace = null;
         id = null;
-        numRecords = fetchNumRecords(db);
+        numRows = fetchNumRows(db);
     }
 
     public void connectForeignKeys(Map tables, DatabaseMetaData meta) throws SQLException {
@@ -448,11 +448,11 @@ public class Table implements Serializable {
         return null;
     }
 
-    public int getNumRecords() {
-        return numRecords;
+    public int getNumRows() {
+        return numRows;
     }
 
-    protected int fetchNumRecords(Database db) throws SQLException {
+    protected int fetchNumRows(Database db) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         StringBuffer sql = new StringBuffer("select count(*) from ");

@@ -21,7 +21,7 @@ public class View extends Table {
         return viewSql;
     }
 
-    protected int fetchNumRecords(Database database) throws SQLException {
+    protected int fetchNumRows(Database database) throws SQLException {
         return 0;
     }
 
