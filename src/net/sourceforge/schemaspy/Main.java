@@ -63,7 +63,6 @@ public class Main {
             try {
                 schema = getParam(args, "-s", false, true);
             } catch (Exception schemaNotSpecified) {
-                schema = user;
             }
 
             String classpath = getParam(args, "-cp", false, false);
@@ -83,7 +82,7 @@ public class Main {
             try {
                 urlBuilder = new ConnectionURLBuilder(dbType, args, properties);
             } catch (IllegalArgumentException badParam) {
-                dumpUsage(badParam.getMessage(), false, true);
+                System.err.println(badParam.getMessage());
                 System.exit(1);
             }
 
@@ -107,6 +106,9 @@ public class Main {
 
             Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), driverClass, driverPath, propertiesLoadedFrom.toString());
             DatabaseMetaData meta = connection.getMetaData();
+            if (schema == null && meta.supportsSchemasInTableDefinitions()) {
+                schema = user;
+            }
 
             if (generateHtml) {
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
@@ -364,9 +366,13 @@ public class Main {
             connection = driver.connect(connectionURL, connectionProperties);
             if (connection == null) {
                 System.err.println();
-                System.err.println("Wrong kind of driver [" + driverClass + "] to connect to the given database url [" + connectionURL + "]");
+                System.err.println("Cannot connect to this database URL:");
+                System.err.println("  " + connectionURL);
+                System.err.println("with this driver:");
+                System.err.println("  " + driverClass);
                 System.err.println();
-                System.err.println("Check your .properties file.");
+                System.err.println("Additional connection information may be available in ");
+                System.err.println("  " + propertiesLoadedFrom);
                 System.exit(1);
             }
         } catch (UnsatisfiedLinkError badPath) {
@@ -531,7 +537,7 @@ public class Main {
     }
 
     /**
-     * dumpSchemas
+     * getSchemas
      *
      * @param meta DatabaseMetaData
      */
