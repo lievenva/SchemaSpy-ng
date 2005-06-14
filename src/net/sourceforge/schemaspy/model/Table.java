@@ -133,6 +133,49 @@ public class Table implements Serializable {
                     rs.close();
             }
         }
+
+        initColumnAutoUpdate(meta);
+    }
+
+    private void initColumnAutoUpdate(DatabaseMetaData meta) throws SQLException {
+        ResultSet rs = null;
+        PreparedStatement stmt = null;
+
+        // we've got to get a result set with all the columns in it
+        // so we can ask if the columns are auto updated
+        // Ugh!!!  Should have been in DatabaseMetaData instead!!!
+        StringBuffer sql = new StringBuffer("select ");
+        List columns = getColumns();
+        Iterator iter = columns.iterator();
+        while (iter.hasNext()) {
+            TableColumn column = (TableColumn)iter.next();
+            sql.append(column.getName());
+            if (iter.hasNext())
+                sql.append(", ");
+        }
+        sql.append(" from ");
+        if (getSchema() != null) {
+            sql.append(getSchema());
+            sql.append('.');
+        }
+        sql.append(getName());
+        sql.append(" where 0 = 1");
+
+        try {
+            stmt = meta.getConnection().prepareStatement(sql.toString());
+            rs = stmt.executeQuery();
+
+            ResultSetMetaData rsMeta = rs.getMetaData();
+            for (int i = 0; i < columns.size(); ++i) {
+                TableColumn column = (TableColumn)columns.get(i);
+                column.setIsAutoUpdated(rsMeta.isAutoIncrement(i + 1));
+            }
+        } finally {
+            if (rs != null)
+                rs.close();
+            if (stmt != null)
+                stmt.close();
+        }
     }
 
     private void addColumn(ResultSet rs) throws SQLException {
@@ -483,21 +526,6 @@ public class Table implements Serializable {
 
     public String toString() {
         return getName();
-    }
-
-    /**
-     * setVersionColumns
-     *
-     * @param rs ResultSet result of DatabaseMetaData.getVersionColumns()
-     */
-    public void setVersionColumns(ResultSet rs) throws SQLException {
-        String columnName = rs.getString("COLUMN_NAME");
-
-        TableColumn column = getColumn(columnName);
-        if (column != null) {
-            column.setIsAutoUpdated(true);
-            column.setIsVirtual(rs.getShort("PSEUDO_COLUMN") == DatabaseMetaData.versionColumnPseudo);
-        }
     }
 
     /**
