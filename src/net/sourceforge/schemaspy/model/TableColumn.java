@@ -1,15 +1,8 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.Serializable;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
 
 public class TableColumn implements Serializable {
     private final Table table;
@@ -20,7 +13,6 @@ public class TableColumn implements Serializable {
     private final String detailedSize;
     private final boolean isNullable;
     private       boolean isAutoUpdated;
-    private       boolean isVirtual;
     private final Object defaultValue;
     private final Map parents = new HashMap();
     private final Map children = new TreeMap(new ColumnComparator());
@@ -82,10 +74,6 @@ public class TableColumn implements Serializable {
 
     public boolean isAutoUpdated() {
         return isAutoUpdated;
-    }
-
-    public boolean isVirtual() {
-        return isVirtual;
     }
 
     public Object getDefaultValue() {
@@ -180,10 +168,6 @@ public class TableColumn implements Serializable {
         return (ForeignKeyConstraint)children.get(child);
     }
 
-    public String toString() {
-        return getName();
-    }
-
     /**
      * setIsAutoUpdated
      *
@@ -193,13 +177,8 @@ public class TableColumn implements Serializable {
         this.isAutoUpdated = isAutoUpdated;
     }
 
-    /**
-     * setIsVirtual
-     *
-     * @param virtual boolean
-     */
-    public void setIsVirtual(boolean isVirtual) {
-        this.isVirtual = isVirtual;
+    public String toString() {
+        return getName();
     }
 
     private class ColumnComparator implements Comparator, Serializable {
