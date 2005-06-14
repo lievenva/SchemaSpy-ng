@@ -3,6 +3,9 @@ package net.sourceforge.schemaspy;
 import java.sql.*;
 import java.util.*;
 import net.sourceforge.schemaspy.model.*;
+import net.sourceforge.schemaspy.util.*;
+import java.io.IOException;
+import java.util.Arrays;
 
 public class DBAnalyzer {
     public static List getImpliedConstraints(Collection tables) throws SQLException {
@@ -219,5 +222,23 @@ public class DBAnalyzer {
 	});
 
 	return columns;
+    }
+
+    /**
+     * For debugging/analyzing result sets
+     * @param rs ResultSet
+     * @throws SQLException
+     */
+    public static void dumpResultSetRow(ResultSet rs, String description) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();
+        int numColumns = meta.getColumnCount();
+        System.out.println(numColumns + " columns of " + description + ":");
+        for (int i = 1; i <= numColumns; ++i) {
+            System.out.print(meta.getColumnLabel(i));
+            System.out.print(": ");
+            System.out.print(String.valueOf(rs.getString(i)));
+            System.out.print("\t");
+        }
+        System.out.println();
     }
 }
