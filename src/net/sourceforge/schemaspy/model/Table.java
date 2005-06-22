@@ -170,6 +170,10 @@ public class Table implements Serializable {
                 TableColumn column = (TableColumn)columns.get(i);
                 column.setIsAutoUpdated(rsMeta.isAutoIncrement(i + 1));
             }
+        } catch (SQLException exc) {
+            // don't completely choke just because we couldn't do this....
+            System.err.println("Failed to determine auto increment status: " + exc);
+            System.err.println("SQL: " + sql.toString());
         } finally {
             if (rs != null)
                 rs.close();

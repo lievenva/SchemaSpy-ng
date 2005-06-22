@@ -119,7 +119,7 @@ public class DotFormatter {
         dot.writeln("  graph [");
         dot.writeln("    rankdir=\"RL\"");
         dot.writeln("    bgcolor=\"" + StyleSheet.getBodyBackground() + "\"");
-        dot.writeln("    concentrate=\"true\"");
+        //dot.writeln("    concentrate=\"true\"");
         dot.writeln("  ];");
         dot.writeln("  node [");
         dot.writeln("    fontsize=\"11\"");
