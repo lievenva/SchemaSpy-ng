@@ -144,16 +144,7 @@ public class Table implements Serializable {
         // we've got to get a result set with all the columns in it
         // so we can ask if the columns are auto updated
         // Ugh!!!  Should have been in DatabaseMetaData instead!!!
-        StringBuffer sql = new StringBuffer("select ");
-        List columns = getColumns();
-        Iterator iter = columns.iterator();
-        while (iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
-            sql.append(column.getName());
-            if (iter.hasNext())
-                sql.append(", ");
-        }
-        sql.append(" from ");
+        StringBuffer sql = new StringBuffer("select * from ");
         if (getSchema() != null) {
             sql.append(getSchema());
             sql.append('.');
@@ -166,9 +157,9 @@ public class Table implements Serializable {
             rs = stmt.executeQuery();
 
             ResultSetMetaData rsMeta = rs.getMetaData();
-            for (int i = 0; i < columns.size(); ++i) {
-                TableColumn column = (TableColumn)columns.get(i);
-                column.setIsAutoUpdated(rsMeta.isAutoIncrement(i + 1));
+            for (int i = rsMeta.getColumnCount(); i > 0; --i) {
+                TableColumn column = getColumn(rsMeta.getColumnName(i));
+                column.setIsAutoUpdated(rsMeta.isAutoIncrement(i));
             }
         } catch (SQLException exc) {
             // don't completely choke just because we couldn't do this....
