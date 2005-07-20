@@ -134,7 +134,8 @@ public class Table implements Serializable {
             }
         }
 
-        initColumnAutoUpdate(meta);
+        if (!isView())
+            initColumnAutoUpdate(meta);
     }
 
     private void initColumnAutoUpdate(DatabaseMetaData meta) throws SQLException {
