@@ -44,6 +44,10 @@ public class Database {
         return connection;
     }
 
+    public DatabaseMetaData getMetaData() {
+        return meta;
+    }
+
     public String getConnectTime() {
         return connectTime;
     }
