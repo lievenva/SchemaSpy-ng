@@ -491,6 +491,15 @@ public class Table implements Serializable {
         return numRows;
     }
 
+    /**
+     * fetch the number of rows contained in this table.
+     *
+     * returns -1 if unable to successfully fetch the row count
+     *
+     * @param db Database
+     * @throws SQLException
+     * @return int
+     */
     protected int fetchNumRows(Database db) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -508,10 +517,11 @@ public class Table implements Serializable {
             while (rs.next()) {
                 return rs.getInt(1);
             }
-            return 0;
+            return -1;
         } catch (SQLException sqlException) {
+            System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
             System.err.println(sql);
-            throw sqlException;
+            return -1;
         } finally {
             if (rs != null)
                 rs.close();
