@@ -36,7 +36,7 @@ public class DotFormatter {
         WriteStats stats = new WriteStats();
         boolean[] wroteImplied = new boolean[1];
 
-        DotTableFormatter formatter = new DotTableFormatter();
+        DotTableFormatter formatter = DotTableFormatter.getInstance();
 
         writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph"), dot);
 
@@ -140,7 +140,7 @@ public class DotFormatter {
     }
 
     public WriteStats writeRelationships(Collection tables, boolean includeImplied, LineWriter dot) throws IOException {
-        DotTableFormatter formatter = new DotTableFormatter();
+        DotTableFormatter formatter = DotTableFormatter.getInstance();
         WriteStats stats = new WriteStats();
         writeDotHeader(includeImplied ? "impliedRelationshipsGraph" : "relationshipsGraph", dot);
 
@@ -173,7 +173,7 @@ public class DotFormatter {
     }
 
     public void writeOrphan(Table table, LineWriter dot) throws IOException {
-        DotTableFormatter formatter = new DotTableFormatter();
+        DotTableFormatter formatter = DotTableFormatter.getInstance();
         writeDotHeader(table.getName(), dot);
         formatter.writeNode(table, "tables/", true, false, true, dot);
         dot.writeln("}");
