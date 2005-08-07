@@ -29,7 +29,7 @@ public class Main {
             }
 
             long start = System.currentTimeMillis();
-            long startGraphing = start;
+            long startGraphingDetails = start;
             long startSummarizing = start;
 
             // allow '=' in param specs
@@ -38,7 +38,11 @@ public class Main {
             final boolean generateHtml = !args.remove("-nohtml");
             final boolean includeImpliedConstraints = !args.remove("-noimplied");
 
-            File outputDir = new File(getParam(args, "-o", true, false));
+            String outputDirName = getParam(args, "-o", true, false);
+            // quoting command-line arguments sometimes leaves the trailing "
+            if (outputDirName.endsWith("\""))
+                outputDirName = outputDirName.substring(0, outputDirName.length() - 1);
+            File outputDir = new File(outputDirName).getCanonicalFile();
             if (!outputDir.isDirectory()) {
                 if (!outputDir.mkdir()) {
                     System.err.println("Failed to create directory '" + outputDir + "'");
@@ -140,8 +144,8 @@ public class Main {
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.dot")));
-                int numRelationships =  new DotFormatter().writeRelationships(tables, false, out);
-                boolean hasRelationships = numRelationships > 0;
+                WriteStats stats = new DotFormatter().writeRelationships(tables, false, out);
+                boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 out.close();
 
                 // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
@@ -160,9 +164,8 @@ public class Main {
 
                     File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.dot");
                     out = new LineWriter(new FileWriter(impliedDotFile));
-                    int numImplied = new DotFormatter().writeRelationships(tables, true, out) - numRelationships;
+                    boolean hasImplied = new DotFormatter().writeRelationships(tables, true, out).wroteImplied();
                     out.close();
-                    boolean hasImplied = numImplied != 0;
                     if (!hasImplied)
                         impliedDotFile.delete();
 
@@ -174,7 +177,7 @@ public class Main {
                 System.out.print(".");
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                hasOrphans = new HtmlGraphFormatter().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
+                new HtmlGraphFormatter().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
                 out.close();
 
                 System.out.print(".");
@@ -197,8 +200,8 @@ public class Main {
                 out.close();
 
 
-                startGraphing = System.currentTimeMillis();
-                System.out.println("(" + (startGraphing - startSummarizing) / 1000 + "sec)");
+                startGraphingDetails = System.currentTimeMillis();
+                System.out.println("(" + (startGraphingDetails - startSummarizing) / 1000 + "sec)");
                 System.out.print("Writing/graphing results");
 
                 HtmlTableFormatter tableFormatter = new HtmlTableFormatter();
@@ -252,9 +255,9 @@ public class Main {
 
             if (generateHtml) {
                 long end = System.currentTimeMillis();
-                System.out.println("(" + (end - startSummarizing) / 1000 + "sec)");
-                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + outputDir + "' in " + (end - start) / 1000 + " seconds.");
-                System.out.println("Start with " + new File(outputDir, "index.html"));
+                System.out.println("(" + (end - startGraphingDetails) / 1000 + "sec)");
+                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + new File(outputDirName) + "' in " + (end - start) / 1000 + " seconds.");
+                System.out.println("Start with " + new File(outputDirName, "index.html"));
             }
         } catch (IllegalArgumentException badParam) {
             System.err.println();
@@ -304,20 +307,30 @@ public class Main {
         System.out.println();
         System.out.println();
         System.out.println("No tables or views were found in schema " + schema + ".");
-        List schemas = getSchemas(meta);
+        List schemas = DBAnalyzer.getSchemas(meta);
         if (schemas.contains(schema)) {
-            System.out.println("The schema exists in the database, but the user you specified (" + user + ")");
+            System.out.println("The schema exists in the database, but the user you specified '" + user + "'");
             System.out.println("  might not have rights to read its contents.");
         } else {
             System.out.println("The schema does not exist in the database.");
             System.out.println("Make sure you specify a valid schema with the -s option and that the user");
-            System.out.println("  specified (" + user + ") can read from the schema.");
+            System.out.println("  specified '" + user + "' can read from the schema.");
             System.out.println("Note that schema names are usually case sensitive.");
         }
         System.out.println();
-        System.out.println(schemas.size() + " schemas exist in this database (some are system schemas):");
+        System.out.println(schemas.size() + " schemas exist in this database.");
+        System.out.println("Some of these \"schemas\" may be users or system schemas.");
         System.out.println();
         Iterator iter = schemas.iterator();
+        while (iter.hasNext()) {
+            System.out.print(iter.next() + " ");
+        }
+
+        System.out.println();
+        System.out.println();
+        System.out.println("These schemas contain tables/views that user '" + user + "' can see:");
+        System.out.println();
+        iter = DBAnalyzer.getPopulatedSchemas(meta).iterator();
         while (iter.hasNext()) {
             System.out.print(iter.next() + " ");
         }
@@ -534,23 +547,6 @@ public class Main {
             System.out.println(" java -jar schemaSpy.jar -db epdb -s sonedba -u devuser -p devuser -o output");
             System.out.println();
         }
-    }
-
-    /**
-     * getSchemas
-     *
-     * @param meta DatabaseMetaData
-     */
-    private static List getSchemas(DatabaseMetaData meta) throws SQLException {
-        List schemas = new ArrayList();
-
-        ResultSet rs = meta.getSchemas();
-        while (rs.next()) {
-            schemas.add(rs.getString("TABLE_SCHEM"));
-        }
-        rs.close();
-
-        return schemas;
     }
 
     public static String getLoadedFromJar() {
