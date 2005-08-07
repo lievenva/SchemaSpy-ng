@@ -7,6 +7,7 @@ import net.sourceforge.schemaspy.util.*;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static boolean printedNoDotWarning = false;
+    private static boolean printedInvalidVersionWarning = false;
 
     public boolean write(Table table, File graphDir, WriteStats stats, LineWriter html) {
         File oneDegreeDotFile = new File(graphDir, table.getName() + ".1degree.dot");
@@ -17,8 +18,11 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         File twoDegreesGraphFile = new File(graphDir, table.getName() + ".2degrees.png");
 
         try {
-            if (!DotRunner.generateGraph(oneDegreeDotFile, oneDegreeGraphFile))
+            DotRunner dot = getDot();
+            if (dot == null)
                 return false;
+
+            dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile);
 
             html.write("<br/><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
@@ -40,23 +44,22 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 html.write(":</b>");
             }
             html.writeln("  <a name='graph'><img src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='#oneDegreeRelationshipsGraph' id='relationships' border='0' alt='' align='left'></a>");
-            DotRunner.writeMap(oneDegreeDotFile, html);
+            dot.writeMap(oneDegreeDotFile, html);
             if (stats.wroteImplied()) {
-                DotRunner.generateGraph(impliedDotFile, impliedGraphFile);
-                DotRunner.writeMap(impliedDotFile, html);
+                dot.generateGraph(impliedDotFile, impliedGraphFile);
+                dot.writeMap(impliedDotFile, html);
             } else {
                 impliedDotFile.delete();
                 impliedGraphFile.delete();
             }
             if (stats.wroteTwoDegrees()) {
-                DotRunner.generateGraph(twoDegreesDotFile, twoDegreesGraphFile);
-                DotRunner.writeMap(twoDegreesDotFile, html);
+                dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile);
+                dot.writeMap(twoDegreesDotFile, html);
             } else {
                 twoDegreesDotFile.delete();
                 twoDegreesGraphFile.delete();
             }
         } catch (IOException noDot) {
-            printNoDotWarning();
             return false;
         }
 
@@ -70,21 +73,22 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         File impliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.png");
 
         try {
-            if (!DotRunner.generateGraph(relationshipsDotFile, relationshipsGraphFile))
+            DotRunner dot = getDot();
+            if (dot == null)
                 return false;
 
+            dot.generateGraph(relationshipsDotFile, relationshipsGraphFile);
             writeRelationshipsHeader(db, relationshipsGraphFile, impliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
             html.writeln("  <a name='graph'><img src='graphs/summary/" + relationshipsGraphFile.getName() + "' usemap='#relationshipsGraph' id='relationships' border='0' alt=''></a>");
-            DotRunner.writeMap(relationshipsDotFile, html);
+            dot.writeMap(relationshipsDotFile, html);
 
             if (hasImpliedRelationships) {
-                DotRunner.generateGraph(impliedDotFile, impliedGraphFile);
-                DotRunner.writeMap(impliedDotFile, html);
+                dot.generateGraph(impliedDotFile, impliedGraphFile);
+                dot.writeMap(impliedDotFile, html);
             }
 
             writeFooter(html);
         } catch (IOException noDot) {
-            printNoDotWarning();
             return false;
         }
 
@@ -92,6 +96,10 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     }
 
     public boolean writeOrphans(Database db, List orphanTables, boolean hasRelationships, File graphDir, LineWriter html) throws IOException {
+        DotRunner dot = getDot();
+        if (dot == null)
+            return false;
+
         Set orphansWithImpliedRelationships = new HashSet();
         Iterator iter = orphanTables.iterator();
         while (iter.hasNext()) {
@@ -113,14 +121,13 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");
                 File graphFile = new File(graphDir, dotBaseFilespec + ".1degree.png");
 
-                LineWriter dot = new LineWriter(new FileWriter(dotFile));
-                new DotFormatter().writeOrphan(table, dot);
-                dot.close();
+                LineWriter dotOut = new LineWriter(new FileWriter(dotFile));
+                new DotFormatter().writeOrphan(table, dotOut);
+                dotOut.close();
                 try {
-                    if (!DotRunner.generateGraph(dotFile, graphFile))
+                    if (!dot.generateGraph(dotFile, graphFile))
                         return false;
                 } catch (IOException noDot) {
-                    printNoDotWarning();
                     return false;
                 }
 
@@ -136,7 +143,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 String dotBaseFilespec = table.getName();
 
                 File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");
-                DotRunner.writeMap(dotFile, html);
+                dot.writeMap(dotFile, html);
             }
 
             return true;
@@ -192,13 +199,32 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.writeln("</td></tr></table>");
     }
 
-    private void printNoDotWarning() {
-        if (!printedNoDotWarning) {
-            printedNoDotWarning = true;
-            System.err.println();
-            System.err.println("Warning: Failed to run dot.");
-            System.err.println("   Download it from www.graphviz.org and make sure dot is in your path.");
-            System.err.println("   Generated pages will not contain a graphical view of table relationships.");
+    private DotRunner getDot() {
+        DotRunner dot = DotRunner.getInstance();
+        if (!dot.exists()) {
+            if (!printedNoDotWarning) {
+                printedNoDotWarning = true;
+                System.err.println();
+                System.err.println("Warning: Failed to run dot.");
+                System.err.println("   Download " + dot.getSupportedVersions());
+                System.err.println("   from www.graphviz.org and make sure dot is in your path.");
+                System.err.println("   Generated pages will not contain a graphical view of table relationships.");
+            }
+
+            return null;
         }
+
+        if (!dot.isSupportedVersion()) {
+            if (!printedInvalidVersionWarning) {
+                printedInvalidVersionWarning = true;
+                System.err.println();
+                System.err.println("Warning: Invalid version of dot detected (" + dot.getVersion() + ").");
+                System.err.println("   SchemaSpy requires " + dot.getSupportedVersions() + ".");
+                System.err.println("   Generated pages will not contain a graphical view of table relationships.");
+            }
+            return null;
+        }
+
+        return dot;
     }
 }
