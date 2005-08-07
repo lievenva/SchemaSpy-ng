@@ -501,9 +501,27 @@ public class Table implements Serializable {
      * @return int
      */
     protected int fetchNumRows(Database db) throws SQLException {
+        try {
+            // '*' should work best for the majority of cases
+            return fetchNumRows(db, "count(*)");
+        } catch (SQLException exc) {
+            try {
+                // except nested tables...try using '1' instead
+                return fetchNumRows(db, "count(1)");
+            } catch (SQLException try2Exception) {
+                System.err.println(try2Exception);
+                System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
+                return -1;
+            }
+        }
+    }
+
+    protected int fetchNumRows(Database db, String clause) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        StringBuffer sql = new StringBuffer("select count(*) from ");
+        StringBuffer sql = new StringBuffer("select ");
+        sql.append(clause);
+        sql.append(" from ");
         if (getSchema() != null) {
             sql.append(getSchema());
             sql.append('.');
@@ -513,14 +531,9 @@ public class Table implements Serializable {
         try {
             stmt = db.getConnection().prepareStatement(sql.toString());
             rs = stmt.executeQuery();
-
             while (rs.next()) {
                 return rs.getInt(1);
             }
-            return -1;
-        } catch (SQLException sqlException) {
-            System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
-            System.err.println(sql);
             return -1;
         } finally {
             if (rs != null)
