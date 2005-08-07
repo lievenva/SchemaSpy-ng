@@ -3,9 +3,6 @@ package net.sourceforge.schemaspy;
 import java.sql.*;
 import java.util.*;
 import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
-import java.io.IOException;
-import java.util.Arrays;
 
 public class DBAnalyzer {
     public static List getImpliedConstraints(Collection tables) throws SQLException {
@@ -38,7 +35,7 @@ public class DBAnalyzer {
 
 	    for (Iterator columnIter = table.getColumns().iterator(); columnIter.hasNext(); ) {
 		TableColumn column = (TableColumn)columnIter.next();
-		if (column.getParents().isEmpty() /* && !tablePrimaries.contains(column) */)
+		if (column.getParents().isEmpty())
 		    columnsWithoutParents.add(column);
 	    }
 	}
@@ -46,7 +43,7 @@ public class DBAnalyzer {
         // if more than half of the tables have the same primary key then
         // it's most likey a database where primary key names aren't unique
         // (e.g. they all have a primary key named 'ID')
-        if (duplicatePrimaries > allPrimaries.size())
+        if (duplicatePrimaries > allPrimaries.size())  // bizarre logic, but it does approximately what we need
             return new ArrayList();
 
 	sortColumnsByTable(columnsWithoutParents);
@@ -222,6 +219,76 @@ public class DBAnalyzer {
 	});
 
 	return columns;
+    }
+
+    /**
+     * Returns a list of columns that have the word "NULL" or "null" as their default value
+     * instead of the likely candidate value null.
+     *
+     * @param tables Collection
+     * @return List
+     */
+    public static List getDefaultNullStringColumns(Collection tables) {
+        List defaultNullStringColumns = new ArrayList();
+
+        for (Iterator tablesIter = tables.iterator(); tablesIter.hasNext(); ) {
+            Table table = (Table)tablesIter.next();
+            for (Iterator columnsIter = table.getColumns().iterator(); columnsIter.hasNext(); ) {
+                TableColumn column = (TableColumn)columnsIter.next();
+                Object defaultValue = column.getDefaultValue();
+                if (defaultValue != null && defaultValue instanceof String) {
+                    String defaultString = defaultValue.toString();
+                    if (defaultString.trim().equalsIgnoreCase("null")) {
+                        defaultNullStringColumns.add(column);
+                    }
+                }
+            }
+        }
+
+        return sortColumnsByTable(defaultNullStringColumns);
+    }
+
+    /**
+     * getSchemas - returns a List of schema names (Strings)
+     *
+     * @param meta DatabaseMetaData
+     */
+    public static List getSchemas(DatabaseMetaData meta) throws SQLException {
+        List schemas = new ArrayList();
+
+        ResultSet rs = meta.getSchemas();
+        while (rs.next()) {
+            schemas.add(rs.getString("TABLE_SCHEM"));
+        }
+        rs.close();
+
+        return schemas;
+    }
+
+    /**
+     * getSchemas - returns a List of schema names (Strings) that contain tables
+     *
+     * @param meta DatabaseMetaData
+     */
+    public static List getPopulatedSchemas(DatabaseMetaData meta) throws SQLException {
+        List schemas = new ArrayList();
+
+        Iterator iter = getSchemas(meta).iterator();
+        while (iter.hasNext()) {
+            String schema = iter.next().toString();
+            ResultSet rs = null;
+            try {
+                rs = meta.getTables(null, schema, "%", null);
+                if (rs.next())
+                    schemas.add(schema);
+            } catch (SQLException ignore) {
+            } finally {
+                if (rs != null)
+                    rs.close();
+            }
+        }
+
+        return schemas;
     }
 
     /**
