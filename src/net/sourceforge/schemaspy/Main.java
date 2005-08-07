@@ -170,14 +170,14 @@ public class Main {
                         impliedDotFile.delete();
 
                     out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    hasRelationships = new HtmlGraphFormatter().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, out);
+                    hasRelationships = HtmlGraphFormatter.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, out);
                     out.close();
                 }
 
                 System.out.print(".");
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                new HtmlGraphFormatter().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
+                HtmlGraphFormatter.getInstance().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
                 out.close();
 
                 System.out.print(".");

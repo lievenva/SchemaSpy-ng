@@ -6,8 +6,19 @@ import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
+    private static final HtmlGraphFormatter instance = new HtmlGraphFormatter();
     private static boolean printedNoDotWarning = false;
     private static boolean printedInvalidVersionWarning = false;
+
+    /**
+     * Singleton...don't allow creation
+     */
+    private HtmlGraphFormatter() {
+    }
+
+    public static HtmlGraphFormatter getInstance() {
+        return instance;
+    }
 
     public boolean write(Table table, File graphDir, WriteStats stats, LineWriter html) {
         File oneDegreeDotFile = new File(graphDir, table.getName() + ".1degree.dot");
