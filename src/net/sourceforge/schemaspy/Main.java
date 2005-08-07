@@ -204,7 +204,7 @@ public class Main {
                 System.out.println("(" + (startGraphingDetails - startSummarizing) / 1000 + "sec)");
                 System.out.print("Writing/graphing results");
 
-                HtmlTableFormatter tableFormatter = new HtmlTableFormatter();
+                HtmlTableFormatter tableFormatter = HtmlTableFormatter.getInstance();
                 for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
                     System.out.print('.');
                     Table table = (Table)iter.next();
