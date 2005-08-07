@@ -182,8 +182,7 @@ public class Main {
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
-                HtmlMainIndexFormatter indexFormatter = new HtmlMainIndexFormatter();
-                indexFormatter.write(db, tables, hasRelationships, hasOrphans, out);
+                HtmlMainIndexFormatter.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
                 out.close();
 
                 System.out.print(".");
