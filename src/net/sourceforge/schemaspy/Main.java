@@ -226,12 +226,12 @@ public class Main {
             List orderedTables = spy.sortTablesByRI(recursiveConstraints);
 
             out = new LineWriter(new FileWriter(new File(outputDir, "insertionOrder.txt")), 16 * 1024);
-            new TextFormatter().write(db, orderedTables, false, out);
+            TextFormatter.getInstance().write(db, orderedTables, false, out);
             out.close();
 
             out = new LineWriter(new FileWriter(new File(outputDir, "deletionOrder.txt")), 16 * 1024);
             Collections.reverse(orderedTables);
-            new TextFormatter().write(db, orderedTables, false, out);
+            TextFormatter.getInstance().write(db, orderedTables, false, out);
             out.close();
 
 //            File constraintsFile = new File(outputDir, "removeRecursiveConstraints.sql");
