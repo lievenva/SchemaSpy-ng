@@ -19,7 +19,13 @@ public class TableIndex implements Comparable, Serializable {
     public TableIndex(ResultSet rs) throws SQLException {
         name = rs.getString("INDEX_NAME");
         isUnique = !rs.getBoolean("NON_UNIQUE");
-        sortOrder = rs.getString("ASC_OR_DESC");
+        String so;
+        try {
+            so = rs.getString("ASC_OR_DESC");
+        } catch (SQLException doesntAlwaysExist) {
+            so = null;
+        }
+        sortOrder = so;
         id = null;
     }
 
