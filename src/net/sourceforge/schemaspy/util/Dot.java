@@ -37,7 +37,7 @@ public class Dot {
         return version;
     }
 
-    public boolean isSupportedVersion() {
+    public boolean isValid() {
         return exists() && (getVersion().equals(supportedVersion) || getVersion().compareTo(badVersion) > 0);
     }
 

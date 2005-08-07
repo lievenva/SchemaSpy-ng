@@ -225,7 +225,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             return null;
         }
 
-        if (!dot.isSupportedVersion()) {
+        if (!dot.isValid()) {
             if (!printedInvalidVersionWarning) {
                 printedInvalidVersionWarning = true;
                 System.err.println();

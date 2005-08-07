@@ -157,7 +157,7 @@ public class Main {
                     impliedConstraints = new ArrayList();
 
                 List orphans = DBAnalyzer.getOrphans(tables);
-                boolean hasOrphans = !orphans.isEmpty();
+                boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
 
                 if (hasRelationships) {
                     System.out.print(".");
