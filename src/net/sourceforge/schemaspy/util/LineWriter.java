@@ -1,8 +1,6 @@
 package net.sourceforge.schemaspy.util;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 
 /**
  * BufferedWriter that adds a <code>writeln()</code> method

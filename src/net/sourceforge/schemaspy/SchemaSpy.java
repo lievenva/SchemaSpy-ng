@@ -1,11 +1,10 @@
 package net.sourceforge.schemaspy;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.*;
+import java.net.*;
 import java.sql.*;
 import java.util.*;
 import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.model.Database;
 
 public class SchemaSpy {
     private final Database database;

@@ -1,9 +1,6 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class View extends Table {
     private final String viewSql;

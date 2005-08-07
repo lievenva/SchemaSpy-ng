@@ -1,11 +1,8 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
 
 public class ForeignKeyConstraint implements Serializable {
     private final String name;

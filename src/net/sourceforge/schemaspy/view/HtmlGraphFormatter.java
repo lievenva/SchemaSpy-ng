@@ -29,7 +29,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         File twoDegreesGraphFile = new File(graphDir, table.getName() + ".2degrees.png");
 
         try {
-            DotRunner dot = getDot();
+            Dot dot = getDot();
             if (dot == null)
                 return false;
 
@@ -84,7 +84,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         File impliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.png");
 
         try {
-            DotRunner dot = getDot();
+            Dot dot = getDot();
             if (dot == null)
                 return false;
 
@@ -107,7 +107,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     }
 
     public boolean writeOrphans(Database db, List orphanTables, boolean hasRelationships, File graphDir, LineWriter html) throws IOException {
-        DotRunner dot = getDot();
+        Dot dot = getDot();
         if (dot == null)
             return false;
 
@@ -210,8 +210,8 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.writeln("</td></tr></table>");
     }
 
-    private DotRunner getDot() {
-        DotRunner dot = DotRunner.getInstance();
+    private Dot getDot() {
+        Dot dot = Dot.getInstance();
         if (!dot.exists()) {
             if (!printedNoDotWarning) {
                 printedNoDotWarning = true;

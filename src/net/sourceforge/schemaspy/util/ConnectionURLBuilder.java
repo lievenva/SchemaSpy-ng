@@ -1,10 +1,7 @@
 package net.sourceforge.schemaspy.util;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.io.*;
+import java.util.*;
 
 public class ConnectionURLBuilder {
     private final String type;
