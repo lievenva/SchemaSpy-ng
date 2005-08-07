@@ -195,8 +195,7 @@ public class Main {
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
-                HtmlAnomaliesFormatter anomaliesFormatter = new HtmlAnomaliesFormatter();
-                anomaliesFormatter.write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
+                HtmlAnomaliesFormatter.getInstance().write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
                 out.close();
 
 
