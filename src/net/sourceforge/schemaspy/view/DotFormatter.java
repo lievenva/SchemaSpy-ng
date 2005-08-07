@@ -11,6 +11,18 @@ import net.sourceforge.schemaspy.util.*;
  * @author John Currier
  */
 public class DotFormatter {
+    private static DotFormatter instance = new DotFormatter();
+
+    /**
+     * Singleton - prevent creation
+     */
+    private DotFormatter() {
+    }
+
+    public static DotFormatter getInstance() {
+        return instance;
+    }
+
     /**
      * Write relationships associated with the given table
      *

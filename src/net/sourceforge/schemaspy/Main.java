@@ -144,7 +144,7 @@ public class Main {
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.dot")));
-                WriteStats stats = new DotFormatter().writeRelationships(tables, false, out);
+                WriteStats stats = DotFormatter.getInstance().writeRelationships(tables, false, out);
                 boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 out.close();
 
@@ -164,7 +164,7 @@ public class Main {
 
                     File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.dot");
                     out = new LineWriter(new FileWriter(impliedDotFile));
-                    boolean hasImplied = new DotFormatter().writeRelationships(tables, true, out).wroteImplied();
+                    boolean hasImplied = DotFormatter.getInstance().writeRelationships(tables, true, out).wroteImplied();
                     out.close();
                     if (!hasImplied)
                         impliedDotFile.delete();
