@@ -188,7 +188,7 @@ public class Main {
                 System.out.print(".");
                 List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
-                HtmlConstraintIndexFormatter constraintIndexFormatter = new HtmlConstraintIndexFormatter();
+                HtmlConstraintIndexFormatter constraintIndexFormatter = HtmlConstraintIndexFormatter.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasRelationships, hasOrphans, out);
                 out.close();
 
