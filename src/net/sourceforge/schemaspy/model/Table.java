@@ -274,7 +274,7 @@ public class Table implements Serializable {
             indexes.put(index.getName().toUpperCase(), index);
         }
 
-        index.addColumn(getColumn(rs.getString("COLUMN_NAME")));
+        index.addColumn(getColumn(rs.getString("COLUMN_NAME")), rs.getString("ASC_OR_DESC"));
     }
 
     public String getSchema() {

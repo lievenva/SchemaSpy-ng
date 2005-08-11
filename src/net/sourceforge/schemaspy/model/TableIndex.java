@@ -8,20 +8,13 @@ public class TableIndex implements Comparable, Serializable {
     private final Object id;
     private final String name;
     private final boolean isUnique;
-    private final String sortOrder;
     private boolean isPrimary;
     private final List columns = new ArrayList();
+    private final List columnsAscending = new ArrayList(); // Booleans for whether colums are ascending order
 
     public TableIndex(ResultSet rs) throws SQLException {
         name = rs.getString("INDEX_NAME");
         isUnique = !rs.getBoolean("NON_UNIQUE");
-        String so;
-        try {
-            so = rs.getString("ASC_OR_DESC");
-        } catch (SQLException doesntAlwaysExist) {
-            so = null;
-        }
-        sortOrder = so;
         id = null;
     }
 
@@ -33,9 +26,11 @@ public class TableIndex implements Comparable, Serializable {
 	return name;
     }
 
-    void addColumn(TableColumn column) {
-        if (column != null)
+    void addColumn(TableColumn column, String sortOrder) {
+        if (column != null) {
             columns.add(column);
+            columnsAscending.add(Boolean.valueOf(sortOrder == null || sortOrder.equals("A")));
+        }
     }
 
     public String getType() {
@@ -56,10 +51,6 @@ public class TableIndex implements Comparable, Serializable {
 
     public boolean isUnique() {
 	return isUnique;
-    }
-
-    public boolean isAscending() {
-        return sortOrder == null || sortOrder.equals("A");
     }
 
     public String getColumnsAsString() {
@@ -96,6 +87,10 @@ public class TableIndex implements Comparable, Serializable {
         }
 
 	return allNullable;
+    }
+
+    public boolean isAscending(TableColumn column) {
+        return ((Boolean)columnsAscending.get(columns.indexOf(column))).booleanValue();
     }
 
     public int compareTo(Object object) {
