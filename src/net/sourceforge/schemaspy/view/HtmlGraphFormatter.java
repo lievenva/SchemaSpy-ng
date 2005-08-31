@@ -78,24 +78,37 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     }
 
     public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
-        File relationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.dot");
-        File relationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.png");
-        File impliedDotFile = new File(graphDir, dotBaseFilespec + ".implied.dot");
-        File impliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.png");
+        File compactRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.compact.dot");
+        File compactRelationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.compact.png");
+        File largeRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.large.dot");
+        File largeRelationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.large.png");
+        File compactImpliedDotFile = new File(graphDir, dotBaseFilespec + ".implied.compact.dot");
+        File compactImpliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.compact.png");
+        File largeImpliedDotFile = new File(graphDir, dotBaseFilespec + ".implied.large.dot");
+        File largeImpliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.large.png");
 
         try {
             Dot dot = getDot();
             if (dot == null)
                 return false;
 
-            dot.generateGraph(relationshipsDotFile, relationshipsGraphFile);
-            writeRelationshipsHeader(db, relationshipsGraphFile, impliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
-            html.writeln("  <a name='graph'><img src='graphs/summary/" + relationshipsGraphFile.getName() + "' usemap='#relationshipsGraph' id='relationships' border='0' alt=''></a>");
-            dot.writeMap(relationshipsDotFile, html);
+            dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile);
+            System.out.print(".");
+            dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
+            System.out.print(".");
+            writeRelationshipsHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
+            html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
+            dot.writeMap(compactRelationshipsDotFile, html);
+            dot.writeMap(largeRelationshipsDotFile, html);
 
             if (hasImpliedRelationships) {
-                dot.generateGraph(impliedDotFile, impliedGraphFile);
-                dot.writeMap(impliedDotFile, html);
+                dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile);
+                dot.writeMap(compactImpliedDotFile, html);
+                System.out.print(".");
+
+                dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile);
+                dot.writeMap(largeImpliedDotFile, html);
+                System.out.print(".");
             }
 
             writeFooter(html);
@@ -164,7 +177,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         }
     }
 
-    private void writeRelationshipsHeader(Database db, File relationshipsGraphFile, File impliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    private void writeRelationshipsHeader(Database db, File compactRelationshipsGraphFile, File largeRelationshipsGraphFile, File compactImpliedGraphFile, File largeImpliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
         html.write("<br/><a href='index.html'>Tables</a>&nbsp;&nbsp;");
@@ -173,17 +186,43 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.write("<a href='constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a>&nbsp;&nbsp;");
         html.writeln("<a href='anomalies.html' title=\"Things that aren't quite right\">Anomalies</a>");
 
+        // this is some UGLY code!
+        html.writeln("<p/><form name='options' action=''>");
+        html.write("  <input type='checkbox' id='compact' checked onclick=\"");
+        html.write("if (this.checked) {");
         if (hasImpliedRelationships) {
-            html.writeln("<p/><form name='options' action=''>");
-            html.write("  <input type='checkbox' id='graphType' onclick=\"");
-            html.write("if (!this.checked)");
-            html.write(" selectGraph('graphs/summary/" + relationshipsGraphFile.getName() + "', '#relationshipsGraph'); ");
+            html.write(" if (document.options.implied.checked)");
+            html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph'); ");
             html.write("else");
-            html.write(" selectGraph('graphs/summary/" + impliedGraphFile.getName() + "', '#impliedRelationshipsGraph');");
-            html.write("\">");
-            html.writeln("Include implied relationships");
-            html.writeln("</form>");
         }
+        html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
+        html.write("} else {");
+        if (hasImpliedRelationships) {
+            html.write(" if (document.options.implied.checked) ");
+            html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
+            html.write(" else");
+        }
+        html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
+        html.write("}\">");
+        html.writeln("Compact");
+
+        // more butt-ugly 'code' follows
+        if (hasImpliedRelationships) {
+            html.write("  <input type='checkbox' id='implied' onclick=\"");
+            html.write("if (this.checked) {");
+            html.write(" if (document.options.compact.checked)");
+            html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph');");
+            html.write(" else ");
+            html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
+            html.write("} else {");
+            html.write(" if (document.options.compact.checked)");
+            html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
+            html.write(" else ");
+            html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
+            html.write("}\">");
+            html.writeln("Include implied relationships");
+        }
+        html.writeln("</form>");
 
         html.writeln("<td class='tableHolder' align='right' valign='top'>");
         writeLegend(false, html);

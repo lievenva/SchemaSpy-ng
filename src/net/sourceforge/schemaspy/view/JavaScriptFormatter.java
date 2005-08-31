@@ -40,7 +40,12 @@ public class JavaScriptFormatter {
         out.writeln("      cb.checked=true;");
         out.writeln("      cb.click();");
         out.writeln("    }");
-        out.writeln("    cb = options.graphType;");
+        out.writeln("    cb = options.compact;");
+        out.writeln("    if (cb && !cb.checked) {");
+        out.writeln("      cb.checked=true;");
+        out.writeln("      cb.click();");
+        out.writeln("    }");
+        out.writeln("    cb = options.implied;");
         out.writeln("    if (cb && cb.checked) {");
         out.writeln("      cb.checked=false;");
         out.writeln("      cb.click();");
