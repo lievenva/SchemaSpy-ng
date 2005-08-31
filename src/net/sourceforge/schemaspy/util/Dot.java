@@ -45,6 +45,10 @@ public class Dot {
         return "dot version " + supportedVersion + " or versions greater than " + badVersion;
     }
 
+    public boolean supportsCenteredEastWestEdges() {
+        return getVersion().compareTo(new Version("2.6")) >= 0;
+    }
+
     public boolean generateGraph(File dotFile, File graphFile) throws IOException {
         try {
             String dotCommand = "dot -Tpng \"" + dotFile + "\" -o\"" + graphFile + "\"";
