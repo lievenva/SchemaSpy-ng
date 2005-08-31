@@ -12,6 +12,8 @@ import net.sourceforge.schemaspy.util.*;
  */
 public class DotFormatter {
     private static DotFormatter instance = new DotFormatter();
+    private final int CompactGraphFontSize = 9;
+    private final int LargeGraphFontSize = 11;
 
     /**
      * Singleton - prevent creation
@@ -24,23 +26,32 @@ public class DotFormatter {
     }
 
     /**
-     * Write relationships associated with the given table
-     *
-     * @param table Table
-     * @param dot LineWriter
-     * @throws IOException
-     * @return boolean <code>true</code> if implied relationships were written
+     * Write all relationships (including implied) associated with the given table
      */
-    public WriteStats writeRelationships(Table table, boolean includeImplied, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
+    public WriteStats writeRealRelationships(Table table, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
+        return writeRelationships(table, false, twoDegreesOfSeparation, dot);
+    }
+
+    /**
+     * Write implied relationships associated with the given table
+     */
+    public WriteStats writeImpliedRelationships(Table table, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
+        return writeRelationships(table, true, twoDegreesOfSeparation, dot);
+    }
+
+    /**
+     * Write relationships associated with the given table
+     */
+    private WriteStats writeRelationships(Table table, boolean includeImplied, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
         Set tablesWritten = new HashSet();
         WriteStats stats = new WriteStats();
-        boolean[] wroteImplied = new boolean[1];
 
         DotTableFormatter formatter = DotTableFormatter.getInstance();
 
-        writeDotHeader(includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph"), dot);
+        String graphName = includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph");
+        writeHeader(graphName, false, dot);
 
-        Set relatedTables = getImmediateRelatives(table, includeImplied, wroteImplied);
+        Set relatedTables = getImmediateRelatives(table, includeImplied, stats);
 
         formatter.writeNode(table, "", true, true, true, dot);
         Set relationships = formatter.getRelationships(table, includeImplied);
@@ -59,12 +70,21 @@ public class DotFormatter {
             relationships.addAll(formatter.getRelationships(relatedTable, table, includeImplied));
         }
 
+        // connect the edges that go directly to the target table
+        // so they go to the target table's type column instead
+        iter = relationships.iterator();
+        while (iter.hasNext()) {
+            DotEdge edge = (DotEdge)iter.next();
+            if (edge.pointsTo(table))
+                edge.connectToParentDetails();
+        }
+
         // next write 'cousins' (2nd degree of separation)
         if (twoDegreesOfSeparation) {
             iter = relatedTables.iterator();
             while (iter.hasNext()) {
                 Table relatedTable = (Table)iter.next();
-                Set cousins = getImmediateRelatives(relatedTable, includeImplied, wroteImplied);
+                Set cousins = getImmediateRelatives(relatedTable, includeImplied, stats);
 
                 Iterator cousinsIter = cousins.iterator();
                 while (cousinsIter.hasNext()) {
@@ -83,15 +103,12 @@ public class DotFormatter {
             dot.writeln(iter.next().toString());
 
         dot.writeln("}");
-        stats.setWroteImplied(wroteImplied[0]);
         return stats;
     }
 
-    /**
-     * I have having to use an array of one boolean to return another value...ugh
-     */
-    private Set getImmediateRelatives(Table table, boolean includeImplied, boolean[] foundImplied) {
+    private Set getImmediateRelatives(Table table, boolean includeImplied, WriteStats stats) {
         Set relatedColumns = new HashSet();
+        boolean foundImplied = false;
         Iterator iter = table.getColumns().iterator();
         while (iter.hasNext()) {
             TableColumn column = (TableColumn)iter.next();
@@ -99,7 +116,7 @@ public class DotFormatter {
             while (childIter.hasNext()) {
                 TableColumn childColumn = (TableColumn)childIter.next();
                 boolean implied = column.getChildConstraint(childColumn).isImplied();
-                foundImplied[0] |= implied;
+                foundImplied |= implied;
                 if (!implied || includeImplied)
                     relatedColumns.add(childColumn);
             }
@@ -107,7 +124,7 @@ public class DotFormatter {
             while (parentIter.hasNext()) {
                 TableColumn parentColumn = (TableColumn)parentIter.next();
                 boolean implied = column.getParentConstraint(parentColumn).isImplied();
-                foundImplied[0] |= implied;
+                foundImplied |= implied;
                 if (!implied || includeImplied)
                     relatedColumns.add(parentColumn);
             }
@@ -121,28 +138,52 @@ public class DotFormatter {
         }
 
         relatedTables.remove(table);
-
+        stats.setWroteImplied(foundImplied);
         return relatedTables;
     }
 
-    private void writeDotHeader(String name, LineWriter dot) throws IOException {
-        dot.writeln("digraph \"" + name + "\" {");
+    private void writeHeader(String graphName, boolean compact, LineWriter dot) throws IOException {
+        dot.writeln("digraph \"" + graphName + "\" {");
         dot.writeln("  graph [");
         dot.writeln("    rankdir=\"RL\"");
         dot.writeln("    bgcolor=\"" + StyleSheet.getBodyBackground() + "\"");
-        dot.writeln("    label = \"\\nGenerated by SchemaSpy\"");
+        dot.writeln("    label=\"\\nGenerated by SchemaSpy\"");
         dot.writeln("    labeljust=\"l\"");
+        if (compact) {
+            dot.writeln("    ranksep=\"0.05\"");
+            dot.writeln("    nodesep=\"0.05\"");
+        }
         dot.writeln("  ];");
         dot.writeln("  node [");
-        dot.writeln("    fontsize=\"11\"");
+        dot.writeln("    fontsize=\"" + (compact ? CompactGraphFontSize : LargeGraphFontSize) + "\"");
         dot.writeln("    shape=\"plaintext\"");
         dot.writeln("  ];");
     }
 
-    public WriteStats writeRelationships(Collection tables, boolean includeImplied, LineWriter dot) throws IOException {
+    public WriteStats writeRealRelationships(Collection tables, boolean compact, LineWriter dot) throws IOException {
+        return writeRelationships(tables, false, compact, dot);
+    }
+
+    public WriteStats writeAllRelationships(Collection tables, boolean compact, LineWriter dot) throws IOException {
+        return writeRelationships(tables, true, compact, dot);
+    }
+
+    private WriteStats writeRelationships(Collection tables, boolean includeImplied, boolean compact, LineWriter dot) throws IOException {
         DotTableFormatter formatter = DotTableFormatter.getInstance();
         WriteStats stats = new WriteStats();
-        writeDotHeader(includeImplied ? "impliedRelationshipsGraph" : "relationshipsGraph", dot);
+        String graphName;
+        if (includeImplied) {
+            if (compact)
+                graphName = "compactImpliedRelationshipsGraph";
+            else
+                graphName = "largeImpliedRelationshipsGraph";
+        } else {
+            if (compact)
+                graphName = "compactRelationshipsGraph";
+            else
+                graphName = "largeRelationshipsGraph";
+        }
+        writeHeader(graphName, compact, dot);
 
         Iterator iter = tables.iterator();
 
@@ -174,7 +215,7 @@ public class DotFormatter {
 
     public void writeOrphan(Table table, LineWriter dot) throws IOException {
         DotTableFormatter formatter = DotTableFormatter.getInstance();
-        writeDotHeader(table.getName(), dot);
+        writeHeader(table.getName(), false, dot);
         formatter.writeNode(table, "tables/", true, false, true, dot);
         dot.writeln("}");
     }

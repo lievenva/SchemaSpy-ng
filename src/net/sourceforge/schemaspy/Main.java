@@ -5,6 +5,8 @@ import java.net.*;
 import java.sql.*;
 import java.util.*;
 import java.util.jar.*;
+//import javax.xml.parsers.*;
+//import org.w3c.dom.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 import net.sourceforge.schemaspy.view.*;
@@ -135,6 +137,15 @@ public class Main {
                 System.exit(2);
             }
 
+//            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//            DocumentBuilder builder = factory.newDocumentBuilder();
+//            Document document = builder.newDocument();
+//            Element schemaNode = document.createElement("schema");
+//            document.appendChild(schemaNode);
+//            if (schema != null)
+//                DOMUtil.appendAttribute(schemaNode, "name", schema);
+//            DOMUtil.appendAttribute(schemaNode, "databaseType", db.getDatabaseProduct());
+
             if (generateHtml) {
                 startSummarizing = System.currentTimeMillis();
                 System.out.println("(" + (startSummarizing - start) / 1000 + "sec)");
@@ -143,10 +154,17 @@ public class Main {
 
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
-                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.dot")));
-                WriteStats stats = DotFormatter.getInstance().writeRelationships(tables, false, out);
+                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
+                WriteStats stats = DotFormatter.getInstance().writeRealRelationships(tables, true, out);
                 boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 out.close();
+
+                if (hasRelationships) {
+                    System.out.print(".");
+                    out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
+                    DotFormatter.getInstance().writeRealRelationships(tables, false, out);
+                    out.close();
+                }
 
                 // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
                 // here unless they want that behavior
@@ -162,12 +180,18 @@ public class Main {
                 if (hasRelationships) {
                     System.out.print(".");
 
-                    File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.dot");
+                    File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
                     out = new LineWriter(new FileWriter(impliedDotFile));
-                    boolean hasImplied = DotFormatter.getInstance().writeRelationships(tables, true, out).wroteImplied();
+                    boolean hasImplied = DotFormatter.getInstance().writeAllRelationships(tables, true, out).wroteImplied();
                     out.close();
-                    if (!hasImplied)
+                    if (hasImplied) {
+                        impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
+                        out = new LineWriter(new FileWriter(impliedDotFile));
+                        DotFormatter.getInstance().writeAllRelationships(tables, false, out);
+                        out.close();
+                    } else {
                         impliedDotFile.delete();
+                    }
 
                     out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
                     hasRelationships = HtmlGraphFormatter.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, out);
@@ -209,6 +233,8 @@ public class Main {
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
                     tableFormatter.write(db, table, hasRelationships, hasOrphans, outputDir, out);
                     out.close();
+
+//                    XmlTableFormatter.getInstance().appendTable(schemaNode, table, outputDir);
                 }
 
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.css")));
@@ -218,6 +244,11 @@ public class Main {
                 JavaScriptFormatter.write(out);
                 out.close();
             }
+
+//            out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.xml")), 24 * 1024);
+//            document.getDocumentElement().normalize();
+//            DOMUtil.printDOM(document, out);
+//            out.close();
 
             List recursiveConstraints = new ArrayList();
 
@@ -234,22 +265,25 @@ public class Main {
             TextFormatter.getInstance().write(db, orderedTables, false, out);
             out.close();
 
-//            File constraintsFile = new File(outputDir, "removeRecursiveConstraints.sql");
-//            constraintsFile.delete();
-//            if (!recursiveConstraints.isEmpty()) {
-//                out = new LineWriter(new FileWriter(constraintsFile), 4 * 1024);
-//                writeRemoveRecursiveConstraintsSql(recursiveConstraints, schema, out);
-//                out.close();
-//            }
-//
-//            constraintsFile = new File(outputDir, "restoreRecursiveConstraints.sql");
-//            constraintsFile.delete();
-//
-//            if (!recursiveConstraints.isEmpty()) {
-//                out = new LineWriter(new FileWriter(constraintsFile), 4 * 1024);
-//                writeRestoreRecursiveConstraintsSql(recursiveConstraints, schema, out);
-//                out.close();
-//            }
+            /* we'll eventually want to put this functionality back in with a
+             * database independent implementation
+            File constraintsFile = new File(outputDir, "removeRecursiveConstraints.sql");
+            constraintsFile.delete();
+            if (!recursiveConstraints.isEmpty()) {
+                out = new LineWriter(new FileWriter(constraintsFile), 4 * 1024);
+                writeRemoveRecursiveConstraintsSql(recursiveConstraints, schema, out);
+                out.close();
+            }
+
+            constraintsFile = new File(outputDir, "restoreRecursiveConstraints.sql");
+            constraintsFile.delete();
+
+            if (!recursiveConstraints.isEmpty()) {
+                out = new LineWriter(new FileWriter(constraintsFile), 4 * 1024);
+                writeRestoreRecursiveConstraintsSql(recursiveConstraints, schema, out);
+                out.close();
+            }
+            */
 
             if (generateHtml) {
                 long end = System.currentTimeMillis();
@@ -413,12 +447,15 @@ public class Main {
      * @param out LineWriter
      * @throws IOException
      */
+    /* we'll eventually want to put this functionality back in with a
+     * database independent implementation
     private static void writeRemoveRecursiveConstraintsSql(List recursiveConstraints, String schema, LineWriter out) throws IOException {
         for (Iterator iter = recursiveConstraints.iterator(); iter.hasNext(); ) {
             ForeignKeyConstraint constraint = (ForeignKeyConstraint)iter.next();
             out.writeln("ALTER TABLE " + schema + "." + constraint.getChildTable() + " DROP CONSTRAINT " + constraint.getName() + ";");
         }
     }
+    */
 
     /**
      * Currently very DB2-specific
@@ -427,6 +464,8 @@ public class Main {
      * @param out LineWriter
      * @throws IOException
      */
+    /* we'll eventually want to put this functionality back in with a
+     * database independent implementation
     private static void writeRestoreRecursiveConstraintsSql(List recursiveConstraints, String schema, LineWriter out) throws IOException {
         Map ruleTextMapping = new HashMap();
         ruleTextMapping.put(new Character('C'), "CASCADE");
@@ -464,6 +503,7 @@ public class Main {
             out.writeln(";");
         }
     }
+    */
 
     private static void dumpUsage(String errorMessage, boolean detailed, boolean detailedDb) {
         if (errorMessage != null) {
@@ -643,9 +683,9 @@ public class Main {
      * @return Properties
      */
     private static Properties add(Properties properties, ResourceBundle bundle) {
-        Enumeration enum = bundle.getKeys();
-        while (enum.hasMoreElements()) {
-            Object key = enum.nextElement();
+        Enumeration iter = bundle.getKeys();
+        while (iter.hasMoreElements()) {
+            Object key = iter.nextElement();
             properties.put(key, bundle.getObject(key.toString()));
         }
 
