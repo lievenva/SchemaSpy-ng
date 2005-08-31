@@ -1,10 +1,9 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-public class ForeignKeyConstraint implements Serializable {
+public class ForeignKeyConstraint {
     private final String name;
     private Table parentTable;
     private final List parentColumns = new ArrayList();
@@ -36,19 +35,19 @@ public class ForeignKeyConstraint implements Serializable {
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public Table getParentTable() {
-	return parentTable;
+        return parentTable;
     }
 
     public List getParentColumns() {
-	return Collections.unmodifiableList(parentColumns);
+        return Collections.unmodifiableList(parentColumns);
     }
 
     public Table getChildTable() {
-	return childTable;
+        return childTable;
     }
 
     public List getChildColumns() {
@@ -56,40 +55,40 @@ public class ForeignKeyConstraint implements Serializable {
     }
 
     public char getDeleteRule() {
-	return deleteRule;
+        return deleteRule;
     }
 
     public boolean isOnDeleteCascade() {
-	return deleteRule == 'C';
+        return deleteRule == 'C';
     }
 
     public char getUpdateRule() {
-	return updateRule;
+        return updateRule;
     }
 
     public boolean isImplied() {
-	return false;
+        return false;
     }
 
     public static String toString(List columns) {
-	if (columns.size() == 1)
-	    return columns.iterator().next().toString();
-	else
-	    return columns.toString();
+        if (columns.size() == 1)
+            return columns.iterator().next().toString();
+        else
+            return columns.toString();
     }
 
     public String toString() {
-	StringBuffer buf = new StringBuffer();
-	buf.append(childTable.getName());
-	buf.append('.');
-	buf.append(toString(childColumns));
-	buf.append(" refs ");
-	buf.append(parentTable.getName());
-	buf.append('.');
-	buf.append(toString(parentColumns));
-	buf.append(" via ");
-	buf.append(name);
+        StringBuffer buf = new StringBuffer();
+        buf.append(childTable.getName());
+        buf.append('.');
+        buf.append(toString(childColumns));
+        buf.append(" refs ");
+        buf.append(parentTable.getName());
+        buf.append('.');
+        buf.append(toString(parentColumns));
+        buf.append(" via ");
+        buf.append(name);
 
-	return buf.toString();
+        return buf.toString();
     }
 }

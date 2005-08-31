@@ -1,11 +1,10 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.*;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
 
-public class Table implements Serializable {
+public class Table {
     private final String schema;
     private final String name;
     private final Map columns = new HashMap();
@@ -389,7 +388,6 @@ public class Table implements Serializable {
             TableColumn column = (TableColumn)columnIter.next();
             for (Iterator parentColumnIter = column.getParents().iterator(); parentColumnIter.hasNext(); ) {
                 TableColumn parentColumn = (TableColumn)parentColumnIter.next();
-                ForeignKeyConstraint recursiveConstraint = column.getParentConstraint(parentColumn);
                 if (parentColumn.getTable().getName().equals(getName())) {
                     return column.getParentConstraint(parentColumn);
                 }
@@ -576,7 +574,7 @@ public class Table implements Serializable {
         return true;
     }
 
-    private static class ByIndexColumnComparator implements Comparator, Serializable {
+    private static class ByIndexColumnComparator implements Comparator {
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
@@ -588,7 +586,7 @@ public class Table implements Serializable {
         }
     }
 
-    private static class ByCheckConstraintStringsComparator implements Comparator, Serializable {
+    private static class ByCheckConstraintStringsComparator implements Comparator {
         public int compare(Object object1, Object object2) {
             return object1.toString().compareTo(object2.toString());
         }

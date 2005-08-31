@@ -10,15 +10,15 @@ import java.io.*;
 public class LineWriter extends BufferedWriter {
 
     public LineWriter(Writer out) {
-	super(out);
+        super(out);
     }
 
     public LineWriter(Writer out, int sz) {
-	super(out, sz);
+        super(out, sz);
     }
 
     public void writeln(String str) throws IOException {
-	write(str);
-	newLine();
+        write(str);
+        newLine();
     }
 }

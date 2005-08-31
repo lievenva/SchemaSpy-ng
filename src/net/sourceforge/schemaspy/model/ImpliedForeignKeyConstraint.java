@@ -1,9 +1,8 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.*;
 import java.sql.*;
 
-public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint implements Serializable {
+public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
     public ImpliedForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) throws SQLException {
         super(childColumn.getTable(), null);
 
@@ -19,20 +18,20 @@ public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint implements
     }
 
     public boolean isImplied() {
-	return true;
+        return true;
     }
 
     public String toString() {
-	StringBuffer buf = new StringBuffer();
+        StringBuffer buf = new StringBuffer();
 
-	buf.append(getChildTable());
-	buf.append(".");
-	buf.append(toString(getChildColumns()));
-	buf.append("'s name implies that it's a child of ");
-	buf.append(getParentTable());
-	buf.append(".");
-	buf.append(toString(getParentColumns()));
-	buf.append(", but it doesn't reference that column.");
-	return buf.toString();
+        buf.append(getChildTable());
+        buf.append(".");
+        buf.append(toString(getChildColumns()));
+        buf.append("'s name implies that it's a child of ");
+        buf.append(getParentTable());
+        buf.append(".");
+        buf.append(toString(getParentColumns()));
+        buf.append(", but it doesn't reference that column.");
+        return buf.toString();
     }
 }

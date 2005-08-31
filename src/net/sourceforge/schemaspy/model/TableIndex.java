@@ -1,10 +1,9 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-public class TableIndex implements Comparable, Serializable {
+public class TableIndex implements Comparable {
     private final Object id;
     private final String name;
     private final boolean isUnique;
@@ -19,11 +18,11 @@ public class TableIndex implements Comparable, Serializable {
     }
 
     public Object getId() {
-	return id;
+        return id;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     void addColumn(TableColumn column, String sortOrder) {
@@ -42,7 +41,7 @@ public class TableIndex implements Comparable, Serializable {
     }
 
     public boolean isPrimaryKey() {
-	return isPrimary;
+        return isPrimary;
     }
 
     public void setIsPrimaryKey(boolean isPrimaryKey) {
@@ -50,7 +49,7 @@ public class TableIndex implements Comparable, Serializable {
     }
 
     public boolean isUnique() {
-	return isUnique;
+        return isUnique;
     }
 
     public String getColumnsAsString() {
@@ -75,18 +74,18 @@ public class TableIndex implements Comparable, Serializable {
      * @return boolean
      */
     public boolean isUniqueNullable() {
-	if (!isUnique())
-	    return false;
+        if (!isUnique())
+            return false;
 
-	// if all of the columns specified by the Unique Index are nullable
-	// then return true, otherwise false
-	boolean allNullable = true;
-	for (Iterator iter = getColumns().iterator(); iter.hasNext() && allNullable; ) {
+        // if all of the columns specified by the Unique Index are nullable
+        // then return true, otherwise false
+        boolean allNullable = true;
+        for (Iterator iter = getColumns().iterator(); iter.hasNext() && allNullable; ) {
             TableColumn column = (TableColumn)iter.next();
             allNullable = column != null && column.isNullable();
         }
 
-	return allNullable;
+        return allNullable;
     }
 
     public boolean isAscending(TableColumn column) {
@@ -94,15 +93,15 @@ public class TableIndex implements Comparable, Serializable {
     }
 
     public int compareTo(Object object) {
-	TableIndex other = (TableIndex)object;
+        TableIndex other = (TableIndex)object;
         if (isPrimaryKey() && !other.isPrimaryKey())
             return -1;
         if (!isPrimaryKey() && other.isPrimaryKey())
             return 1;
-	if (getId() == null)
-	    return getName().compareTo(other.getName());
-	if (getId() instanceof Number)
-	    return ((Number)getId()).intValue() - ((Number)other.getId()).intValue();
-	return getId().toString().compareTo(other.getId().toString());
+        if (getId() == null)
+            return getName().compareTo(other.getName());
+        if (getId() instanceof Number)
+            return ((Number)getId()).intValue() - ((Number)other.getId()).intValue();
+        return getId().toString().compareTo(other.getId().toString());
     }
 }

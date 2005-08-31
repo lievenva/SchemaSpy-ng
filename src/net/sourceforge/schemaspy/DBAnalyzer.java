@@ -6,26 +6,26 @@ import net.sourceforge.schemaspy.model.*;
 
 public class DBAnalyzer {
     public static List getImpliedConstraints(Collection tables) throws SQLException {
-	List columnsWithoutParents = new ArrayList();
-	Map allPrimaries = new TreeMap(new Comparator() {
-	    public int compare(Object object1, Object object2) {
-		TableColumn column1 = (TableColumn)object1;
-		TableColumn column2 = (TableColumn)object2;
+        List columnsWithoutParents = new ArrayList();
+        Map allPrimaries = new TreeMap(new Comparator() {
+            public int compare(Object object1, Object object2) {
+                TableColumn column1 = (TableColumn)object1;
+                TableColumn column2 = (TableColumn)object2;
                 int rc = column1.getName().compareTo(column2.getName());
                 if (rc == 0)
                     rc = column1.getType().compareTo(column2.getType());
                 if (rc == 0)
                     rc = column1.getLength() - column2.getLength();
                 return rc;
-	    }
-	});
+            }
+        });
 
         int duplicatePrimaries = 0;
 
         // gather all the primary key columns and columns without parents
-	for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
-	    Table table = (Table)iter.next();
-	    List tablePrimaries = table.getPrimaryColumns();
+        for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
+            Table table = (Table)iter.next();
+            List tablePrimaries = table.getPrimaryColumns();
             if (tablePrimaries.size() == 1) { // can't match up multiples...yet...
                 for (Iterator primariesIter = tablePrimaries.iterator(); primariesIter.hasNext(); ) {
                     if (allPrimaries.put(primariesIter.next(), table) != null)
@@ -33,26 +33,26 @@ public class DBAnalyzer {
                 }
             }
 
-	    for (Iterator columnIter = table.getColumns().iterator(); columnIter.hasNext(); ) {
-		TableColumn column = (TableColumn)columnIter.next();
-		if (column.getParents().isEmpty())
-		    columnsWithoutParents.add(column);
-	    }
-	}
+            for (Iterator columnIter = table.getColumns().iterator(); columnIter.hasNext(); ) {
+                TableColumn column = (TableColumn)columnIter.next();
+                if (column.getParents().isEmpty())
+                    columnsWithoutParents.add(column);
+            }
+        }
 
         // if more than half of the tables have the same primary key then
         // it's most likey a database where primary key names aren't unique
         // (e.g. they all have a primary key named 'ID')
-        if (duplicatePrimaries > allPrimaries.size())  // bizarre logic, but it does approximately what we need
+        if (duplicatePrimaries > allPrimaries.size()) // bizarre logic, but it does approximately what we need
             return new ArrayList();
 
-	sortColumnsByTable(columnsWithoutParents);
+        sortColumnsByTable(columnsWithoutParents);
 
-	List impliedConstraints = new ArrayList();
-	for (Iterator iter = columnsWithoutParents.iterator(); iter.hasNext(); ) {
-	    TableColumn childColumn = (TableColumn)iter.next();
-	    Table primaryTable = (Table)allPrimaries.get(childColumn);
-	    if (primaryTable != null && primaryTable != childColumn.getTable()) {
+        List impliedConstraints = new ArrayList();
+        for (Iterator iter = columnsWithoutParents.iterator(); iter.hasNext(); ) {
+            TableColumn childColumn = (TableColumn)iter.next();
+            Table primaryTable = (Table)allPrimaries.get(childColumn);
+            if (primaryTable != null && primaryTable != childColumn.getTable()) {
                 TableColumn parentColumn = primaryTable.getColumn(childColumn.getName());
                 // make sure the potential child->parent relationships isn't already a
                 // parent->child relationship
@@ -61,12 +61,11 @@ public class DBAnalyzer {
                     // key column in another table and isn't already related to that column
                     impliedConstraints.add(new ImpliedForeignKeyConstraint(parentColumn, childColumn));
                 }
-	    }
-	}
+            }
+        }
 
-	return impliedConstraints;
+        return impliedConstraints;
     }
-
 
     /**
      * Returns a <code>List</code> of all of the <code>ForeignKeyConstraint</code>s
@@ -105,19 +104,19 @@ public class DBAnalyzer {
      * and have an index that specifies that they must be unique (a rather strange combo).
      */
     public static List getMustBeUniqueNullableColumns(Collection tables) {
-	List uniqueNullables = new ArrayList();
+        List uniqueNullables = new ArrayList();
 
-	for (Iterator tablesIter = tables.iterator(); tablesIter.hasNext(); ) {
-	    Table table = (Table)tablesIter.next();
-	    for (Iterator indexesIter = table.getIndexes().iterator(); indexesIter.hasNext(); ) {
-		TableIndex index = (TableIndex)indexesIter.next();
-		if (index.isUniqueNullable()) {
-		    uniqueNullables.addAll(index.getColumns());
-		}
-	    }
-	}
+        for (Iterator tablesIter = tables.iterator(); tablesIter.hasNext(); ) {
+            Table table = (Table)tablesIter.next();
+            for (Iterator indexesIter = table.getIndexes().iterator(); indexesIter.hasNext(); ) {
+                TableIndex index = (TableIndex)indexesIter.next();
+                if (index.isUniqueNullable()) {
+                    uniqueNullables.addAll(index.getColumns());
+                }
+            }
+        }
 
-	return sortColumnsByTable(uniqueNullables);
+        return sortColumnsByTable(uniqueNullables);
     }
 
     /**
@@ -207,18 +206,18 @@ public class DBAnalyzer {
     }
 
     public static List sortColumnsByTable(List columns) {
-	Collections.sort(columns, new Comparator() {
-	    public int compare(Object object1, Object object2) {
-		TableColumn column1 = (TableColumn)object1;
-		TableColumn column2 = (TableColumn)object2;
-		int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-		if (rc == 0)
-		    rc = column1.getName().compareTo(column2.getName());
-		return rc;
-	    }
-	});
+        Collections.sort(columns, new Comparator() {
+            public int compare(Object object1, Object object2) {
+                TableColumn column1 = (TableColumn)object1;
+                TableColumn column2 = (TableColumn)object2;
+                int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+                if (rc == 0)
+                    rc = column1.getName().compareTo(column2.getName());
+                return rc;
+            }
+        });
 
-	return columns;
+        return columns;
     }
 
     /**

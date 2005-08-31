@@ -1,10 +1,9 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-public class TableColumn implements Serializable {
+public class TableColumn {
     private final Table table;
     private final String name;
     private final Object id;
@@ -181,7 +180,7 @@ public class TableColumn implements Serializable {
         return getName();
     }
 
-    private class ColumnComparator implements Comparator, Serializable {
+    private class ColumnComparator implements Comparator {
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
