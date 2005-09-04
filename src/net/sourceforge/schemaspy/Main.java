@@ -238,10 +238,10 @@ public class Main {
                 }
 
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.css")));
-                StyleSheet.write(out);
+                StyleSheet.getInstance().write(out);
                 out.close();
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.js")));
-                JavaScriptFormatter.write(out);
+                JavaScriptFormatter.getInstance().write(out);
                 out.close();
             }
 

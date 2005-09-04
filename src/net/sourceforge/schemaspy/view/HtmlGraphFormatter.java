@@ -239,7 +239,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.writeln("<a href='anomalies.html' title=\"Things that aren't quite right\">Anomalies</a>");
         if (hasImpliedRelationships) {
             html.writeln("<p/><form action=''>");
-            html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");
+            html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getInstance().getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");
             html.writeln("  Hide tables with implied relationships");
             html.writeln("</form>");
         }

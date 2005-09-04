@@ -1,25 +1,21 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import net.sourceforge.schemaspy.util.LineWriter;
+import java.io.*;
+import java.util.*;
+import net.sourceforge.schemaspy.util.*;
 
 public class StyleSheet {
-    private static String css;
-    private static String bodyBackgroundColor;
-    private static String tableHeadBackgroundColor;
-    private static String tableBackgroundColor;
-    private static String primaryKeyBackgroundColor;
-    private static String indexedColumnBackgroundColor;
-    private static String selectedTableBackgroundColor;
-    private static final List ids = new ArrayList();
+    private static StyleSheet instance;
+    private String css;
+    private String bodyBackgroundColor;
+    private String tableHeadBackgroundColor;
+    private String tableBackgroundColor;
+    private String primaryKeyBackgroundColor;
+    private String indexedColumnBackgroundColor;
+    private String selectedTableBackgroundColor;
+    private final List ids = new ArrayList();
 
-    public static void init(BufferedReader cssReader) throws IOException {
+    private StyleSheet(BufferedReader cssReader) throws IOException {
         String lineSeparator = System.getProperty("line.separator");
         StringBuffer data = new StringBuffer();
         String line;
@@ -64,7 +60,15 @@ public class StyleSheet {
         }
     }
 
-    private static Map parseAttributes(String data) {
+    public static StyleSheet getInstance() {
+        return instance;
+    }
+
+    public static void init(BufferedReader cssReader) throws IOException {
+        instance = new StyleSheet(cssReader);
+    }
+
+    private Map parseAttributes(String data) {
         Map attribs = new HashMap();
         StringTokenizer attrTokenizer = new StringTokenizer(data, ";");
         while (attrTokenizer.hasMoreTokens()) {
@@ -77,35 +81,35 @@ public class StyleSheet {
         return attribs;
     }
 
-    public static void write(LineWriter out) throws IOException {
+    public void write(LineWriter out) throws IOException {
         out.write(css);
     }
 
-    public static String getBodyBackground() {
+    public String getBodyBackground() {
         return bodyBackgroundColor;
     }
 
-    public static String getTableBackground() {
+    public String getTableBackground() {
         return tableBackgroundColor;
     }
 
-    public static String getTableHeadBackground() {
+    public String getTableHeadBackground() {
         return tableHeadBackgroundColor;
     }
 
-    public static String getPrimaryKeyBackground() {
+    public String getPrimaryKeyBackground() {
         return primaryKeyBackgroundColor;
     }
 
-    public static String getIndexedColumnBackground() {
+    public String getIndexedColumnBackground() {
         return indexedColumnBackgroundColor;
     }
 
-    public static String getSelectedTableBackground() {
+    public String getSelectedTableBackground() {
         return selectedTableBackgroundColor;
     }
 
-    public static int getOffsetOf(String id) {
+    public int getOffsetOf(String id) {
         int offset = ids.indexOf(id.toLowerCase());
         if (offset == -1)
             throw new IllegalArgumentException(id);

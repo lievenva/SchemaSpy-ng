@@ -4,7 +4,13 @@ import java.io.IOException;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class JavaScriptFormatter {
-    public static void write(LineWriter out) throws IOException {
+    private static JavaScriptFormatter instance = new JavaScriptFormatter();
+
+    public static JavaScriptFormatter getInstance() {
+        return instance;
+    }
+
+    public void write(LineWriter out) throws IOException {
         out.writeln("function toggle(styleIndex) {");
         out.writeln("  var rules = document.styleSheets[0].cssRules;");
         out.writeln("  if (rules == null) rules = document.styleSheets[0].rules;");
@@ -64,7 +70,7 @@ public class JavaScriptFormatter {
         out.writeln("function syncDegrees() {");
         out.writeln("  var rules = document.styleSheets[0].cssRules;");
         out.writeln("  if (rules == null) rules = document.styleSheets[0].rules;");
-        out.writeln("  var degreesStyle = rules[" + StyleSheet.getOffsetOf(".degrees") + "].style;");
+        out.writeln("  var degreesStyle = rules[" + StyleSheet.getInstance().getOffsetOf(".degrees") + "].style;");
         out.writeln("  var degrees = document.getElementById('degrees');");
         out.writeln("  if (degreesStyle.display != 'none' && degrees) {");
         out.writeln("    var oneDegree = document.getElementById('oneDegree');");
