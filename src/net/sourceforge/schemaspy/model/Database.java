@@ -98,27 +98,29 @@ public class Database {
                 rs.close();
         }
 
-        String selectCheckConstraintsSql = properties.getProperty("selectCheckConstraintsSql");
-        if (selectCheckConstraintsSql != null) {
+        initCheckConstraints(properties);
+        initTableIds(properties);
+        initIndexIds(properties);
+    }
+
+    private void initCheckConstraints(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectCheckConstraintsSql");
+        if (sql != null) {
             PreparedStatement stmt = null;
+            ResultSet rs = null;
 
             try {
-                stmt = getConnection().prepareStatement(selectCheckConstraintsSql);
-                boolean schemaRequired = selectCheckConstraintsSql.indexOf('?') != -1;
-                if (schemaRequired)
-                    stmt.setString(1, getSchema());
+                stmt = createStatement(sql);
                 rs = stmt.executeQuery();
 
                 while (rs.next()) {
-                    while (rs.next()) {
-                        String tableName = rs.getString("table_name");
-                        Table table = (Table)tables.get(tableName.toUpperCase());
-                        table.addCheckConstraint(rs.getString("constname"), rs.getString("text"));
-                    }
+                    String tableName = rs.getString("table_name");
+                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    table.addCheckConstraint(rs.getString("constname"), rs.getString("text"));
                 }
             } catch (SQLException sqlException) {
                 System.err.println();
-                System.err.println(selectCheckConstraintsSql);
+                System.err.println(sql);
                 throw sqlException;
             } finally {
                 if (rs != null)
@@ -127,6 +129,85 @@ public class Database {
                     stmt.close();
             }
         }
+    }
+
+    private void initTableIds(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectTableIdsSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = createStatement(sql);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String tableName = rs.getString("table_name");
+                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    if (table != null)
+                        table.setId(rs.getObject("table_id"));
+                }
+            } catch (SQLException sqlException) {
+                System.err.println();
+                System.err.println(sql);
+                throw sqlException;
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+
+    private void initIndexIds(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectIndexIdsSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = createStatement(sql);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String tableName = rs.getString("table_name");
+                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    if (table != null) {
+                        TableIndex index = table.getIndex(rs.getString("index_name"));
+                        if (index != null)
+                            index.setId(rs.getObject("index_id"));
+                    }
+                }
+            } catch (SQLException sqlException) {
+                System.err.println();
+                System.err.println(sql);
+                throw sqlException;
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+
+    private PreparedStatement createStatement(String sql) throws SQLException {
+        PreparedStatement stmt = null;
+        if (sql != null) {
+            try {
+                stmt = getConnection().prepareStatement(sql);
+                boolean schemaRequired = sql.indexOf('?') != -1;
+                if (schemaRequired)
+                    stmt.setString(1, getSchema());
+            } catch (SQLException exc) {
+                if (stmt != null)
+                    stmt.close();
+                throw exc;
+            }
+        }
+
+        return stmt;
     }
 
     private void initViews(String schema, DatabaseMetaData metadata, Connection connection, Properties properties) throws SQLException {

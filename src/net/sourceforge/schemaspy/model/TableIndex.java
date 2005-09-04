@@ -4,9 +4,9 @@ import java.sql.*;
 import java.util.*;
 
 public class TableIndex implements Comparable {
-    private final Object id;
     private final String name;
     private final boolean isUnique;
+    private Object id;
     private boolean isPrimary;
     private final List columns = new ArrayList();
     private final List columnsAscending = new ArrayList(); // Booleans for whether colums are ascending order
@@ -14,7 +14,10 @@ public class TableIndex implements Comparable {
     public TableIndex(ResultSet rs) throws SQLException {
         name = rs.getString("INDEX_NAME");
         isUnique = !rs.getBoolean("NON_UNIQUE");
-        id = null;
+    }
+
+    public void setId(Object id) {
+        this.id = id;
     }
 
     public Object getId() {

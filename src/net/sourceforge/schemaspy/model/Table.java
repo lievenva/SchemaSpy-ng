@@ -11,8 +11,7 @@ public class Table {
     private final List primaryKeys = new ArrayList();
     private final Map foreignKeys = new HashMap();
     private final Map indexes = new HashMap();
-    private final Object tablespace;
-    private final Object id;
+    private       Object id;
     private final Map checkConstraints = new TreeMap(new ByCheckConstraintStringsComparator());
     private final int numRows;
     private int maxChildren;
@@ -25,9 +24,6 @@ public class Table {
         initColumns(meta);
         initIndexes(db, meta, properties);
         initPrimaryKeys(meta);
-
-        tablespace = null;
-        id = null;
         numRows = fetchNumRows(db);
     }
 
@@ -284,8 +280,8 @@ public class Table {
         return name;
     }
 
-    public Object getTablespace() {
-        return tablespace;
+    public void setId(Object id) {
+        this.id = id;
     }
 
     public Object getId() {
