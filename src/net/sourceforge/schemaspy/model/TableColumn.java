@@ -40,7 +40,7 @@ public class TableColumn {
 
         isNullable = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
         defaultValue = rs.getString("COLUMN_DEF");
-        id = new Integer(rs.getInt("ORDINAL_POSITION"));
+        id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
     }
 
     public Table getTable() {
@@ -73,6 +73,25 @@ public class TableColumn {
 
     public boolean isAutoUpdated() {
         return isAutoUpdated;
+    }
+
+    public boolean isUnique() {
+        Iterator iter = table.getIndexes().iterator();
+        while (iter.hasNext()) {
+            TableIndex index = (TableIndex)iter.next();
+            if (index.isUnique()) {
+                List indexColumns = index.getColumns();
+                if (indexColumns.size() == 1 && indexColumns.contains(this)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isPrimary() {
+        return table.getPrimaryColumns().contains(this);
     }
 
     public Object getDefaultValue() {
