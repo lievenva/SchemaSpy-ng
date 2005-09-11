@@ -30,7 +30,7 @@ public class Dot {
     }
 
     public boolean exists() {
-        return version != null;
+        return version.toString() != null;
     }
 
     public Version getVersion() {
@@ -49,29 +49,31 @@ public class Dot {
         return getVersion().compareTo(new Version("2.6")) >= 0;
     }
 
-    public boolean generateGraph(File dotFile, File graphFile) throws IOException {
+    public void generateGraph(File dotFile, File graphFile) throws DotFailure {
+        String dotCommand = "dot -Tpng \"" + dotFile + "\" -o\"" + graphFile + "\"";
         try {
-            String dotCommand = "dot -Tpng \"" + dotFile + "\" -o\"" + graphFile + "\"";
             Process process = Runtime.getRuntime().exec(dotCommand);
             new ProcessOutputReader(dotCommand, process.getErrorStream()).start();
             new ProcessOutputReader(dotCommand, process.getInputStream()).start();
             int rc = process.waitFor();
-            if (rc != 0) {
-                System.err.println("'" + dotCommand + "' failed with return code " + rc);
-                return false;
-            }
+            if (rc != 0)
+                throw new DotFailure("'" + dotCommand + "' failed with return code " + rc);
+            if (!graphFile.exists())
+                throw new DotFailure("'" + dotCommand + "' failed to create output file");
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
+        } catch (DotFailure failed) {
+            throw failed;
+        } catch (IOException failed) {
+            throw new DotFailure("'" + dotCommand + "' failed with exception " + failed);
         }
-
-        return true;
     }
 
-    public boolean writeMap(File dotFile, LineWriter out) throws IOException {
+    public void writeMap(File dotFile, LineWriter out) throws DotFailure {
         BufferedReader mapReader = null;
+        String dotCommand = "dot -Tcmapx \"" + dotFile + "\"";
 
         try {
-            String dotCommand = "dot -Tcmapx \"" + dotFile + "\"";
             Process process = Runtime.getRuntime().exec(dotCommand);
             new ProcessOutputReader(dotCommand, process.getErrorStream()).start();
             mapReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -79,19 +81,25 @@ public class Dot {
             while ((line = mapReader.readLine()) != null)
                 out.writeln(line);
             int rc = process.waitFor();
-            if (rc != 0) {
-                System.err.println("'" + dotCommand + "' failed with return code " + rc);
-                return false;
-            }
+            if (rc != 0)
+                throw new DotFailure("'" + dotCommand + "' failed with return code " + rc);
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
+        } catch (DotFailure failed) {
+            throw failed;
+        } catch (IOException failed) {
+            throw new DotFailure("'" + dotCommand + "' failed with exception " + failed);
         } finally {
             try {
                 mapReader.close();
             } catch (Exception ignore) {}
         }
+    }
 
-        return true;
+    public class DotFailure extends IOException {
+        public DotFailure(String msg) {
+            super(msg);
+        }
     }
 
     private static class ProcessOutputReader extends Thread {

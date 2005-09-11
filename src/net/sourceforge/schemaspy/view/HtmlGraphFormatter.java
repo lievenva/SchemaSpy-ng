@@ -70,7 +70,11 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 twoDegreesDotFile.delete();
                 twoDegreesGraphFile.delete();
             }
-        } catch (IOException noDot) {
+        } catch (Dot.DotFailure dotFailure) {
+            System.err.println(dotFailure);
+            return false;
+        } catch (IOException ioExc) {
+            ioExc.printStackTrace();
             return false;
         }
 
@@ -112,7 +116,11 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             }
 
             writeFooter(html);
-        } catch (IOException noDot) {
+        } catch (Dot.DotFailure dotFailure) {
+            System.err.println(dotFailure);
+            return false;
+        } catch (IOException ioExc) {
+            ioExc.printStackTrace();
             return false;
         }
 
@@ -149,9 +157,12 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 DotFormatter.getInstance().writeOrphan(table, dotOut);
                 dotOut.close();
                 try {
-                    if (!dot.generateGraph(dotFile, graphFile))
-                        return false;
-                } catch (IOException noDot) {
+                    dot.generateGraph(dotFile, graphFile);
+                } catch (Dot.DotFailure dotFailure) {
+                    System.err.println(dotFailure);
+                    return false;
+                } catch (IOException ioExc) {
+                    ioExc.printStackTrace();
                     return false;
                 }
 
@@ -272,6 +283,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 System.err.println("   SchemaSpy requires " + dot.getSupportedVersions() + ".");
                 System.err.println("   Generated pages will not contain a graphical view of table relationships.");
             }
+
             return null;
         }
 
