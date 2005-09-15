@@ -7,8 +7,8 @@ import net.sourceforge.schemaspy.util.*;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static final HtmlGraphFormatter instance = new HtmlGraphFormatter();
-    private static boolean printedNoDotWarning = false;
-    private static boolean printedInvalidVersionWarning = false;
+    private boolean printedNoDotWarning = false;
+    private boolean printedInvalidVersionWarning = false;
 
     /**
      * Singleton...don't allow creation
@@ -160,9 +160,6 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                     dot.generateGraph(dotFile, graphFile);
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println(dotFailure);
-                    return false;
-                } catch (IOException ioExc) {
-                    ioExc.printStackTrace();
                     return false;
                 }
 
