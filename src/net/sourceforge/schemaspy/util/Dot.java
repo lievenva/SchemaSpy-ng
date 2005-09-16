@@ -74,24 +74,27 @@ public class Dot {
 
     public void writeMap(File dotFile, LineWriter out) throws DotFailure {
         BufferedReader mapReader = null;
-        String dotCommand = "dot -Tcmapx \"" + dotFile + "\"";
+        // this one is for executing.  it can (hopefully) deal with funky things in filenames.
+        String[] dotParams = new String[] {"dot", "-Tcmapx", dotFile.toString()};
+        // this one is for display purposes ONLY.
+        String commandLine = "dot -Tcmapx \"" + dotFile + "\"";
 
         try {
-            Process process = Runtime.getRuntime().exec(dotCommand);
-            new ProcessOutputReader(dotCommand, process.getErrorStream()).start();
+            Process process = Runtime.getRuntime().exec(commandLine);
+            new ProcessOutputReader(commandLine, process.getErrorStream()).start();
             mapReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = mapReader.readLine()) != null)
                 out.writeln(line);
             int rc = process.waitFor();
             if (rc != 0)
-                throw new DotFailure("'" + dotCommand + "' failed with return code " + rc);
+                throw new DotFailure("'" + commandLine + "' failed with return code " + rc);
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
         } catch (DotFailure failed) {
             throw failed;
         } catch (IOException failed) {
-            throw new DotFailure("'" + dotCommand + "' failed with exception " + failed);
+            throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
         } finally {
             try {
                 mapReader.close();
