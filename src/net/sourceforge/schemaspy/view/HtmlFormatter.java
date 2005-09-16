@@ -92,8 +92,9 @@ public class HtmlFormatter {
         out.writeln("    <tr><td class='indexedColumn'>Columns with indexes</td></tr>");
         if (tableDetails)
             out.writeln("    <tr class='impliedRelationship'><td>Implied relationships</td></tr>");
-        out.writeln("    <tr><td class='tableHolder'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
-        out.writeln("    <tr><td class='tableHolder'>Dashed arrows represent" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
+        // comment this out until I can figure out a clean way to embed image references
+        //out.writeln("    <tr><td class='tableHolder'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
+        out.writeln("    <tr><td class='tableHolder'>Dashed lines show" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
         out.writeln("   </table>");
         out.writeln("  </td></tr>");
         out.writeln(" </table>");
