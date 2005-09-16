@@ -50,22 +50,25 @@ public class Dot {
     }
 
     public void generateGraph(File dotFile, File graphFile) throws DotFailure {
-        String dotCommand = "dot -Tpng \"" + dotFile + "\" -o\"" + graphFile + "\"";
+        // this one is for executing.  it can (hopefully) deal with funky things in filenames.
+        String[] dotParams = new String[] {"dot", "-Tpng", dotFile.toString(), "-o" + graphFile};
+        // this one is for display purposes ONLY.
+        String commandLine = "dot -Tpng " + dotFile + " -o" + graphFile;
         try {
-            Process process = Runtime.getRuntime().exec(dotCommand);
-            new ProcessOutputReader(dotCommand, process.getErrorStream()).start();
-            new ProcessOutputReader(dotCommand, process.getInputStream()).start();
+            Process process = Runtime.getRuntime().exec(dotParams);
+            new ProcessOutputReader(commandLine, process.getErrorStream()).start();
+            new ProcessOutputReader(commandLine, process.getInputStream()).start();
             int rc = process.waitFor();
             if (rc != 0)
-                throw new DotFailure("'" + dotCommand + "' failed with return code " + rc);
+                throw new DotFailure("'" + commandLine + "' failed with return code " + rc);
             if (!graphFile.exists())
-                throw new DotFailure("'" + dotCommand + "' failed to create output file");
+                throw new DotFailure("'" + commandLine + "' failed to create output file");
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
         } catch (DotFailure failed) {
             throw failed;
         } catch (IOException failed) {
-            throw new DotFailure("'" + dotCommand + "' failed with exception " + failed);
+            throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
         }
     }
 
