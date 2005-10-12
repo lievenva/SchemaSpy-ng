@@ -221,6 +221,11 @@ public class Main {
                 HtmlAnomaliesFormatter.getInstance().write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
                 out.close();
 
+                System.out.print(".");
+                out = new LineWriter(new FileWriter(new File(outputDir, "columns.html")), 16 * 1024);
+                HtmlColumnsFormatter.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                out.close();
+
 
                 startGraphingDetails = System.currentTimeMillis();
                 System.out.println("(" + (startGraphingDetails - startSummarizing) / 1000 + "sec)");
