@@ -45,6 +45,8 @@
     <javac srcdir="${src}"
       includes="**/*.java"
       destdir="${dest}"
+      debug="on"
+      debuglevel="source,lines"
     />
   </target>
  
