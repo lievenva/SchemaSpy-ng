@@ -56,7 +56,7 @@ public class DotFormatter {
         Set relatedTables = getImmediateRelatives(table, includeImplied, stats);
 
         formatter.writeNode(table, "", true, true, true, dot);
-        Set relationships = formatter.getRelationships(table, includeImplied);
+        Set relationships = new TreeSet(formatter.getRelationships(table, includeImplied));
         tablesWritten.add(table);
         stats.wroteTable(table);
 
@@ -100,7 +100,29 @@ public class DotFormatter {
             }
         }
 
-        iter = new TreeSet(relationships).iterator();
+//        // now figure out what's related at the outskirts to give visual clues
+//        Set outskirts = new TreeSet();
+//        iter = tablesWritten.iterator();
+//        while (iter.hasNext()) {
+//            Table t = (Table)iter.next();
+//            if (t != table)
+//                outskirts.addAll(formatter.getRelationships(t, includeImplied));
+//        }
+//        outskirts.removeAll(relationships);
+//        // remove the ones that inappropriately point to main table
+//        iter = outskirts.iterator();
+//        while (iter.hasNext())  {
+//            DotEdge edge = (DotEdge)iter.next();
+//            if (edge.pointsTo(table))
+//                iter.remove();
+//            else
+//                edge.stubMissingTables(tablesWritten);
+//        }
+//
+//        relationships.addAll(outskirts);
+
+        // write the collected relationships
+        iter = relationships.iterator();
         while (iter.hasNext())
             dot.writeln(iter.next().toString());
 
