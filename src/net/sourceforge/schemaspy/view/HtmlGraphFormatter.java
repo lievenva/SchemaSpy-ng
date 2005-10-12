@@ -247,7 +247,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         }
 
         html.writeln("<td class='tableHolder' align='right' valign='top'>");
-        writeLegend(false, html);
+        writeLegend(false, false, html);
         html.writeln("</td></tr></table>");
     }
 
