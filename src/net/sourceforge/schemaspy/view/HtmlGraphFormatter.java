@@ -188,11 +188,8 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     private void writeRelationshipsHeader(Database db, File compactRelationshipsGraphFile, File largeRelationshipsGraphFile, File compactImpliedGraphFile, File largeImpliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        html.write("<br/><a href='index.html'>Tables</a>&nbsp;&nbsp;");
-        if (hasOrphans)
-            html.write("<a href='utilities.html' title='Graphical view of tables with neither parents nor children'>Utility Tables Graph</a>&nbsp;&nbsp;");
-        html.write("<a href='constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a>&nbsp;&nbsp;");
-        html.writeln("<a href='anomalies.html' title=\"Things that aren't quite right\">Anomalies</a>");
+        html.write("<br/>");
+        writeTableOfContents(false, hasOrphans, html);
 
         // this is some UGLY code!
         html.writeln("<p/><form name='options' action=''>");
@@ -240,11 +237,8 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     private void writeOrphansHeader(Database db, String title, boolean hasRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
         html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
-        html.writeln("<br/><a href='index.html'>Tables</a>");
-        if (hasRelationships)
-            html.write("<a href='relationships.html' title='Graphical view of table relationships'>Relationships Graph</a>&nbsp;&nbsp;");
-        html.write("<a href='constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a>&nbsp;&nbsp;");
-        html.writeln("<a href='anomalies.html' title=\"Things that aren't quite right\">Anomalies</a>");
+        html.writeln("<br/>");
+        writeTableOfContents(hasRelationships, false, html);
         if (hasImpliedRelationships) {
             html.writeln("<p/><form action=''>");
             html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getInstance().getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");
