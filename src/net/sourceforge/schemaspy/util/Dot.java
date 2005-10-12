@@ -53,7 +53,7 @@ public class Dot {
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
         String[] dotParams = new String[] {"dot", "-Tpng", dotFile.toString(), "-o" + graphFile};
         // this one is for display purposes ONLY.
-        String commandLine = "dot -Tpng " + dotFile + " -o" + graphFile;
+        String commandLine = getDisplayableCommand(dotParams);
         try {
             Process process = Runtime.getRuntime().exec(dotParams);
             new ProcessOutputReader(commandLine, process.getErrorStream()).start();
@@ -77,10 +77,10 @@ public class Dot {
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
         String[] dotParams = new String[] {"dot", "-Tcmapx", dotFile.toString()};
         // this one is for display purposes ONLY.
-        String commandLine = "dot -Tcmapx \"" + dotFile + "\"";
+        String commandLine = getDisplayableCommand(dotParams);
 
         try {
-            Process process = Runtime.getRuntime().exec(commandLine);
+            Process process = Runtime.getRuntime().exec(dotParams);
             new ProcessOutputReader(commandLine, process.getErrorStream()).start();
             mapReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
@@ -106,6 +106,16 @@ public class Dot {
         public DotFailure(String msg) {
             super(msg);
         }
+    }
+
+    private static String getDisplayableCommand(String[] command) {
+        StringBuffer displayable = new StringBuffer();
+        for (int i = 0; i < command.length; ++i) {
+            displayable.append(command[i]);
+            if (i + 1 < command.length)
+                displayable.append(' ');
+        }
+        return displayable.toString();
     }
 
     private static class ProcessOutputReader extends Thread {
