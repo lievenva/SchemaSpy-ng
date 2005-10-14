@@ -207,6 +207,8 @@ public class Table {
 
                     addIndex(rs);
                 }
+            } catch (SQLException exc) {
+                System.err.println("Unable to extract index info for table " + name + ": " + exc);
             } finally {
                 if (rs != null)
                     rs.close();
