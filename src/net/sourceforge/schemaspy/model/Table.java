@@ -123,6 +123,9 @@ public class Table {
 
                 while (rs.next())
                     addColumn(rs);
+            } catch (SQLException exc) {
+                System.err.println("Failed to collect column details for table '" + getName() + "' in schema '" + getSchema() + "'");
+                throw exc;
             } finally {
                 if (rs != null)
                     rs.close();
