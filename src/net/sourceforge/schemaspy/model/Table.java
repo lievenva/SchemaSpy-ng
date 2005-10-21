@@ -16,7 +16,6 @@ public class Table {
     private final int numRows;
     private int maxChildren;
     private int maxParents;
-    private boolean oracleSelectIndexesBug = false;
 
     public Table(Database db, String schema, String name, DatabaseMetaData meta, Properties properties) throws SQLException {
         this.schema = schema;
@@ -31,7 +30,7 @@ public class Table {
         ResultSet rs = null;
 
         try {
-            rs = meta.getImportedKeys(null, schema, name);
+            rs = meta.getImportedKeys(null, getSchema(), getName());
 
             while (rs.next())
                 addForeignKey(rs, tables, meta);
@@ -89,7 +88,7 @@ public class Table {
         ResultSet rs = null;
 
         try {
-            rs = meta.getPrimaryKeys(null, schema, name);
+            rs = meta.getPrimaryKeys(null, getSchema(), getName());
 
             while (rs.next())
                 addPrimaryKey(rs);
@@ -185,75 +184,101 @@ public class Table {
         }
     }
 
+    /**
+     * Initialize index information
+     *
+     * @throws SQLException
+     */
     private void initIndexes(Database db, DatabaseMetaData meta, Properties properties) throws SQLException {
-        if (!isView()) {
-            ResultSet rs = null;
+        if (isView())
+            return;
 
-            try {
-                try {
-                    if (oracleSelectIndexesBug)
-                        rs = getOracleIndexInfo(db, properties);
-                    else
-                        rs = meta.getIndexInfo(null, schema, name, false, true);
-                } catch (SQLException exc) {
-                    if (exc.getMessage().indexOf("ORA-01031") != -1) {
-                        rs = getOracleIndexInfo(db, properties);
-                        oracleSelectIndexesBug = true;
-                    } else {
-                        throw exc;
-                    }
-                }
+        // first try to initialize using the index query spec'd in the .properties
+        // do this first because some DB's (e.g. Oracle) do 'bad' things with getIndexInfo()
+        // (they try to do a DDL analyze command that has some bad side-effects)
+        if (initIndexes(db, properties.getProperty("selectIndexesSql")))
+            return;
 
-                while (rs.next()) {
-                    if (rs.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic)
-                        continue;
+        // couldn't, so try the old fashioned approach
+        ResultSet rs = null;
 
+        try {
+            rs = meta.getIndexInfo(null, getSchema(), getName(), false, true);
+
+            while (rs.next()) {
+                if (rs.getShort("TYPE") != DatabaseMetaData.tableIndexStatistic)
                     addIndex(rs);
-                }
-            } catch (SQLException exc) {
-                System.err.println("Unable to extract index info for table " + name + ": " + exc);
-            } finally {
-                if (rs != null)
-                    rs.close();
             }
+        } catch (SQLException exc) {
+            System.err.println("Unable to extract index info for table '" + getName() + "' in schema '" + getSchema() + "': " + exc);
+        } finally {
+            if (rs != null)
+                rs.close();
         }
     }
 
     /**
-     * Oracle's oracle.jdbc.OracleDatabaseMetaData.getIndexInfo() does an executeUpdate() and
-     * therefore requires write access to the database...which is inappropriate in most cases.
-     * If we run into that problem (ORA-01031: insufficient privileges) then we'll use this method.
+     * Try to initialize index information based on the specified SQL
+     *
+     * @return boolean <code>true</code> if it worked, otherwise <code>false</code>
      */
-    private ResultSet getOracleIndexInfo(Database db, Properties properties) throws SQLException {
-        String selectIndexesSql = properties.getProperty("selectIndexesSql");
+    private boolean initIndexes(Database db, String selectIndexesSql) throws SQLException {
         if (selectIndexesSql == null)
-            throw new IllegalStateException("selectIndexesSql not specified in .properties file and is required for this type of database");
+            return false;
 
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
         try {
-            stmt = db.getConnection().prepareStatement(selectIndexesSql);
-            stmt.setString(1, getName());
-            boolean schemaRequired = selectIndexesSql.indexOf('?') != selectIndexesSql.lastIndexOf('?');
-            if (schemaRequired)
-                stmt.setString(2, getSchema());
+            stmt = prepareStatement(db, selectIndexesSql);
             rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                if (rs.getShort("TYPE") != DatabaseMetaData.tableIndexStatistic)
+                    addIndex(rs);
+            }
         } catch (SQLException sqlException) {
-            System.err.println(selectIndexesSql);
-            throw sqlException;
+            System.err.println("Failed to query index information with SQL: " + selectIndexesSql);
+            System.err.println(sqlException);
+            return false;
         } finally {
             if (rs != null) {
                 try {
-                    Method closeStmtOnClose = rs.getClass().getMethod("closeStatementOnClose", new Class[] {});
-                    closeStmtOnClose.invoke(rs, null);
+                    rs.close();
+                } catch (Exception exc) {
+                    exc.printStackTrace();
+                }
+            }
+            if (stmt != null)  {
+                try {
+                    stmt.close();
                 } catch (Exception exc) {
                     exc.printStackTrace();
                 }
             }
         }
 
-        return rs;
+        return true;
+    }
+
+    private PreparedStatement prepareStatement(Database db, String selectIndexesSql) throws SQLException {
+        PreparedStatement stmt = db.getConnection().prepareStatement(selectIndexesSql);
+        int numParams = 0;
+        int nextParam = selectIndexesSql.indexOf('?');
+        while (nextParam != -1) {
+            ++numParams;
+            if (nextParam + 1 < selectIndexesSql.length())
+                nextParam = selectIndexesSql.indexOf('?', nextParam + 1);
+            else
+                nextParam = -1;
+        }
+
+        for (int i = 0; i < numParams; i += 2) {
+            stmt.setString(i + 1, getName());
+            if (i + 1 < numParams)
+                stmt.setString(i + 2, getSchema());
+        }
+        return stmt;
     }
 
     public TableIndex getIndex(String indexName) {
