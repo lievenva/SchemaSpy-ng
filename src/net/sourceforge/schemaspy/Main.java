@@ -397,10 +397,12 @@ public class Main {
             System.err.println();
             System.err.println("Failed to load driver [" + driverClass + "] from classpath " + classpath);
             System.err.println();
-            System.err.println("Use -t [databaseType] to specify what drivers to use.");
+            System.err.println("Use -t [databaseType] to specify what drivers to use");
+            System.err.println("or modify one of the .properties from the jar, put it on your file");
+            System.err.println("system and point to it with -t [databasePropertiesFile].");
             System.err.println();
-            System.err.println("Or modify one from the jar, put it on your file system and point to it");
-            System.err.println("with -t [databasePropertiesFile].");
+            System.err.println("For many people it's easiest to use the -cp option to directly specify");
+            System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
             System.err.println();
             exc.printStackTrace();
             System.exit(1);
