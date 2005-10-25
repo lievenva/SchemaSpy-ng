@@ -48,15 +48,15 @@ public class DotFormatter {
         Set tablesWritten = new HashSet();
         WriteStats stats = new WriteStats();
 
-        DotTableFormatter formatter = DotTableFormatter.getInstance();
+        DotConnectorFinder formatter = DotConnectorFinder.getInstance();
 
         String graphName = includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph");
         writeHeader(graphName, false, true, dot);
 
         Set relatedTables = getImmediateRelatives(table, includeImplied, stats);
 
-        formatter.writeNode(table, "", true, true, true, dot);
-        Set relationships = new TreeSet(formatter.getRelationships(table, includeImplied));
+        dot.writeln(new DotNode(table, "").toString());
+        Set connectors = new TreeSet(formatter.getRelatedConnectors(table, includeImplied));
         tablesWritten.add(table);
         stats.wroteTable(table);
 
@@ -67,19 +67,22 @@ public class DotFormatter {
             if (!tablesWritten.add(relatedTable))
                 continue; // already written
 
-            formatter.writeNode(relatedTable, "", true, false, false, dot);
+            dot.writeln(new DotNode(relatedTable, true, "").toString());
             stats.wroteTable(relatedTable);
-            relationships.addAll(formatter.getRelationships(relatedTable, table, includeImplied));
+            connectors.addAll(formatter.getRelatedConnectors(relatedTable, table, includeImplied));
         }
 
         // connect the edges that go directly to the target table
         // so they go to the target table's type column instead
-        iter = relationships.iterator();
+        iter = connectors.iterator();
         while (iter.hasNext()) {
-            DotEdge edge = (DotEdge)iter.next();
+            DotConnector edge = (DotConnector)iter.next();
             if (edge.pointsTo(table))
                 edge.connectToParentDetails();
         }
+
+        Set allCousins = new HashSet();
+        Set allCousinConnectors = new TreeSet();
 
         // next write 'cousins' (2nd degree of separation)
         if (twoDegreesOfSeparation) {
@@ -93,36 +96,51 @@ public class DotFormatter {
                     Table cousin = (Table)cousinsIter.next();
                     if (!tablesWritten.add(cousin))
                         continue; // already written
-                    relationships.addAll(formatter.getRelationships(cousin, relatedTable, includeImplied));
-                    formatter.writeNode(cousin, "", false, false, false, dot);
+
+                    allCousinConnectors.addAll(formatter.getRelatedConnectors(cousin, relatedTable, includeImplied));
+                    dot.writeln(new DotNode(cousin, true, "").toString());
                     stats.wroteTable(cousin);
                 }
+
+                allCousins.addAll(cousins);
             }
         }
 
-//        // now figure out what's related at the outskirts to give visual clues
-//        Set outskirts = new TreeSet();
-//        iter = tablesWritten.iterator();
-//        while (iter.hasNext()) {
-//            Table t = (Table)iter.next();
-//            if (t != table)
-//                outskirts.addAll(formatter.getRelationships(t, includeImplied));
-//        }
-//        outskirts.removeAll(relationships);
-//        // remove the ones that inappropriately point to main table
-//        iter = outskirts.iterator();
-//        while (iter.hasNext())  {
-//            DotEdge edge = (DotEdge)iter.next();
-//            if (edge.pointsTo(table))
-//                iter.remove();
-//            else
-//                edge.stubMissingTables(tablesWritten);
-//        }
-//
-//        relationships.addAll(outskirts);
+        // now figure out what's related at the outskirts to give visual clues
+        Set outskirts = new TreeSet();
+        iter = tablesWritten.iterator();
+        while (iter.hasNext()) {
+            Table t = (Table)iter.next();
+            if (t != table)
+                outskirts.addAll(formatter.getRelatedConnectors(t, includeImplied));
+        }
+        outskirts.removeAll(connectors);
+        // remove the ones that inappropriately point to main table
+        iter = outskirts.iterator();
+        while (iter.hasNext())  {
+            DotConnector edge = (DotConnector)iter.next();
+            if (edge.pointsTo(table))
+                iter.remove();
+            //else
+            //    edge.stubMissingTables(tablesWritten);
+        }
 
-        // write the collected relationships
-        iter = relationships.iterator();
+        // now directly connect the loose ends to the title of the
+        // 2nd degree of separation tables
+        outskirts.addAll(allCousinConnectors);
+        iter = outskirts.iterator();
+        while (iter.hasNext()) {
+            DotConnector connector = (DotConnector)iter.next();
+            if (allCousins.contains(connector.getParentTable()))
+                connector.connectToParentTitle();
+            if (allCousins.contains(connector.getChildTable()))
+                connector.connectToChildTitle();
+        }
+
+        connectors.addAll(outskirts);
+
+        // write the collected connectors
+        iter = connectors.iterator();
         while (iter.hasNext())
             dot.writeln(iter.next().toString());
 
@@ -199,7 +217,7 @@ public class DotFormatter {
     }
 
     private WriteStats writeRelationships(Collection tables, boolean includeImplied, boolean compact, LineWriter dot) throws IOException {
-        DotTableFormatter formatter = DotTableFormatter.getInstance();
+        DotConnectorFinder formatter = DotConnectorFinder.getInstance();
         WriteStats stats = new WriteStats();
         String graphName;
         if (includeImplied) {
@@ -220,7 +238,7 @@ public class DotFormatter {
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
             if (!table.isOrphan(includeImplied)) {
-                formatter.writeNode(table, "tables/", true, false, false, dot);
+                dot.writeln(new DotNode(table, true, "tables/").toString());
                 stats.wroteTable(table);
                 if (includeImplied && table.isOrphan(!includeImplied)) {
                     stats.setWroteImplied(true);
@@ -228,13 +246,13 @@ public class DotFormatter {
             }
         }
 
-        Set relationships = new TreeSet();
+        Set connectors = new TreeSet();
+
         iter = tables.iterator();
-
         while (iter.hasNext())
-            relationships.addAll(formatter.getRelationships((Table)iter.next(), includeImplied));
+            connectors.addAll(formatter.getRelatedConnectors((Table)iter.next(), includeImplied));
 
-        iter = relationships.iterator();
+        iter = connectors.iterator();
         while (iter.hasNext())
             dot.writeln(iter.next().toString());
 
@@ -244,9 +262,9 @@ public class DotFormatter {
     }
 
     public void writeOrphan(Table table, LineWriter dot) throws IOException {
-        DotTableFormatter formatter = DotTableFormatter.getInstance();
+        DotConnectorFinder formatter = DotConnectorFinder.getInstance();
         writeHeader(table.getName(), false, false, dot);
-        formatter.writeNode(table, "tables/", true, false, true, dot);
+        dot.writeln(new DotNode(table, true, "tables/").toString());
         dot.writeln("}");
     }
 }
