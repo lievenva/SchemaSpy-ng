@@ -30,11 +30,7 @@ public class View extends Table {
         ResultSet rs = null;
 
         try {
-            stmt = db.getConnection().prepareStatement(selectViewSql);
-            stmt.setString(1, getName());
-            boolean schemaRequired = selectViewSql.indexOf('?') != selectViewSql.lastIndexOf('?');
-            if (schemaRequired)
-                stmt.setString(2, getSchema());
+            stmt = db.prepareStatement(selectViewSql, getName());
             rs = stmt.executeQuery();
             while (rs.next())
                 return rs.getString("text");

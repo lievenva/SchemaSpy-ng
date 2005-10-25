@@ -1,6 +1,5 @@
 package net.sourceforge.schemaspy.model;
 
-import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
 
@@ -230,7 +229,7 @@ public class Table {
         ResultSet rs = null;
 
         try {
-            stmt = prepareStatement(db, selectIndexesSql);
+            stmt = db.prepareStatement(selectIndexesSql, getName());
             rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -259,26 +258,6 @@ public class Table {
         }
 
         return true;
-    }
-
-    private PreparedStatement prepareStatement(Database db, String selectIndexesSql) throws SQLException {
-        PreparedStatement stmt = db.getConnection().prepareStatement(selectIndexesSql);
-        int numParams = 0;
-        int nextParam = selectIndexesSql.indexOf('?');
-        while (nextParam != -1) {
-            ++numParams;
-            if (nextParam + 1 < selectIndexesSql.length())
-                nextParam = selectIndexesSql.indexOf('?', nextParam + 1);
-            else
-                nextParam = -1;
-        }
-
-        for (int i = 0; i < numParams; i += 2) {
-            stmt.setString(i + 1, getName());
-            if (i + 1 < numParams)
-                stmt.setString(i + 2, getSchema());
-        }
-        return stmt;
     }
 
     public TableIndex getIndex(String indexName) {
