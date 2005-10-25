@@ -296,10 +296,6 @@ public class Main {
                 System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + new File(outputDirName) + "' in " + (end - start) / 1000 + " seconds.");
                 System.out.println("Start with " + new File(outputDirName, "index.html"));
             }
-        } catch (IllegalArgumentException badParam) {
-            System.err.println();
-            badParam.printStackTrace();
-            dumpUsage(badParam.getMessage(), false, false);
         } catch (Exception exc) {
             System.err.println();
             exc.printStackTrace();
