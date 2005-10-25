@@ -20,7 +20,7 @@ public class Database {
         this.databaseName = name;
         this.schema = schema;
         initTables(schema, this.meta, properties, maxThreads);
-        initViews(schema, this.meta, connection, properties);
+        initViews(schema, this.meta, properties);
         connectTables(this.meta);
     }
 
@@ -110,13 +110,13 @@ public class Database {
             ResultSet rs = null;
 
             try {
-                stmt = createStatement(sql);
+                stmt = prepareStatement(sql, null);
                 rs = stmt.executeQuery();
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
                     Table table = (Table)tables.get(tableName.toUpperCase());
-                    table.addCheckConstraint(rs.getString("constname"), rs.getString("text"));
+                    table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
             } catch (SQLException sqlException) {
                 System.err.println();
@@ -138,7 +138,7 @@ public class Database {
             ResultSet rs = null;
 
             try {
-                stmt = createStatement(sql);
+                stmt = prepareStatement(sql, null);
                 rs = stmt.executeQuery();
 
                 while (rs.next()) {
@@ -167,7 +167,7 @@ public class Database {
             ResultSet rs = null;
 
             try {
-                stmt = createStatement(sql);
+                stmt = prepareStatement(sql, null);
                 rs = stmt.executeQuery();
 
                 while (rs.next()) {
@@ -192,25 +192,75 @@ public class Database {
         }
     }
 
-    private PreparedStatement createStatement(String sql) throws SQLException {
+    /**
+     * Create a <code>PreparedStatement</code> from the specified SQL.
+     * The SQL can contain these named parameters (but <b>not</b> question marks).
+     * <ol>
+     * <li>:schema - replaced with the name of the schema
+     * <li>:owner - alias for :schema
+     * <li>:table - replaced with the name of the table
+     * </ol>
+     * @param sql String - SQL without question marks
+     * @param tableName String - <code>null</code> if the statement doesn't deal with <code>Table</code>-level details.
+     * @throws SQLException
+     * @return PreparedStatement
+     */
+    public PreparedStatement prepareStatement(String sql, String tableName) throws SQLException {
         PreparedStatement stmt = null;
-        if (sql != null) {
-            try {
-                stmt = getConnection().prepareStatement(sql);
-                boolean schemaRequired = sql.indexOf('?') != -1;
-                if (schemaRequired)
-                    stmt.setString(1, getSchema());
-            } catch (SQLException exc) {
-                if (stmt != null)
-                    stmt.close();
-                throw exc;
+        StringBuffer sqlBuf = new StringBuffer(sql);
+        List sqlParams = getSqlParams(sqlBuf, tableName); // modifies sqlBuf
+
+        try {
+            stmt = getConnection().prepareStatement(sqlBuf.toString());
+
+            for (int i = 0; i < sqlParams.size(); ++i) {
+                stmt.setString(i + 1, sqlParams.get(i).toString());
             }
+        } catch (SQLException exc) {
+            if (stmt != null)
+                stmt.close();
+            throw exc;
         }
 
         return stmt;
     }
 
-    private void initViews(String schema, DatabaseMetaData metadata, Connection connection, Properties properties) throws SQLException {
+    /**
+     * Replaces named parameters in <code>sql</code> with question marks and
+     * returns appropriate matching values in the returned <code>List</code> of <code>String</code>s.
+     *
+     * @param sql StringBuffer input SQL with named parameters, output named params are replaced with ?'s.
+     * @param tableName String
+     * @return List of Strings
+     *
+     * @see #prepareStatement(String, String)
+     */
+    private List getSqlParams(StringBuffer sql, String tableName) {
+        Map namedParams = new HashMap();
+        namedParams.put(":schema", getSchema());
+        namedParams.put(":owner", getSchema()); // alias for :schema
+        if (tableName != null) {
+            namedParams.put(":table", tableName);
+            namedParams.put(":view", tableName); // alias for :table
+        }
+
+        List sqlParams = new ArrayList();
+        int nextColon = sql.indexOf(":");
+        while (nextColon != -1) {
+            String paramName = new StringTokenizer(sql.substring(nextColon), " ,").nextToken();
+            String paramValue = (String)namedParams.get(paramName);
+            if (paramValue == null)
+                throw new IllegalArgumentException("Unexpected named parameter '" + paramName + "' found in SQL '" + sql + "'");
+            sqlParams.add(paramValue);
+            sql.replace(nextColon, nextColon + paramName.length(), "?"); // replace with a ?
+            nextColon = sql.indexOf(":", nextColon);
+        }
+
+        return sqlParams;
+    }
+
+
+    private void initViews(String schema, DatabaseMetaData metadata, Properties properties) throws SQLException {
         String[] types = {"VIEW"};
         ResultSet rs = null;
 
