@@ -35,7 +35,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
 
             dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile);
 
-            html.write("<br/><b>Close relationships");
+            html.write("<br/><form><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
                 html.writeln("</b><span class='degrees' id='degrees'>");
                 html.write("&nbsp;within <input type='radio' name='degrees' id='oneDegree' onclick=\"");
@@ -50,9 +50,10 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 html.write("else");
                 html.write(" selectGraph('../graphs/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
                 html.writeln("\">two degrees of separation");
-                html.writeln("</span><b>:</b>");
+                html.write("</span><b>:</b>");
+                html.writeln("</form>");
             } else {
-                html.write(":</b>");
+                html.write(":</b></form>");
             }
             html.writeln("  <a name='graph'><img src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='#oneDegreeRelationshipsGraph' id='relationships' border='0' alt='' align='left'></a>");
             dot.writeMap(oneDegreeDotFile, html);
