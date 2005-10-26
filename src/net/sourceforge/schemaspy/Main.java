@@ -669,7 +669,7 @@ public class Main {
         Properties properties;
 
         try {
-            String baseDbType = bundle.getString("extends");
+            String baseDbType = bundle.getString("extends").trim();
             properties = getDbProperties(baseDbType, new StringBuffer());
         } catch (MissingResourceException doesntExtend) {
             properties = new Properties();
