@@ -1,6 +1,7 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.*;
+import java.util.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 
@@ -45,14 +46,10 @@ public class HtmlFormatter {
     protected void writeTableOfContents(boolean showRelationships, boolean showOrphans, boolean showLogo, LineWriter html) throws IOException {
         String path = getPathToRoot();
         showLogo = showLogo && sourceForgeLogoEnabled();
-        if (showLogo) {
-            html.writeln("<table width='100%'>");
-            html.writeln(" <tr>");
-            html.writeln("  <td class='tableHolder'>");
-            html.write("   ");
-        } else {
-            html.writeln("<div>");
-        }
+        html.writeln("<table width='100%'>");
+        html.writeln(" <tr>");
+        html.writeln("  <td class='tableHolder'>");
+        html.write("   ");
         if (!isMainIndex())
             html.write("<a href='" + path + "index.html'>Tables</a>&nbsp;&nbsp;");
         if (showRelationships)
@@ -66,14 +63,11 @@ public class HtmlFormatter {
         if (!isColumnsPage())
             html.write("<a href='" + path + "columns.html' title=\"All of the columns in the schema\">Columns</a>");
         html.writeln("");
-        if (showLogo) {
-            html.writeln("  </td>");
+        html.writeln("  </td>");
+        if (showLogo)
             html.writeln("  <td class='tableHolder' align='right' valign='top'><a href=\"http://sourceforge.net\"><img src=\"http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1\" alt=\"SourceForge.net\" border=\"0\" height=\"31\" width=\"88\"></a></td>");
-            html.writeln(" </tr>");
-            html.writeln("</table>");
-        } else {
-            html.writeln("</div>");
-        }
+        html.writeln(" </tr>");
+        html.writeln("</table>");
     }
 
     protected String getDescription(Database db, Table table, String text, boolean hoverHelp) {
@@ -136,14 +130,37 @@ public class HtmlFormatter {
         out.writeln("    <tr><td class='indexedColumn'>Columns with indexes</td></tr>");
         if (tableDetails)
             out.writeln("    <tr class='impliedRelationship'><td>Implied relationships</td></tr>");
-            // comment this out until I can figure out a clean way to embed image references
-            //out.writeln("    <tr><td class='tableHolder'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
-        if (graphDetails)
+        // comment this out until I can figure out a clean way to embed image references
+        //out.writeln("    <tr><td class='tableHolder'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
+        if (graphDetails) {
+            out.writeln("    <tr><td class='ignoredColumn'>Ignored column" + (tableDetails ? "<br>" : " ") + "relationships</td></tr>");
             out.writeln("    <tr><td class='tableHolder'>Dashed lines show" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
+        }
         out.writeln("   </table>");
         out.writeln("  </td></tr>");
         out.writeln(" </table>");
+        out.writeln("    Please <a href=\"http://sourceforge.net/donate/index.php?group_id=137197\" target='_blank'>support</a> this project&nbsp;");
     }
+
+    protected void writeExcludedColumns(Set excludedColumns, LineWriter html) throws IOException {
+        if (excludedColumns.size() > 0) {
+            html.writeln("<span class='ignoredRelationship'>");
+            html.writeln("<br>These columns were not evaluated in relationship analysis: ");
+            Iterator iter = excludedColumns.iterator();
+            while (iter.hasNext()) {
+                TableColumn column = (TableColumn)iter.next();
+                html.write("<a href=\"" + getPathToRoot() + "tables/");
+                html.write(column.getTable().getName());
+                html.write(".html\">");
+                html.write(column.getTable().getName());
+                html.write(".");
+                html.write(column.getName());
+                html.writeln("</a>&nbsp;");
+            }
+            html.writeln("</span>");
+        }
+    }
+
 
     protected void writeFooter(LineWriter out) throws IOException {
         out.writeln("</body>");
