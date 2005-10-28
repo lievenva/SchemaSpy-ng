@@ -72,6 +72,9 @@ public class Dot {
         }
     }
 
+    /**
+     * Create html image maps from the specified .dot file
+     */
     public void writeMap(File dotFile, LineWriter out) throws DotFailure {
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
