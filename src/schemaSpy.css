@@ -32,6 +32,16 @@ h1 {
     background: #F4F7DA;
 }
 
+/* background must be specified for .ignoredColumn to propagate into graphs */
+.ignoredColumn {
+    background: #C0C0C0;
+}
+
+/* background must be specified for .outlier to propagate into graphs */
+.outlier {
+    background: #C0C0C0;
+}
+
 /* background must be specified for .selectedTable to propagate into graphs */
 .selectedTable {
     background: #A9AB96;
@@ -83,6 +93,10 @@ table {
 }
 
 .impliedNotOrphan {
+}
+
+.ignoredRelationship {
+    font-size: 85%;
 }
 
 .degrees {
