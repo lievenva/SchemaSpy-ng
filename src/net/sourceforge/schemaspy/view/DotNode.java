@@ -7,8 +7,11 @@ import net.sourceforge.schemaspy.model.*;
 public class DotNode {
     private final Table table;
     private final boolean detailed;
-    private final boolean hasColumns;
+    private final boolean showColumns;
     private final String refDirectory;
+    private final Set excludedColumns = new HashSet();
+    private final Set columnsWithRelationships = new HashSet();
+    private final Map referenceCountsByColumn = new HashMap();
     private final String lineSeparator = System.getProperty("line.separator");
 
     /**
@@ -25,40 +28,74 @@ public class DotNode {
      * Create a DotNode and specify whether it displays its columns.
      *
      * @param table Table
-     * @param hasColumns boolean
+     * @param showColumns boolean
      * @param refDirectory String
      */
-    public DotNode(Table table, boolean hasColumns, String refDirectory) {
-        this(table, false, hasColumns, refDirectory);
+    public DotNode(Table table, boolean showColumns, String refDirectory) {
+        this(table, false, showColumns, refDirectory);
     }
 
-    private DotNode(Table table, boolean detailed, boolean hasColumns, String refDirectory) {
+    public DotNode(Table table) {
+        this(table, false, false, null);
+    }
+
+    private DotNode(Table table, boolean detailed, boolean showColumns, String refDirectory) {
         this.table = table;
         this.detailed = detailed;
-        this.hasColumns = hasColumns;
+        this.showColumns = showColumns;
         this.refDirectory = refDirectory;
+
+        Iterator iter = table.getColumns().iterator();
+        while (iter.hasNext()) {
+            TableColumn column = (TableColumn)iter.next();
+            int referenceCount = column.getChildren().size() + column.getParents().size();
+            if (referenceCount > 0) {
+                columnsWithRelationships.add(column);
+            }
+            referenceCountsByColumn.put(column, new Integer(referenceCount));
+        }
     }
 
     public boolean isDetailed() {
         return detailed;
     }
 
-    public boolean hasColumns() {
-        return hasColumns;
+    public Table getTable() {
+        return table;
+    }
+
+    public void excludeColumn(TableColumn column) {
+        excludedColumns.add(column);
+        columnsWithRelationships.remove(column);
+    }
+
+    public void decrementColumnReferences(TableColumn column) {
+        Integer referenceCount = (Integer)referenceCountsByColumn.get(column);
+        referenceCount = new Integer(referenceCount.intValue() - 1);
+        referenceCountsByColumn.put(column, referenceCount);
+        if (referenceCount.intValue() < 1)
+            columnsWithRelationships.remove(column);
+    }
+
+    public boolean hasRelationships() {
+        return !columnsWithRelationships.isEmpty();
     }
 
     public String toString() {
+        StyleSheet css = StyleSheet.getInstance();
+        if (refDirectory == null)
+            return "\"" + table.getName() + "\" [fontcolor=\"" + css.getOutlierBackgroundColor() + "\"]";
+
         StringBuffer buf = new StringBuffer();
         String tableName = table.getName();
         String colspan = detailed ? "COLSPAN=\"2\" " : "";
-        StyleSheet css = StyleSheet.getInstance();
 
         buf.append("  \"" + tableName + "\" [" + lineSeparator);
         buf.append("    label=<" + lineSeparator);
         buf.append("    <TABLE BORDER=\"" + (detailed ? "2" : "0") + "\" CELLBORDER=\"1\" CELLSPACING=\"0\" BGCOLOR=\"" + css.getTableBackground() + "\">" + lineSeparator);
         buf.append("      <TR><TD PORT=\"" + tableName + ".heading\" " + colspan + "BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + tableName + "</TD></TR>" + lineSeparator);
 
-        if (hasColumns) {
+        if (showColumns) {
             List primaryColumns = table.getPrimaryColumns();
             Set indexColumns = new HashSet();
             Iterator iter = table.getIndexes().iterator();
@@ -73,7 +110,9 @@ public class DotNode {
                 buf.append("      <TR><TD PORT=\"");
                 buf.append(column.getName());
                 buf.append("\"");
-                if (primaryColumns.contains(column))
+                if (excludedColumns.contains(column))
+                    buf.append(" BGCOLOR=\"" + css.getIgnoredColumnBackgroundColor() + "\"");
+                else if (primaryColumns.contains(column))
                     buf.append(" BGCOLOR=\"" + css.getPrimaryKeyBackground() + "\"");
                 else if (indexColumns.contains(column))
                     buf.append(" BGCOLOR=\"" + css.getIndexedColumnBackground() + "\"");

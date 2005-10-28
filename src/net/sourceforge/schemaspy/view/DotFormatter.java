@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.view;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 
@@ -30,35 +31,42 @@ public class DotFormatter {
     /**
      * Write all relationships (including implied) associated with the given table
      */
-    public WriteStats writeRealRelationships(Table table, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
-        return writeRelationships(table, false, twoDegreesOfSeparation, dot);
+    public void writeRealRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
+        boolean origImplied = stats.setIncludeImplied(false);
+        writeRelationships(table, twoDegreesOfSeparation, stats, dot);
+        stats.setIncludeImplied(origImplied);
     }
 
     /**
      * Write implied relationships associated with the given table
      */
-    public WriteStats writeImpliedRelationships(Table table, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
-        return writeRelationships(table, true, twoDegreesOfSeparation, dot);
+    public void writeAllRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
+        boolean origImplied = stats.setIncludeImplied(true);
+        writeRelationships(table, twoDegreesOfSeparation, stats, dot);
+        stats.setIncludeImplied(origImplied);
     }
 
     /**
      * Write relationships associated with the given table
      */
-    private WriteStats writeRelationships(Table table, boolean includeImplied, boolean twoDegreesOfSeparation, LineWriter dot) throws IOException {
+    private void writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
+        Pattern regex = getRegexWithoutTable(table, stats);
+        Pattern originalRegex = stats.setExclusionPattern(regex);
         Set tablesWritten = new HashSet();
-        WriteStats stats = new WriteStats();
 
-        DotConnectorFinder formatter = DotConnectorFinder.getInstance();
+        DotConnectorFinder finder = DotConnectorFinder.getInstance();
 
-        String graphName = includeImplied ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph");
+        String graphName = stats.includeImplied() ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph");
         writeHeader(graphName, false, true, dot);
 
-        Set relatedTables = getImmediateRelatives(table, includeImplied, stats);
+        Set relatedTables = getImmediateRelatives(table, stats);
 
         dot.writeln(new DotNode(table, "").toString());
-        Set connectors = new TreeSet(formatter.getRelatedConnectors(table, includeImplied));
+        Set connectors = new TreeSet(finder.getRelatedConnectors(table, stats));
         tablesWritten.add(table);
         stats.wroteTable(table);
+
+        Map nodes = new TreeMap();
 
         // write immediate relatives first
         Iterator iter = relatedTables.iterator();
@@ -67,18 +75,17 @@ public class DotFormatter {
             if (!tablesWritten.add(relatedTable))
                 continue; // already written
 
-            dot.writeln(new DotNode(relatedTable, true, "").toString());
-            stats.wroteTable(relatedTable);
-            connectors.addAll(formatter.getRelatedConnectors(relatedTable, table, includeImplied));
+            nodes.put(relatedTable, new DotNode(relatedTable, true, ""));
+            connectors.addAll(finder.getRelatedConnectors(relatedTable, table, stats));
         }
 
         // connect the edges that go directly to the target table
         // so they go to the target table's type column instead
         iter = connectors.iterator();
         while (iter.hasNext()) {
-            DotConnector edge = (DotConnector)iter.next();
-            if (edge.pointsTo(table))
-                edge.connectToParentDetails();
+            DotConnector connector = (DotConnector)iter.next();
+            if (connector.pointsTo(table))
+                connector.connectToParentDetails();
         }
 
         Set allCousins = new HashSet();
@@ -89,7 +96,7 @@ public class DotFormatter {
             iter = relatedTables.iterator();
             while (iter.hasNext()) {
                 Table relatedTable = (Table)iter.next();
-                Set cousins = getImmediateRelatives(relatedTable, includeImplied, stats);
+                Set cousins = getImmediateRelatives(relatedTable, stats);
 
                 Iterator cousinsIter = cousins.iterator();
                 while (cousinsIter.hasNext()) {
@@ -97,13 +104,20 @@ public class DotFormatter {
                     if (!tablesWritten.add(cousin))
                         continue; // already written
 
-                    allCousinConnectors.addAll(formatter.getRelatedConnectors(cousin, relatedTable, includeImplied));
-                    dot.writeln(new DotNode(cousin, true, "").toString());
-                    stats.wroteTable(cousin);
+                    allCousinConnectors.addAll(finder.getRelatedConnectors(cousin, relatedTable, stats));
+                    nodes.put(cousin, new DotNode(cousin, false, ""));
                 }
 
                 allCousins.addAll(cousins);
             }
+        }
+
+        markExcludedColumns(nodes, stats.getExcludedColumns());
+        iter = nodes.values().iterator();
+        while (iter.hasNext()) {
+            DotNode node = (DotNode)iter.next();
+            dot.writeln(node.toString());
+            stats.wroteTable(node.getTable());
         }
 
         // now figure out what's related at the outskirts to give visual clues
@@ -112,17 +126,15 @@ public class DotFormatter {
         while (iter.hasNext()) {
             Table t = (Table)iter.next();
             if (t != table)
-                outskirts.addAll(formatter.getRelatedConnectors(t, includeImplied));
+                outskirts.addAll(finder.getRelatedConnectors(t, stats));
         }
         outskirts.removeAll(connectors);
         // remove the ones that inappropriately point to main table
         iter = outskirts.iterator();
         while (iter.hasNext())  {
-            DotConnector edge = (DotConnector)iter.next();
-            if (edge.pointsTo(table))
+            DotConnector connector = (DotConnector)iter.next();
+            if (connector.pointsTo(table))
                 iter.remove();
-            //else
-            //    edge.stubMissingTables(tablesWritten);
         }
 
         // now directly connect the loose ends to the title of the
@@ -140,34 +152,101 @@ public class DotFormatter {
         connectors.addAll(outskirts);
 
         // write the collected connectors
+        Set missingTables = new HashSet();
         iter = connectors.iterator();
-        while (iter.hasNext())
-            dot.writeln(iter.next().toString());
+        while (iter.hasNext()) {
+            DotConnector connector = (DotConnector)iter.next();
+            if (!tablesWritten.contains(connector.getParentTable())) {
+                missingTables.add(connector.getParentTable());
+                connector.setBlurred(true);
+            }
+            if (!tablesWritten.contains(connector.getChildTable())) {
+                missingTables.add(connector.getChildTable());
+                connector.setBlurred(true);
+            }
+            dot.writeln(connector.toString());
+        }
+
+        iter = missingTables.iterator();
+        while (iter.hasNext()) {
+            Table missingTable = (Table)iter.next();
+            dot.writeln("  " + new DotNode(missingTable).toString());
+        }
 
         dot.writeln("}");
-        return stats;
+        stats.setExclusionPattern(originalRegex);
     }
 
-    private Set getImmediateRelatives(Table table, boolean includeImplied, WriteStats stats) {
+    private Pattern getRegexWithoutTable(Table table, WriteStats stats) {
+        Set pieces = new HashSet();
+        List regexes = Arrays.asList(stats.getExclusionPattern().pattern().split("\\)\\|\\("));
+        for (int i = 0; i < regexes.size(); ++i) {
+            String regex = regexes.get(i).toString();
+            if (!regex.startsWith("("))
+                regex = "(" + regex;
+            if (!regex.endsWith(")"))
+                regex = regex + ")";
+            pieces.add(regex);
+        }
+
+        // now removed the pieces that match some of the columns of this table
+        Iterator iter = pieces.iterator();
+        while (iter.hasNext()) {
+            String regex = iter.next().toString();
+            Iterator columnIter = table.getColumns().iterator();
+            while (columnIter.hasNext()) {
+                TableColumn column = (TableColumn)columnIter.next();
+                Pattern columnPattern = Pattern.compile(regex);
+                if (column.matches(columnPattern)) {
+                    iter.remove();
+                    break;
+                }
+            }
+        }
+
+        StringBuffer pattern = new StringBuffer();
+        iter = pieces.iterator();
+        while (iter.hasNext()) {
+            if (pattern.length() > 0)
+                pattern.append("|");
+            pattern.append(iter.next());
+        }
+
+        return Pattern.compile(pattern.toString());
+    }
+
+    private Set getImmediateRelatives(Table table, WriteStats stats) {
         Set relatedColumns = new HashSet();
         boolean foundImplied = false;
         Iterator iter = table.getColumns().iterator();
         while (iter.hasNext()) {
             TableColumn column = (TableColumn)iter.next();
+            if (DotConnector.isExcluded(column, stats)) {
+                stats.addExcludedColumn(column);
+                continue;
+            }
             Iterator childIter = column.getChildren().iterator();
             while (childIter.hasNext()) {
                 TableColumn childColumn = (TableColumn)childIter.next();
+                if (DotConnector.isExcluded(childColumn, stats)) {
+                    stats.addExcludedColumn(childColumn);
+                    continue;
+                }
                 boolean implied = column.getChildConstraint(childColumn).isImplied();
                 foundImplied |= implied;
-                if (!implied || includeImplied)
+                if (!implied || stats.includeImplied())
                     relatedColumns.add(childColumn);
             }
             Iterator parentIter = column.getParents().iterator();
             while (parentIter.hasNext()) {
                 TableColumn parentColumn = (TableColumn)parentIter.next();
+                if (DotConnector.isExcluded(parentColumn, stats)) {
+                    stats.addExcludedColumn(parentColumn);
+                    continue;
+                }
                 boolean implied = column.getParentConstraint(parentColumn).isImplied();
                 foundImplied |= implied;
-                if (!implied || includeImplied)
+                if (!implied || stats.includeImplied())
                     relatedColumns.add(parentColumn);
             }
         }
@@ -200,6 +279,7 @@ public class DotFormatter {
         }
         dot.writeln("  ];");
         dot.writeln("  node [");
+        dot.writeln("    fontname=\"Helvetica\"");
         dot.writeln("    fontsize=\"" + (compact ? CompactGraphFontSize : LargeGraphFontSize) + "\"");
         dot.writeln("    shape=\"plaintext\"");
         dot.writeln("  ];");
@@ -208,19 +288,22 @@ public class DotFormatter {
         dot.writeln("  ];");
 }
 
-    public WriteStats writeRealRelationships(Collection tables, boolean compact, LineWriter dot) throws IOException {
-        return writeRelationships(tables, false, compact, dot);
+    public void writeRealRelationships(Collection tables, boolean compact, WriteStats stats, LineWriter dot) throws IOException {
+        boolean oldImplied = stats.setIncludeImplied(false);
+        writeRelationships(tables, compact, stats, dot);
+        stats.setIncludeImplied(oldImplied);
     }
 
-    public WriteStats writeAllRelationships(Collection tables, boolean compact, LineWriter dot) throws IOException {
-        return writeRelationships(tables, true, compact, dot);
+    public void writeAllRelationships(Collection tables, boolean compact, WriteStats stats, LineWriter dot) throws IOException {
+        boolean oldImplied = stats.setIncludeImplied(true);
+        writeRelationships(tables, compact, stats, dot);
+        stats.setIncludeImplied(oldImplied);
     }
 
-    private WriteStats writeRelationships(Collection tables, boolean includeImplied, boolean compact, LineWriter dot) throws IOException {
-        DotConnectorFinder formatter = DotConnectorFinder.getInstance();
-        WriteStats stats = new WriteStats();
+    private void writeRelationships(Collection tables, boolean compact, WriteStats stats, LineWriter dot) throws IOException {
+        DotConnectorFinder finder = DotConnectorFinder.getInstance();
         String graphName;
-        if (includeImplied) {
+        if (stats.includeImplied()) {
             if (compact)
                 graphName = "compactImpliedRelationshipsGraph";
             else
@@ -233,16 +316,14 @@ public class DotFormatter {
         }
         writeHeader(graphName, compact, true, dot);
 
+        Map nodes = new HashMap();
+
         Iterator iter = tables.iterator();
 
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
-            if (!table.isOrphan(includeImplied)) {
-                dot.writeln(new DotNode(table, true, "tables/").toString());
-                stats.wroteTable(table);
-                if (includeImplied && table.isOrphan(!includeImplied)) {
-                    stats.setWroteImplied(true);
-                }
+            if (!table.isOrphan(stats.includeImplied())) {
+                nodes.put(table, new DotNode(table, true, "tables/"));
             }
         }
 
@@ -250,15 +331,38 @@ public class DotFormatter {
 
         iter = tables.iterator();
         while (iter.hasNext())
-            connectors.addAll(formatter.getRelatedConnectors((Table)iter.next(), includeImplied));
+            connectors.addAll(finder.getRelatedConnectors((Table)iter.next(), stats));
+
+        markExcludedColumns(nodes, stats.getExcludedColumns());
+
+        iter = nodes.values().iterator();
+        while (iter.hasNext()) {
+            DotNode node = (DotNode)iter.next();
+            Table table = node.getTable();
+
+            dot.writeln(node.toString());
+            stats.wroteTable(table);
+            if (stats.includeImplied() && table.isOrphan(!stats.includeImplied())) {
+                stats.setWroteImplied(true);
+            }
+        }
 
         iter = connectors.iterator();
         while (iter.hasNext())
             dot.writeln(iter.next().toString());
 
         dot.writeln("}");
+    }
 
-        return stats;
+    private void markExcludedColumns(Map nodes, Set excludedColumns) {
+        Iterator iter = excludedColumns.iterator();
+        while (iter.hasNext()) {
+            TableColumn column = (TableColumn)iter.next();
+            DotNode node = (DotNode)nodes.get(column.getTable());
+            if (node != null) {
+                node.excludeColumn(column);
+            }
+        }
     }
 
     public void writeOrphan(Table table, LineWriter dot) throws IOException {

@@ -10,14 +10,15 @@ import net.sourceforge.schemaspy.util.*;
  * @author John Currier
  */
 public class DotConnector implements Comparable {
-    private TableColumn parentColumn;
-    private Table parentTable;
-    private TableColumn childColumn;
-    private Table childTable;
+    private final TableColumn parentColumn;
+    private final Table parentTable;
+    private final TableColumn childColumn;
+    private final Table childTable;
     private boolean implied;
     private boolean bottomJustify;
     private String parentPort;
     private String childPort;
+    private boolean blurred;
 
     /**
      * Create an edge that logically connects a child column to a parent column.
@@ -68,27 +69,23 @@ public class DotConnector implements Comparable {
     public String toString() {
         StringBuffer edge = new StringBuffer();
         edge.append("  \"");
-        if (childTable != null) {
-            edge.append(childTable.getName());
-            edge.append("\":\"");
-            edge.append(childPort);
-        }
+        edge.append(childTable.getName());
+        edge.append("\":\"");
+        edge.append(childPort);
         edge.append("\":");
         if (bottomJustify)
             edge.append("s");
         edge.append("w -> \"");
-        if (parentTable != null) {
-            edge.append(parentTable.getName());
-            edge.append("\":\"");
-            edge.append(parentPort);
-        }
+        edge.append(parentTable.getName());
+        edge.append("\":\"");
+        edge.append(parentPort);
         edge.append("\":");
         if (bottomJustify)
             edge.append("s");
         edge.append("e ");
 
         edge.append("[arrowtail=");
-        if (childPort.endsWith(".heading")) {
+        if (blurred || childPort.endsWith(".heading")) {
             edge.append("none");
         } else {
             if (!childColumn.isUnique())
@@ -101,30 +98,23 @@ public class DotConnector implements Comparable {
         edge.append(" arrowhead=none");
         if (implied)
             edge.append(" style=dashed");
+        if (blurred)
+            edge.append(" color=\"" + StyleSheet.getInstance().getOutlierBackgroundColor() + "\"");
         edge.append("];");
         return edge.toString();
     }
 
     public int compareTo(Object o) {
         DotConnector other = (DotConnector)o;
-        int rc = childTable == null ? -1 : (other.childTable == null ? 1 : 0);
-        if (rc == 0)
-            rc = childTable.getName().compareTo(other.childTable.getName());
+        int rc = childTable.getName().compareTo(other.childTable.getName());
         if (rc == 0)
             rc = childColumn.getName().compareTo(other.childColumn.getName());
-        if (rc == 0)
-            rc = parentTable == null ? -1 : (other.parentTable == null ? 1 : 0);
         if (rc == 0)
             rc = parentTable.getName().compareTo(other.parentTable.getName());
         if (rc == 0)
             rc = parentColumn.getName().compareTo(other.parentColumn.getName());
         if (rc == 0 && implied != other.implied)
             rc = implied ? 1 : -1;
-//        if (rc == 0)
-//            rc = parentPort.compareTo(other.parentPort);
-//        if (rc == 0)
-//            rc = childPort.compareTo(other.childPort);
-
         return rc;
     }
 
@@ -140,23 +130,37 @@ public class DotConnector implements Comparable {
         return (p << 16) & c;
     }
 
-    /**
-     * stubMissingTables
-     *
-     * @param tablesWritten Set
-     */
-    public void stubMissingTables(Set tables) {
-        if (!tables.contains(parentTable))
-            parentTable = null;
-        if (!tables.contains(childTable))
-            childTable = null;
+    public TableColumn getParentColumn() {
+        return parentColumn;
     }
 
     public Table getParentTable() {
         return parentTable;
     }
 
+    public TableColumn getChildColumn() {
+        return childColumn;
+    }
+
     public Table getChildTable() {
         return childTable;
+    }
+
+    /**
+     * setBlurred
+     *
+     * @param blurred boolean
+     */
+    public void setBlurred(boolean blurred) {
+        this.blurred = blurred;
+    }
+
+    // this doesn't belong here, but not sure where...TableColumn shouldn't be dealing with this
+    static boolean isExcluded(TableColumn column, WriteStats stats) {
+        if (column.matches(stats.getExclusionPattern())) {
+            stats.addExcludedColumn(column);
+            return true;
+        }
+        return false;
     }
 }

@@ -3,7 +3,7 @@ package net.sourceforge.schemaspy.model;
 import java.sql.*;
 import java.util.*;
 
-public class Table {
+public class Table implements Comparable {
     private final String schema;
     private final String name;
     private final Map columns = new HashMap();
@@ -577,6 +577,11 @@ public class Table {
             }
         }
         return true;
+    }
+
+    public int compareTo(Object o) {
+        Table table = (Table)o;
+        return getName().compareTo(table.getName());
     }
 
     private static class ByIndexColumnComparator implements Comparator {

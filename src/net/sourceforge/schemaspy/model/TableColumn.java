@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.model;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class TableColumn {
     private final Table table;
@@ -193,6 +194,10 @@ public class TableColumn {
      */
     public void setIsAutoUpdated(boolean isAutoUpdated) {
         this.isAutoUpdated = isAutoUpdated;
+    }
+
+    public boolean matches(Pattern regex) {
+        return regex.matcher(getTable().getName() + "." + getName()).matches();
     }
 
     public String toString() {

@@ -82,7 +82,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         return true;
     }
 
-    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasImpliedRelationships, Set excludedColumns, LineWriter html) throws IOException {
         File compactRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.compact.dot");
         File compactRelationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.compact.png");
         File largeRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.large.dot");
@@ -102,7 +102,11 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
             System.out.print(".");
             writeRelationshipsHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
+            html.writeln("<table width=\"100%\"><tr><td class=\"tableHolder\">");
             html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
+            html.writeln("</td></tr></table>");
+            writeExcludedColumns(excludedColumns, html);
+
             dot.writeMap(compactRelationshipsDotFile, html);
             dot.writeMap(largeRelationshipsDotFile, html);
 

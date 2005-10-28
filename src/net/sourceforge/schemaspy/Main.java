@@ -5,6 +5,7 @@ import java.net.*;
 import java.sql.*;
 import java.util.*;
 import java.util.jar.*;
+import java.util.regex.*;
 //import javax.xml.parsers.*;
 //import org.w3c.dom.*;
 import net.sourceforge.schemaspy.model.*;
@@ -84,6 +85,14 @@ public class Main {
                 System.setProperty("sourceforgelogo", "true");
             }
 
+            Pattern exclusions;
+            String exclude = getParam(args, "-i", false, false);
+            if (exclude != null) {
+                exclusions = Pattern.compile(exclude);
+            } else {
+                exclusions = Pattern.compile("[^.]");  // match nothing
+            }
+
             ConnectionURLBuilder urlBuilder = null;
             try {
                 urlBuilder = new ConnectionURLBuilder(dbType, args, properties);
@@ -155,14 +164,17 @@ public class Main {
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
-                WriteStats stats = DotFormatter.getInstance().writeRealRelationships(tables, true, out);
+                WriteStats stats = new WriteStats(exclusions, includeImpliedConstraints);
+                DotFormatter.getInstance().writeRealRelationships(tables, true, stats, out);
                 boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
+                stats = new WriteStats(stats);
                 out.close();
 
                 if (hasRelationships) {
                     System.out.print(".");
                     out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
-                    DotFormatter.getInstance().writeRealRelationships(tables, false, out);
+                    DotFormatter.getInstance().writeRealRelationships(tables, false, stats, out);
+                    stats = new WriteStats(stats);
                     out.close();
                 }
 
@@ -182,19 +194,24 @@ public class Main {
 
                     File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
                     out = new LineWriter(new FileWriter(impliedDotFile));
-                    boolean hasImplied = DotFormatter.getInstance().writeAllRelationships(tables, true, out).wroteImplied();
+                    stats = new WriteStats(exclusions, includeImpliedConstraints);
+                    DotFormatter.getInstance().writeAllRelationships(tables, true, stats, out);
+                    boolean hasImplied = stats.wroteImplied();
+                    Set excludedColumns = stats.getExcludedColumns();
+                    stats = new WriteStats(stats);
                     out.close();
                     if (hasImplied) {
                         impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
                         out = new LineWriter(new FileWriter(impliedDotFile));
-                        DotFormatter.getInstance().writeAllRelationships(tables, false, out);
+                        DotFormatter.getInstance().writeAllRelationships(tables, false, stats, out);
+                        stats = new WriteStats(stats);
                         out.close();
                     } else {
                         impliedDotFile.delete();
                     }
 
                     out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    hasRelationships = HtmlGraphFormatter.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, out);
+                    hasRelationships = HtmlGraphFormatter.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, excludedColumns, out);
                     out.close();
                 }
 
@@ -202,11 +219,13 @@ public class Main {
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
                 HtmlGraphFormatter.getInstance().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
+                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
                 HtmlMainIndexFormatter.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
@@ -214,16 +233,19 @@ public class Main {
                 out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
                 HtmlConstraintIndexFormatter constraintIndexFormatter = HtmlConstraintIndexFormatter.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasRelationships, hasOrphans, out);
+                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
                 HtmlAnomaliesFormatter.getInstance().write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
+                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "columns.html")), 16 * 1024);
                 HtmlColumnsFormatter.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                stats = new WriteStats(stats);
                 out.close();
 
 
@@ -236,7 +258,8 @@ public class Main {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
-                    tableFormatter.write(db, table, hasRelationships, hasOrphans, outputDir, out);
+                    tableFormatter.write(db, table, hasRelationships, hasOrphans, outputDir, stats, out);
+                    stats = new WriteStats(stats);
                     out.close();
 
 //                    XmlTableFormatter.getInstance().appendTable(schemaNode, table, outputDir);
@@ -533,6 +556,8 @@ public class Main {
             System.out.println("   -dbthreads            max concurrent threads when accessing metadata");
             System.out.println("                           defaults to -1 (no limit)");
             System.out.println("                           use 1 if you get 'already closed' type errors");
+            System.out.println("   -i columnNamesRegex   ignore matching columns during analysis");
+            System.out.println("                           e.g.: -i \"(book.isbn)|(borrower.address)\"");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
             System.out.println("   -nologo               don't put SourceForge logo on generated pages");
