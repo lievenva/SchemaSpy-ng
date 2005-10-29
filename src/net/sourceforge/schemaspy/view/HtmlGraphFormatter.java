@@ -158,7 +158,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");
                 File graphFile = new File(graphDir, dotBaseFilespec + ".1degree.png");
 
-                LineWriter dotOut = new LineWriter(new FileWriter(dotFile));
+                LineWriter dotOut = new LineWriter(new FileOutputStream(dotFile));
                 DotFormatter.getInstance().writeOrphan(table, dotOut);
                 dotOut.close();
                 try {

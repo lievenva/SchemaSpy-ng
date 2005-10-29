@@ -8,7 +8,6 @@ import java.io.*;
  * cluttering up code.
  */
 public class LineWriter extends BufferedWriter {
-
     public LineWriter(Writer out) {
         super(out);
     }
@@ -17,8 +16,21 @@ public class LineWriter extends BufferedWriter {
         super(out, sz);
     }
 
+    /**
+     * Construct a <code>LineWriter</code> with UTF8 output
+     * @param out OutputStream
+     * @throws UnsupportedEncodingException
+     */
+    public LineWriter(OutputStream out) throws UnsupportedEncodingException {
+        super(new OutputStreamWriter(out, "UTF8"));
+    }
+
     public void writeln(String str) throws IOException {
         write(str);
+        newLine();
+    }
+
+    public void writeln() throws IOException {
         newLine();
     }
 }

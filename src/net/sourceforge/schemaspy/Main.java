@@ -163,7 +163,7 @@ public class Main {
 
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
-                out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
+                out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
                 WriteStats stats = new WriteStats(exclusions, includeImpliedConstraints);
                 DotFormatter.getInstance().writeRealRelationships(tables, true, stats, out);
                 boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
@@ -172,7 +172,7 @@ public class Main {
 
                 if (hasRelationships) {
                     System.out.print(".");
-                    out = new LineWriter(new FileWriter(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
+                    out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
                     DotFormatter.getInstance().writeRealRelationships(tables, false, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
@@ -193,7 +193,7 @@ public class Main {
                     System.out.print(".");
 
                     File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
-                    out = new LineWriter(new FileWriter(impliedDotFile));
+                    out = new LineWriter(new FileOutputStream(impliedDotFile));
                     stats = new WriteStats(exclusions, includeImpliedConstraints);
                     DotFormatter.getInstance().writeAllRelationships(tables, true, stats, out);
                     boolean hasImplied = stats.wroteImplied();
@@ -202,7 +202,7 @@ public class Main {
                     out.close();
                     if (hasImplied) {
                         impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
-                        out = new LineWriter(new FileWriter(impliedDotFile));
+                        out = new LineWriter(new FileOutputStream(impliedDotFile));
                         DotFormatter.getInstance().writeAllRelationships(tables, false, stats, out);
                         stats = new WriteStats(stats);
                         out.close();

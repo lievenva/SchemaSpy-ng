@@ -1,6 +1,5 @@
 package net.sourceforge.schemaspy.view;
 
-import java.util.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 

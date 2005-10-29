@@ -136,13 +136,7 @@ public class DotNode {
         if (table.isView()) {
             buf.append("view");
         } else {
-            String numRows = NumberFormat.getInstance().format(table.getNumRows());
-            // dot can't handle some European thousands separators
-            for (int i = 0; i < numRows.length(); ++i) {
-                char ch = numRows.charAt(i);
-                if (ch >= ' ' && ch < 'z')
-                    buf.append(ch);
-            }
+            buf.append(NumberFormat.getInstance().format(table.getNumRows()));
             buf.append(" rows");
         }
         buf.append("</TD></TR>" + lineSeparator);
