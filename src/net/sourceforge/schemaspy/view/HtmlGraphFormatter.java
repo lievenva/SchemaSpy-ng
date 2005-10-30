@@ -35,7 +35,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
 
             dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile);
 
-            html.write("<br/><form><b>Close relationships");
+            html.write("<br/><form action='get'><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
                 html.writeln("</b><span class='degrees' id='degrees'>");
                 html.write("&nbsp;within <input type='radio' name='degrees' id='oneDegree' onclick=\"");
@@ -191,13 +191,18 @@ public class HtmlGraphFormatter extends HtmlFormatter {
     }
 
     private void writeRelationshipsHeader(Database db, File compactRelationshipsGraphFile, File largeRelationshipsGraphFile, File compactImpliedGraphFile, File largeImpliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
-        writeHeader(db, null, title, html);
-        html.writeln("<table width='100%'><tr><td class='container' align='left' valign='top'>");
-        html.write("<br/>");
-        writeTableOfContents(false, hasOrphans, html);
+        writeHeader(db, null, title, false, hasOrphans, html);
+        html.writeln("<table class='container' width='100%'>");
+        html.writeln("<tr><td class='container'>");
+        writeGeneratedBy(db, html);
+        html.writeln("</td>");
+        html.writeln("<td class='container' align='right' valign='top' rowspan='2'>");
+        writeLegend(false, html);
+        html.writeln("</td></tr>");
+        html.writeln("<tr><td class='container' align='left' valign='top'>");
 
         // this is some UGLY code!
-        html.writeln("<p/><form name='options' action=''>");
+        html.writeln("<form name='options' action=''>");
         html.write("  <input type='checkbox' id='compact' checked onclick=\"");
         html.write("if (this.checked) {");
         if (hasImpliedRelationships) {
@@ -234,25 +239,25 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         }
         html.writeln("</form>");
 
-        html.writeln("<td class='container' align='right' valign='top'>");
-        writeLegend(false, html);
         html.writeln("</td></tr></table>");
     }
 
     private void writeOrphansHeader(Database db, String title, boolean hasRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
-        writeHeader(db, null, title, html);
-        html.writeln("<table width='100%'><tr><td class='container' align='left' valign='top'>");
-        html.writeln("<br/>");
-        writeTableOfContents(hasRelationships, false, html);
+        writeHeader(db, null, title, hasRelationships, false, html);
+        html.writeln("<table class='container' width='100%'>");
+        html.writeln("<tr><td class='container'>");
+        writeGeneratedBy(db, html);
+        html.writeln("</td>");
+        html.writeln("<td class='container' align='right' valign='top' rowspan='2'>");
+        writeLegend(false, html);
+        html.writeln("</td></tr>");
+        html.writeln("<tr><td class='container' align='left' valign='top'>");
         if (hasImpliedRelationships) {
-            html.writeln("<p/><form action=''>");
+            html.writeln("<form action=''>");
             html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getInstance().getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");
             html.writeln("  Hide tables with implied relationships");
             html.writeln("</form>");
         }
-
-        html.writeln("<td class='container' align='right' valign='top'>");
-        writeLegend(false, false, html);
         html.writeln("</td></tr></table>");
     }
 
