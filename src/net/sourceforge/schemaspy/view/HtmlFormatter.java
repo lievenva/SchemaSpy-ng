@@ -53,9 +53,9 @@ public class HtmlFormatter {
         if (!isMainIndex())
             html.write("<a href='" + path + "index.html'>Tables</a>&nbsp;&nbsp;");
         if (showRelationships)
-            html.write("<a href='" + path + "relationships.html' title='Graphical view of table relationships'>Relationships Graph</a>&nbsp;&nbsp;");
+            html.write("<a href='" + path + "relationships.html' title='Graphical view of table relationships'>Relationships</a>&nbsp;&nbsp;");
         if (showOrphans)
-            html.write("<a href='" + path + "utilities.html' title='Graphical view of tables with neither parents nor children'>Utility Tables Graph</a>&nbsp;&nbsp;");
+            html.write("<a href='" + path + "utilities.html' title='Graphical view of tables with neither parents nor children'>Utility Tables</a>&nbsp;&nbsp;");
         if (!isConstraintsPage())
             html.write("<a href='" + path + "constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a>&nbsp;&nbsp;");
         if (!isAnomaliesPage())
