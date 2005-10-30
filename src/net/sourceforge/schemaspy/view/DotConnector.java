@@ -17,7 +17,6 @@ public class DotConnector implements Comparable {
     private boolean bottomJustify;
     private String parentPort;
     private String childPort;
-    private boolean blurred;
 
     /**
      * Create an edge that logically connects a child column to a parent column.
@@ -45,6 +44,10 @@ public class DotConnector implements Comparable {
      */
     public boolean pointsTo(Table possibleParentTable) {
         return possibleParentTable.equals(parentTable);
+    }
+
+    public boolean isImplied() {
+        return implied;
     }
 
     /**
@@ -84,21 +87,15 @@ public class DotConnector implements Comparable {
         edge.append("e ");
 
         edge.append("[arrowtail=");
-        if (blurred || childPort.endsWith(".heading")) {
-            edge.append("none");
-        } else {
-            if (!childColumn.isUnique())
-                edge.append("crow");
-            if (childColumn.isNullable())
-                edge.append("odot");
-            else
-                edge.append("tee");
-        }
+        if (!childColumn.isUnique())
+            edge.append("crow");
+        if (childColumn.isNullable())
+            edge.append("odot");
+        else
+            edge.append("tee");
         edge.append(" arrowhead=none");
         if (implied)
             edge.append(" style=dashed");
-        if (blurred)
-            edge.append(" color=\"" + StyleSheet.getInstance().getOutlierBackgroundColor() + "\"");
         edge.append("];");
         return edge.toString();
     }
@@ -143,15 +140,6 @@ public class DotConnector implements Comparable {
 
     public Table getChildTable() {
         return childTable;
-    }
-
-    /**
-     * setBlurred
-     *
-     * @param blurred boolean
-     */
-    public void setBlurred(boolean blurred) {
-        this.blurred = blurred;
     }
 
     // this doesn't belong here, but not sure where...TableColumn shouldn't be dealing with this

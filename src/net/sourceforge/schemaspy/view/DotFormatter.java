@@ -61,10 +61,8 @@ public class DotFormatter {
 
         Set relatedTables = getImmediateRelatives(table, stats);
 
-        dot.writeln(new DotNode(table, "").toString());
         Set connectors = new TreeSet(finder.getRelatedConnectors(table, stats));
         tablesWritten.add(table);
-        stats.wroteTable(table);
 
         Map nodes = new TreeMap();
 
@@ -113,34 +111,10 @@ public class DotFormatter {
         }
 
         markExcludedColumns(nodes, stats.getExcludedColumns());
-        iter = nodes.values().iterator();
-        while (iter.hasNext()) {
-            DotNode node = (DotNode)iter.next();
-            dot.writeln(node.toString());
-            stats.wroteTable(node.getTable());
-        }
-
-        // now figure out what's related at the outskirts to give visual clues
-        Set outskirts = new TreeSet();
-        iter = tablesWritten.iterator();
-        while (iter.hasNext()) {
-            Table t = (Table)iter.next();
-            if (t != table)
-                outskirts.addAll(finder.getRelatedConnectors(t, stats));
-        }
-        outskirts.removeAll(connectors);
-        // remove the ones that inappropriately point to main table
-        iter = outskirts.iterator();
-        while (iter.hasNext())  {
-            DotConnector connector = (DotConnector)iter.next();
-            if (connector.pointsTo(table))
-                iter.remove();
-        }
 
         // now directly connect the loose ends to the title of the
         // 2nd degree of separation tables
-        outskirts.addAll(allCousinConnectors);
-        iter = outskirts.iterator();
+        iter = allCousinConnectors.iterator();
         while (iter.hasNext()) {
             DotConnector connector = (DotConnector)iter.next();
             if (allCousins.contains(connector.getParentTable()))
@@ -149,28 +123,29 @@ public class DotFormatter {
                 connector.connectToChildTitle();
         }
 
-        connectors.addAll(outskirts);
+        // include the table itself
+        nodes.put(table, new DotNode(table, ""));
 
-        // write the collected connectors
-        Set missingTables = new HashSet();
+        connectors.addAll(allCousinConnectors);
         iter = connectors.iterator();
         while (iter.hasNext()) {
             DotConnector connector = (DotConnector)iter.next();
-            if (!tablesWritten.contains(connector.getParentTable())) {
-                missingTables.add(connector.getParentTable());
-                connector.setBlurred(true);
-            }
-            if (!tablesWritten.contains(connector.getChildTable())) {
-                missingTables.add(connector.getChildTable());
-                connector.setBlurred(true);
+            if (connector.isImplied()) {
+                DotNode node = (DotNode)nodes.get(connector.getParentTable());
+                if (node != null)
+                    node.setShowImplied(true);
+                node = (DotNode)nodes.get(connector.getChildTable());
+                if (node != null)
+                    node.setShowImplied(true);
             }
             dot.writeln(connector.toString());
         }
 
-        iter = missingTables.iterator();
+        iter = nodes.values().iterator();
         while (iter.hasNext()) {
-            Table missingTable = (Table)iter.next();
-            dot.writeln("  " + new DotNode(missingTable).toString());
+            DotNode node = (DotNode)iter.next();
+            dot.writeln(node.toString());
+            stats.wroteTable(node.getTable());
         }
 
         dot.writeln("}");
@@ -316,10 +291,9 @@ public class DotFormatter {
         }
         writeHeader(graphName, compact, true, dot);
 
-        Map nodes = new HashMap();
+        Map nodes = new TreeMap();
 
         Iterator iter = tables.iterator();
-
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
             if (!table.isOrphan(stats.includeImplied())) {
@@ -366,7 +340,6 @@ public class DotFormatter {
     }
 
     public void writeOrphan(Table table, LineWriter dot) throws IOException {
-        DotConnectorFinder formatter = DotConnectorFinder.getInstance();
         writeHeader(table.getName(), false, false, dot);
         dot.writeln(new DotNode(table, true, "tables/").toString());
         dot.writeln("}");
