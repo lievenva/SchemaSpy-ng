@@ -11,6 +11,7 @@ body  {
 th {
     background-color: #9BAB96;
     text-align: left;
+    padding: 0px 4px;
 }
 
 /* background-color must be specified for td to propagate into graphs */
@@ -25,26 +26,28 @@ h1 {
 /* background must be specified for .primaryKey to propagate into graphs */
 .primaryKey {
     background: #BED1B8;
+    padding: 0px 4px;
 }
 
 /* background must be specified for .indexedColumn to propagate into graphs */
 .indexedColumn {
     background: #F4F7DA;
+    padding: 0px 4px;
 }
 
-/* background must be specified for .ignoredColumn to propagate into graphs */
-.ignoredColumn {
+/* background must be specified for .excludedColumn to propagate into graphs */
+.excludedColumn {
     background: #C0C0C0;
-}
-
-/* background must be specified for .outlier to propagate into graphs */
-.outlier {
-    background: #C0C0C0;
+    padding: 0px 4px;
 }
 
 /* background must be specified for .selectedTable to propagate into graphs */
 .selectedTable {
     background: #A9AB96;
+}
+
+.detail {
+    padding: 0px 4px;
 }
 
 table {
@@ -74,12 +77,18 @@ table {
     font-style: italic;
 }
 
-.tableHolder {
+.container {
     background-color: #F7F7F7;
+    padding: 0px 0px;
 }
 
 .legend {
     text-align: left;
+}
+
+.legendDetail {
+    background-color: #F7F7F7;
+    padding: 0px 4px;
 }
 
 .tableKey {
@@ -95,7 +104,7 @@ table {
 .impliedNotOrphan {
 }
 
-.ignoredRelationship {
+.excludedRelationship {
     font-size: 85%;
 }
 

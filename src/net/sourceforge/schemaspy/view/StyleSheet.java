@@ -13,8 +13,7 @@ public class StyleSheet {
     private String primaryKeyBackgroundColor;
     private String indexedColumnBackgroundColor;
     private String selectedTableBackgroundColor;
-    private String ignoredColumnBackgroundColor;
-    private String outlierBackgroundColor;
+    private String excludedColumnBackgroundColor;
     private final List ids = new ArrayList();
 
     private StyleSheet(BufferedReader cssReader) throws IOException {
@@ -57,10 +56,8 @@ public class StyleSheet {
                     indexedColumnBackgroundColor = attribs.get("background").toString();
                 else if (id.equals(".selectedtable"))
                     selectedTableBackgroundColor = attribs.get("background").toString();
-                else if (id.equals(".outlier"))
-                    outlierBackgroundColor = attribs.get("background").toString();
-                else if (id.equals(".ignoredcolumn"))
-                    ignoredColumnBackgroundColor = attribs.get("background").toString();
+                else if (id.equals(".excludedcolumn"))
+                    excludedColumnBackgroundColor = attribs.get("background").toString();
                 id = null;
             }
         }
@@ -115,12 +112,8 @@ public class StyleSheet {
         return selectedTableBackgroundColor;
     }
 
-    public String getOutlierBackgroundColor() {
-        return outlierBackgroundColor;
-    }
-
-    public String getIgnoredColumnBackgroundColor() {
-        return ignoredColumnBackgroundColor;
+    public String getExcludedColumnBackgroundColor() {
+        return excludedColumnBackgroundColor;
     }
 
     public int getOffsetOf(String id) {

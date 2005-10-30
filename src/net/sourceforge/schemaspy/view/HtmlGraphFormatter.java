@@ -102,7 +102,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
             System.out.print(".");
             writeRelationshipsHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
-            html.writeln("<table width=\"100%\"><tr><td class=\"tableHolder\">");
+            html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
             html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
             html.writeln("</td></tr></table>");
             writeExcludedColumns(excludedColumns, html);
@@ -192,7 +192,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
 
     private void writeRelationshipsHeader(Database db, File compactRelationshipsGraphFile, File largeRelationshipsGraphFile, File compactImpliedGraphFile, File largeImpliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
-        html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
+        html.writeln("<table width='100%'><tr><td class='container' align='left' valign='top'>");
         html.write("<br/>");
         writeTableOfContents(false, hasOrphans, html);
 
@@ -234,14 +234,14 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         }
         html.writeln("</form>");
 
-        html.writeln("<td class='tableHolder' align='right' valign='top'>");
+        html.writeln("<td class='container' align='right' valign='top'>");
         writeLegend(false, html);
         html.writeln("</td></tr></table>");
     }
 
     private void writeOrphansHeader(Database db, String title, boolean hasRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, html);
-        html.writeln("<table width='100%'><tr><td class='tableHolder' align='left' valign='top'>");
+        html.writeln("<table width='100%'><tr><td class='container' align='left' valign='top'>");
         html.writeln("<br/>");
         writeTableOfContents(hasRelationships, false, html);
         if (hasImpliedRelationships) {
@@ -251,7 +251,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             html.writeln("</form>");
         }
 
-        html.writeln("<td class='tableHolder' align='right' valign='top'>");
+        html.writeln("<td class='container' align='right' valign='top'>");
         writeLegend(false, false, html);
         html.writeln("</td></tr></table>");
     }
