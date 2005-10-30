@@ -86,7 +86,7 @@ public class Main {
             }
 
             Pattern exclusions;
-            String exclude = getParam(args, "-i", false, false);
+            String exclude = getParam(args, "-x", false, false);
             if (exclude != null) {
                 exclusions = Pattern.compile(exclude);
             } else {
@@ -556,8 +556,8 @@ public class Main {
             System.out.println("   -dbthreads            max concurrent threads when accessing metadata");
             System.out.println("                           defaults to -1 (no limit)");
             System.out.println("                           use 1 if you get 'already closed' type errors");
-            System.out.println("   -i columnNamesRegex   ignore matching columns during analysis");
-            System.out.println("                           e.g.: -i \"(book.isbn)|(borrower.address)\"");
+            System.out.println("   -x columnNamesRegex   exclude matching columns from analysis");
+            System.out.println("                           e.g.: -x \"(book.isbn)|(borrower.address)\"");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
             System.out.println("   -nologo               don't put SourceForge logo on generated pages");
