@@ -5,6 +5,7 @@ body  {
     color: #000000;
     background-color: #BED1B8;
     font-family: arial, geneva, helvetica, sans-serif;
+    padding: 0px;
 }
 
 /* background-color must be specified for th to propagate into graphs */
@@ -135,10 +136,10 @@ a:visited {
 #tabmenu {
     color: #000000;
     border-bottom: 2px solid black;
-    margin: 10px 0px 0px 0px;
+    margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
-    padding-left: 8px
+    padding-left: 10px;
 }
 
 #tabmenu li {
@@ -150,9 +151,9 @@ a:visited {
 #tabmenu a, a.active {
     color: #DEDECF;
     background: #9BAB96;
-    font: 1em Arial, sans-serif;
+    font: normal 1em "Trebuchet MS", Arial, sans-serif;
     border: 2px solid black;
-    padding: 2px 5px 1px 5px;
+    padding: 2px 5px 0px 5px;
     margin: 0px;
     text-decoration: none;
 }
@@ -160,8 +161,8 @@ a:visited {
 #tabmenu a.active {
     color: #000000;
     background: #F7F7F7;
-    font: Bold 1em Arial, sans-serif;
-    border-bottom: 2px solid #F7F7F7;
+    font-weight: bold;
+    border-bottom: 3px solid #F7F7F7;
     margin: 1px;
 }
 
