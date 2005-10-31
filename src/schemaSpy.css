@@ -3,7 +3,7 @@
 /* background-color must be specified for body to propagate into graphs */
 body  {
     color: #000000;
-    background-color: #F7F7F7;
+    background-color: #BED1B8;
     font-family: arial, geneva, helvetica, sans-serif;
 }
 
@@ -21,6 +21,15 @@ td {
 
 h1 {
     font-size: 125%;
+}
+
+/* background must be specified for it to propagate into graphs */
+.content {
+    background: #F7F7F7;
+    padding: 2px;
+    border: 2px solid black;
+    border-top: none;
+    z-index: 2;
 }
 
 /* background must be specified for .primaryKey to propagate into graphs */
@@ -111,6 +120,10 @@ table {
 .degrees {
 }
 
+.indent {
+    padding: 2px;
+}
+
 a:link {
     color: #489148;
 }
@@ -119,36 +132,49 @@ a:visited {
     color: #183118;
 }
 
-.menu {
-    border-width: 1px;
-    border-style: solid;
-    border-color: #CCCCCC;
-    padding : 1px;
-    margin : 1px;
-    background-color: #E7E7E7
-}
-
-.menuitem {
-    font-size: 85%;
-    display: block;
+#tabmenu {
     color: #000000;
-    margin-top: 1px;
-    padding: 1px;
-    background-color: #E7E7E7;
-    border: 1px solid #dddddd;
-    text-align: center;
+    border-bottom: 2px solid black;
+    margin: 10px 0px 0px 0px;
+    padding: 0px;
+    z-index: 1;
+    padding-left: 8px
 }
 
-.menuitem:hover {
+#tabmenu li {
+    display: inline;
+    overflow: hidden;
+    list-style-type: none;
+}
+
+#tabmenu a, a.active {
+    color: #DEDECF;
     background: #9BAB96;
-    color: #ffffff;
-    border-color: #ffffff;
+    font: 1em Arial, sans-serif;
+    border: 2px solid black;
+    padding: 2px 5px 1px 5px;
+    margin: 0px;
     text-decoration: none;
 }
 
-.selectedMenuitem {
-    font-size: 85%;
+#tabmenu a.active {
     color: #000000;
-    background-color: #E7E7E7;
-    text-align: center;
+    background: #F7F7F7;
+    font: Bold 1em Arial, sans-serif;
+    border-bottom: 2px solid #F7F7F7;
+    margin: 1px;
+}
+
+#tabmenu a:hover {
+    color: #FFFFFF;
+    background: #ADC09F;
+}
+
+#tabmenu a {
+    color: #F4F7DA;
+}
+
+#tabmenu a.active:hover {
+    background: #F7F7F7;
+    color: #000000;
 }

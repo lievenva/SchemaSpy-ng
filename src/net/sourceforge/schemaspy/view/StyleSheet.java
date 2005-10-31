@@ -22,6 +22,9 @@ public class StyleSheet {
         String line;
 
         while ((line = cssReader.readLine()) != null) {
+            int slashes = line.indexOf("//");
+            if (slashes != -1)
+                line = line.substring(0, slashes);
             data.append(line);
             data.append(lineSeparator);
         }
@@ -44,8 +47,8 @@ public class StyleSheet {
                 ids.add(id);
             } else {
                 Map attribs = parseAttributes(token);
-                if (id.equals("body"))
-                    bodyBackgroundColor = attribs.get("background-color").toString();
+                if (id.equals(".content"))
+                    bodyBackgroundColor = attribs.get("background").toString();
                 else if (id.equals("th"))
                     tableHeadBackgroundColor = attribs.get("background-color").toString();
                 else if (id.equals("td"))
@@ -73,12 +76,18 @@ public class StyleSheet {
 
     private Map parseAttributes(String data) {
         Map attribs = new HashMap();
-        StringTokenizer attrTokenizer = new StringTokenizer(data, ";");
-        while (attrTokenizer.hasMoreTokens()) {
-            StringTokenizer pairTokenizer = new StringTokenizer(attrTokenizer.nextToken(), ":");
-            String attribute = pairTokenizer.nextToken().trim().toLowerCase();
-            String value = pairTokenizer.nextToken().trim().toLowerCase();
-            attribs.put(attribute, value);
+
+        try {
+            StringTokenizer attrTokenizer = new StringTokenizer(data, ";");
+            while (attrTokenizer.hasMoreTokens()) {
+                StringTokenizer pairTokenizer = new StringTokenizer(attrTokenizer.nextToken(), ":");
+                String attribute = pairTokenizer.nextToken().trim().toLowerCase();
+                String value = pairTokenizer.nextToken().trim().toLowerCase();
+                attribs.put(attribute, value);
+            }
+        } catch (NoSuchElementException badToken) {
+            System.err.println("Failed to extract attributes from '" + data + "'");
+            throw badToken;
         }
 
         return attribs;
