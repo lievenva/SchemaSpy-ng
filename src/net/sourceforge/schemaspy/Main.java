@@ -160,6 +160,8 @@ public class Main {
                 System.out.println("(" + (startSummarizing - start) / 1000 + "sec)");
                 System.out.print("Writing/graphing summary");
                 System.out.print(".");
+                ImageWriter.getInstance().writeImages(outputDir);
+                System.out.print(".");
 
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";

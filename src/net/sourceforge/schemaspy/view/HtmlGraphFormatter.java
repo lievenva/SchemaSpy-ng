@@ -203,6 +203,22 @@ public class HtmlGraphFormatter extends HtmlFormatter {
 
         // this is some UGLY code!
         html.writeln("<form name='options' action=''>");
+        if (hasImpliedRelationships) {
+            html.write("  <input type='checkbox' id='implied' onclick=\"");
+            html.write("if (this.checked) {");
+            html.write(" if (document.options.compact.checked)");
+            html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph');");
+            html.write(" else ");
+            html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
+            html.write("} else {");
+            html.write(" if (document.options.compact.checked)");
+            html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
+            html.write(" else ");
+            html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
+            html.write("}\">");
+            html.writeln("Include implied relationships");
+        }
+        // more butt-ugly 'code' follows
         html.write("  <input type='checkbox' id='compact' checked onclick=\"");
         html.write("if (this.checked) {");
         if (hasImpliedRelationships) {
@@ -220,23 +236,6 @@ public class HtmlGraphFormatter extends HtmlFormatter {
         html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
         html.write("}\">");
         html.writeln("Compact");
-
-        // more butt-ugly 'code' follows
-        if (hasImpliedRelationships) {
-            html.write("  <input type='checkbox' id='implied' onclick=\"");
-            html.write("if (this.checked) {");
-            html.write(" if (document.options.compact.checked)");
-            html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph');");
-            html.write(" else ");
-            html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
-            html.write("} else {");
-            html.write(" if (document.options.compact.checked)");
-            html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
-            html.write(" else ");
-            html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
-            html.write("}\">");
-            html.writeln("Include implied relationships");
-        }
         html.writeln("</form>");
 
         html.writeln("</td></tr></table>");

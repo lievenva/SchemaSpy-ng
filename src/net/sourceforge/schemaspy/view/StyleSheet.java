@@ -22,9 +22,6 @@ public class StyleSheet {
         String line;
 
         while ((line = cssReader.readLine()) != null) {
-            int slashes = line.indexOf("//");
-            if (slashes != -1)
-                line = line.substring(0, slashes);
             data.append(line);
             data.append(lineSeparator);
         }

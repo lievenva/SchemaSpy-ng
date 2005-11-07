@@ -22,7 +22,7 @@ public class HtmlFormatter {
         out.writeln("</head>");
         out.writeln("<body onload='syncOptions()'>");
         writeTableOfContents(showRelationships, showOrphans, out);
-        out.writeln("<div class='content'>");
+        out.writeln("<div class='content' style='clear:both;'>");
         out.writeln("<table width='100%' border='0' cellpadding='0'>");
         out.writeln(" <tr>");
         out.write("  <td class='heading' valign='top'><h1>");
@@ -44,15 +44,17 @@ public class HtmlFormatter {
 
     protected void writeTableOfContents(boolean showRelationships, boolean showOrphans, LineWriter html) throws IOException {
         String path = getPathToRoot();
-        html.writeln("<ul id='tabmenu'>");
-        html.writeln("  <li><a " + (isMainIndex() ? "class='active'" : "") + " href='" + path + "index.html' title='All tables and views in the schema'>Tables</a></li>");
-        html.writeln("  <li><a " + (!showRelationships ? "class='active'" : "") + " href='" + path + "relationships.html' title='Graphical view of table relationships'>Relationships</a></li>");
-        html.writeln("  <li><a " + (!showOrphans ? "class='active'" : "") + " href='" + path + "utilities.html' title='Graphical view of tables with neither parents nor children'>Utility&nbsp;Tables</a></li>");
-        html.writeln("  <li><a " + (isConstraintsPage() ? "class='active'" : "") + " href='" + path + "constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a></li>");
-        html.writeln("  <li><a " + (isAnomaliesPage() ? "class='active'" : "") + " href='" + path + "anomalies.html' title=\"Things that aren't quite right\">Anomalies</a></li>");
-        html.writeln("  <li><a " + (isColumnsPage() ? "class='active'" : "") + " href='" + path + "columns.html' title=\"All of the columns in the schema\">Columns</a></li>");
-        html.writeln("  <li><a href='http://sourceforge.net/donate/index.php?group_id=137197' title='Please help keep SchemaSpy going' target='_blank'>Donate</a></li>");
-        html.writeln("</ul>");
+        html.writeln("<div id='header'>");
+        html.writeln(" <ul>");
+        html.writeln("  <li" + (isMainIndex() ? " id='current'" : "") + "><a href='" + path + "index.html' title='All tables and views in the schema'>Tables</a></li>");
+        html.writeln("  <li" + (!showRelationships ? " id='current'" : "") + "><a href='" + path + "relationships.html' title='Graphical view of table relationships'>Relationships</a></li>");
+        html.writeln("  <li" + (!showOrphans ? " id='current'" : "") + "><a href='" + path + "utilities.html' title='Graphical view of tables with neither parents nor children'>Utility&nbsp;Tables</a></li>");
+        html.writeln("  <li" + (isConstraintsPage() ? " id='current'" : "") + "><a href='" + path + "constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a></li>");
+        html.writeln("  <li" + (isAnomaliesPage() ? " id='current'" : "") + "><a href='" + path + "anomalies.html' title=\"Things that aren't quite right\">Anomalies</a></li>");
+        html.writeln("  <li" + (isColumnsPage() ? " id='current'" : "") + "><a href='" + path + "columns.html' title=\"All of the columns in the schema\">Columns</a></li>");
+        html.writeln("  <li><a href='http://sourceforge.net/donate/index.php?group_id=137197' title='Please help keep SchemaSpy alive' target='_blank'>Donate</a></li>");
+        html.writeln(" </ul>");
+        html.writeln("</div>");
     }
 
     protected String getDescription(Database db, Table table, String text, boolean hoverHelp) {
@@ -114,12 +116,12 @@ public class HtmlFormatter {
         out.writeln("    <tr><td class='primaryKey'>Primary key columns</td></tr>");
         out.writeln("    <tr><td class='indexedColumn'>Columns with indexes</td></tr>");
         if (tableDetails)
-            out.writeln("    <tr><td class='impliedRelationship'>Implied relationships</td></tr>");
+            out.writeln("    <tr class='impliedRelationship'><td class='detail'><span class='impliedRelationship'>Implied relationships</span></td></tr>");
         // comment this out until I can figure out a clean way to embed image references
         //out.writeln("    <tr><td class='container'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
         if (graphDetails) {
             out.writeln("    <tr><td class='excludedColumn'>Excluded column relationships</td></tr>");
-            out.writeln("    <tr><td class='legendDetail'>Dashed lines show" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
+            out.writeln("    <tr class='impliedRelationship'><td class='legendDetail'>Dashed lines show" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
             out.writeln("    <tr><td class='legendDetail'>&lt; <em>n</em> &gt; number of related tables</td></tr>");
         }
         out.writeln("   </table>");
@@ -130,7 +132,7 @@ public class HtmlFormatter {
     }
 
     protected void writeFeedMe(LineWriter html) throws IOException {
-        html.write("Please <a href='http://sourceforge.net/donate/index.php?group_id=137197' target='_blank' title='Please help keep SchemaSpy going'>support</a> this project");
+        html.write("Please <a href='http://sourceforge.net/donate/index.php?group_id=137197' target='_blank' title='Please help keep SchemaSpy alive'>support</a> this project");
     }
 
     protected void writeExcludedColumns(Set excludedColumns, LineWriter html) throws IOException {
