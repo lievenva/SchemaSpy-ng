@@ -76,11 +76,21 @@ public class Table implements Comparable {
         foreignKey.addChildColumn(childColumn);
 
         Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME").toUpperCase());
-        TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
-        foreignKey.addParentColumn(parentColumn);
 
-        childColumn.addParent(parentColumn, foreignKey);
-        parentColumn.addChild(childColumn, foreignKey);
+        if (parentTable != null) {
+            TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
+
+            if (parentColumn != null) {
+                foreignKey.addParentColumn(parentColumn);
+
+                childColumn.addParent(parentColumn, foreignKey);
+                parentColumn.addChild(childColumn, foreignKey);
+            } else {
+                System.err.println("Couldn't add FK - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
+            }
+        } else {
+            System.err.println("Couldn't add FK - Unknown Parent Table '" + rs.getString("PKTABLE_NAME") + "'");
+        }
     }
 
     private void initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
