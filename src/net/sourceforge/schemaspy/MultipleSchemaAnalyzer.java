@@ -4,10 +4,8 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import java.util.regex.*;
-import net.sourceforge.schemaspy.util.LineWriter;
-import java.io.FileOutputStream;
-import net.sourceforge.schemaspy.view.HtmlMultipleSchemasIndexPage;
-import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.util.*;
+import net.sourceforge.schemaspy.view.*;
 
 public class MultipleSchemaAnalyzer {
     private static MultipleSchemaAnalyzer instance = new MultipleSchemaAnalyzer();
@@ -23,6 +21,7 @@ public class MultipleSchemaAnalyzer {
         long start = System.currentTimeMillis();
         List genericCommand = new ArrayList();
         genericCommand.add("java");
+        genericCommand.add("-Doneofmultipleschemas=true");
         if (new File(loadedFrom).isDirectory()) {
             genericCommand.add("-cp");
             genericCommand.add(loadedFrom);
