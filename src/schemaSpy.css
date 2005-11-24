@@ -2,9 +2,9 @@
 
 body  {
   color: #000;
-  background-color: #BED1B8;
+  background-color: #F7F7F7;
   font-family: arial, geneva, helvetica, sans-serif;
-  margin: 0 0;
+  margin: 0 0 0 0;
   padding: 0px;
 }
 
@@ -12,8 +12,7 @@ body  {
 .content {
   margin: 0px;
   background: #F7F7F7;
-  border: 1px solid black;
-  border-top: none;
+  border: 0 0;
   padding:.4em;
 }
 
@@ -138,10 +137,18 @@ a:visited {
 
 /* Tabs from http://www.alistapart.com/articles/slidingdoors/ */
 
+/* resolve an issue with always having a scrollbar for #header */
+#headerHolder {
+  width: 100%;
+  margin: 0;
+  border: 1px solid black;
+  border-bottom-style: none;
+}
+
 #header {
   float:left;
-  width:100%;
-  background:#BED1B8 url("images/bg.gif") repeat-x bottom;
+  width: 100%;
+  background:#BED1B8 url("images/background.gif") repeat-x bottom;
   font-size:80%;
   line-height:normal;
 }
