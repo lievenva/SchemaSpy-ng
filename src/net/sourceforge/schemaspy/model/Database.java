@@ -317,36 +317,20 @@ public class Database {
      * Multi-threaded implementation of a class that creates tables
      */
     private class ThreadedTableCreator extends TableCreator {
-        final Set threads = Collections.synchronizedSet(new HashSet());
-        final int maxThreads;
-
-        // local alias that's thread safe while this method is running
-        final Map threadSafeTables = Collections.synchronizedMap(tables);
+        private final Set threads = new HashSet();
+        private final int maxThreads;
 
         ThreadedTableCreator(int maxThreads) {
             this.maxThreads = maxThreads;
         }
 
         void create(final String schemaName, final String tableName, final Properties properties) throws SQLException {
-            // wait for enough 'room'
-            while (threads.size() >= maxThreads) {
-                synchronized (threads) {
-                    try {
-                        threads.wait();
-                    } catch (InterruptedException interrupted) {
-                    }
-                }
-            }
-
             Thread runner = new Thread() {
                 public void run() {
                     try {
                         createImpl(schemaName, tableName, properties);
                     } catch (SQLException exc) {
-                        exc.printStackTrace();
-
-                        // wrapping exceptions weren't introduced 'til 1.4...can't require that yet
-                        throw new RuntimeException(exc.toString());
+                        exc.printStackTrace(); // nobody above us in call stack...dump it here
                     } finally {
                         synchronized (threads) {
                             threads.remove(this);
@@ -356,12 +340,23 @@ public class Database {
                 }
             };
 
-            threads.add(runner);
+            synchronized (threads) {
+                // wait for enough 'room'
+                while (threads.size() >= maxThreads) {
+                    try {
+                        threads.wait();
+                    } catch (InterruptedException interrupted) {
+                    }
+                }
+
+                threads.add(runner);
+            }
+
             runner.start();
         }
 
         /**
-         * Wait for all the started threads to complete
+         * Wait for all of the started threads to complete
          */
         public void join() {
             while (true) {
