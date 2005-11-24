@@ -242,27 +242,27 @@ public class Main {
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
-                HtmlMainIndexFormatter.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                HtmlMainIndexPage.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
-                HtmlConstraintIndexFormatter constraintIndexFormatter = HtmlConstraintIndexFormatter.getInstance();
+                HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasRelationships, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
-                HtmlAnomaliesFormatter.getInstance().write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
+                HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "columns.html")), 16 * 1024);
-                HtmlColumnsFormatter.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                HtmlColumnsPage.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
@@ -271,7 +271,7 @@ public class Main {
                 System.out.println("(" + (startGraphingDetails - startSummarizing) / 1000 + "sec)");
                 System.out.print("Writing/graphing results");
 
-                HtmlTableFormatter tableFormatter = HtmlTableFormatter.getInstance();
+                HtmlTablePage tableFormatter = HtmlTablePage.getInstance();
                 for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
                     System.out.print('.');
                     Table table = (Table)iter.next();

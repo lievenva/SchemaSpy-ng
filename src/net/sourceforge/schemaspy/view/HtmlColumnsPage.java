@@ -49,7 +49,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
         writeHeader(database, columns.size(), showRelationshipsGraph, showOrphansGraph, html);
 
-        HtmlTableFormatter formatter = HtmlTableFormatter.getInstance();
+        HtmlTablePage formatter = HtmlTablePage.getInstance();
 
         iter = columns.iterator();
         while (iter.hasNext()) {
@@ -91,7 +91,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.write(" columns:</b>");
         Collection tables = db.getTables();
         boolean hasTableIds = tables.size() > 0 && ((Table)tables.iterator().next()).getId() != null;
-        HtmlTableFormatter.getInstance().writeMainTableHeader(hasTableIds, true, html);
+        HtmlTablePage.getInstance().writeMainTableHeader(hasTableIds, true, html);
         html.writeln("<tbody valign='top'>");
     }
 
