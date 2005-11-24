@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.*;
 import net.sourceforge.schemaspy.model.*;
 
 public class DBAnalyzer {
@@ -270,24 +271,37 @@ public class DBAnalyzer {
      * @param meta DatabaseMetaData
      */
     public static List getPopulatedSchemas(DatabaseMetaData meta) throws SQLException {
-        List schemas = new ArrayList();
+        return getPopulatedSchemas(meta, ".*");
+    }
+
+    /**
+     * getSchemas - returns a List of schema names (Strings) that contain tables and
+     * match the <code>schemaSpec</code> regular expression
+     *
+     * @param meta DatabaseMetaData
+     */
+    public static List getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec) throws SQLException {
+        Set schemas = new TreeSet(); // alpha sorted
+        Pattern schemaRegex = Pattern.compile(schemaSpec);
 
         Iterator iter = getSchemas(meta).iterator();
         while (iter.hasNext()) {
             String schema = iter.next().toString();
-            ResultSet rs = null;
-            try {
-                rs = meta.getTables(null, schema, "%", null);
-                if (rs.next())
-                    schemas.add(schema);
-            } catch (SQLException ignore) {
-            } finally {
-                if (rs != null)
-                    rs.close();
+            if (schemaRegex.matcher(schema).matches()) {
+                ResultSet rs = null;
+                try {
+                    rs = meta.getTables(null, schema, "%", null);
+                    if (rs.next())
+                        schemas.add(schema);
+                } catch (SQLException ignore) {
+                } finally {
+                    if (rs != null)
+                        rs.close();
+                }
             }
         }
 
-        return schemas;
+        return new ArrayList(schemas);
     }
 
     /**
