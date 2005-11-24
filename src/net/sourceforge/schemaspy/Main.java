@@ -47,15 +47,10 @@ public class Main {
                 outputDirName = outputDirName.substring(0, outputDirName.length() - 1);
             File outputDir = new File(outputDirName).getCanonicalFile();
             if (!outputDir.isDirectory()) {
-                if (!outputDir.mkdir()) {
+                if (!outputDir.mkdirs()) {
                     System.err.println("Failed to create directory '" + outputDir + "'");
                     System.exit(2);
                 }
-            }
-
-            if (generateHtml) {
-                new File(outputDir, "tables").mkdir();
-                new File(outputDir, "graphs/summary").mkdirs();
             }
 
             String dbType = getParam(args, "-t", false, false);
@@ -85,6 +80,11 @@ public class Main {
                 System.setProperty("sourceforgelogo", "true");
             }
 
+            if (args.remove("-rankdirbug")) {
+                // and another nasty hack with the same justification as the one above
+                System.setProperty("rankdirbug", "true");
+            }
+
             Pattern exclusions;
             String exclude = getParam(args, "-x", false, false);
             if (exclude != null) {
@@ -103,6 +103,9 @@ public class Main {
 
             String dbName = urlBuilder.getDbName();
 
+            boolean analyzeAll = args.remove("-all");
+            String schemaSpec = getParam(args, "-schemaSpec", false, false);
+
             if (args.size() != 0) {
                 System.out.print("Warning: Unrecognized option(s):");
                 for (Iterator iter = args.iterator(); iter.hasNext(); ) {
@@ -111,9 +114,6 @@ public class Main {
                 System.out.println();
             }
 
-            if (generateHtml)
-                StyleSheet.init(new BufferedReader(getStyleSheet(css)));
-
             String driverClass = properties.getProperty("driver");
             String driverPath = properties.getProperty("driverPath");
             if (classpath != null)
@@ -121,11 +121,27 @@ public class Main {
 
             Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), driverClass, driverPath, propertiesLoadedFrom.toString());
             DatabaseMetaData meta = connection.getMetaData();
+
+            if (analyzeAll) {
+                args = new ArrayList(Arrays.asList(argv));
+                getParam(args, "-o", false, false);  // param will be replaced by something appropriate
+                getParam(args, "-s", false, false);  // param will be replaced by something appropriate
+                args.remove("-all");                 // param will be replaced by something appropriate
+                if (schemaSpec == null)
+                    schemaSpec = properties.getProperty("schemaSpec", ".*");
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, user, outputDir, getLoadedFromJar());
+                System.exit(0);
+            }
+
             if (schema == null && meta.supportsSchemasInTableDefinitions()) {
                 schema = user;
             }
 
             if (generateHtml) {
+                new File(outputDir, "tables").mkdirs();
+                new File(outputDir, "graphs/summary").mkdirs();
+                StyleSheet.init(new BufferedReader(getStyleSheet(css)));
+
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
                 System.out.println();
                 System.out.print("Gathering schema details");
@@ -213,14 +229,14 @@ public class Main {
                     }
 
                     out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    hasRelationships = HtmlGraphFormatter.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, excludedColumns, out);
+                    hasRelationships = HtmlRelationshipsPage.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, excludedColumns, out);
                     out.close();
                 }
 
                 System.out.print(".");
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                HtmlGraphFormatter.getInstance().writeOrphans(db, orphans, hasRelationships, graphsDir, out);
+                HtmlOrphansPage.getInstance().write(db, orphans, hasRelationships, graphsDir, out);
                 stats = new WriteStats(stats);
                 out.close();
 
