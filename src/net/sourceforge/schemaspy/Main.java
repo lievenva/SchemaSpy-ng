@@ -578,8 +578,10 @@ public class Main {
             System.out.println("                           e.g.: -x \"(book.isbn)|(borrower.address)\"");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
-            System.out.println("   -nologo               don't put SourceForge logo on generated pages");
-            System.out.println("                           (please don't disable unless absolutely necessary)");
+            System.out.println("   -all                  analyze all \"user\" schemas in the specified database");
+            System.out.println("   -schemaSpec           used with -all to specify \"user\" schemas");
+            System.out.println("                         overrides schemaSpec in .properties file");
+            System.out.println("                         see db2.properties for more details");
             System.out.println("   -help                 detailed help");
             System.out.println("   -dbhelp               display databaseType-specific help");
             System.out.println();
