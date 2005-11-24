@@ -119,7 +119,9 @@ public class DotNode {
             buf.append("view");
         } else {
             buf.append(NumberFormat.getInstance().format(table.getNumRows()));
-            buf.append(" rows");
+            buf.append(" row");
+            if (table.getNumRows() != 1)
+                buf.append('s');
         }
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
