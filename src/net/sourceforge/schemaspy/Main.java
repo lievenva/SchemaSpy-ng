@@ -440,6 +440,7 @@ public class Main {
             System.err.println();
             System.err.println("For many people it's easiest to use the -cp option to directly specify");
             System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
+			System.err.println("The -cp option must be specified after " + getLoadedFromJar());
             System.err.println();
             exc.printStackTrace();
             System.exit(1);
@@ -571,6 +572,7 @@ public class Main {
             System.out.println("   -css styleSheet.css   defaults to schemaSpy.css");
             System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
             System.out.println("                           in driverPath in [databaseType].properties");
+			System.out.println("                           must be specified after " + getLoadedFromJar());
             System.out.println("   -dbthreads            max concurrent threads when accessing metadata");
             System.out.println("                           defaults to -1 (no limit)");
             System.out.println("                           use 1 if you get 'already closed' type errors");
