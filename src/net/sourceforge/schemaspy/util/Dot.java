@@ -106,7 +106,9 @@ public class Dot {
     }
 
     public class DotFailure extends IOException {
-        public DotFailure(String msg) {
+		private static final long serialVersionUID = 3833743270181351987L;
+
+		public DotFailure(String msg) {
             super(msg);
         }
     }
