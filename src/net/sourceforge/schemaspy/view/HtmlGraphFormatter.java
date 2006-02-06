@@ -17,7 +17,7 @@ public class HtmlGraphFormatter extends HtmlFormatter {
                 System.err.println();
                 System.err.println("Warning: Failed to run dot.");
                 System.err.println("   Download " + dot.getSupportedVersions());
-                System.err.println("   from www.graphviz.org and make sure dot is in your path.");
+                System.err.println("   from www.graphviz.org and make sure that dot is in your path.");
                 System.err.println("   Generated pages will not contain a graphical view of table relationships.");
             }
 
@@ -28,8 +28,8 @@ public class HtmlGraphFormatter extends HtmlFormatter {
             if (!printedInvalidVersionWarning) {
                 printedInvalidVersionWarning = true;
                 System.err.println();
-                System.err.println("Warning: Invalid version of dot detected (" + dot.getVersion() + ").");
-                System.err.println("   SchemaSpy requires " + dot.getSupportedVersions() + ".");
+                System.err.println("Warning: Invalid version of Graphviz dot detected (" + dot.getVersion() + ").");
+                System.err.println("   SchemaSpy requires " + dot.getSupportedVersions() + ". from www.graphviz.org.");
                 System.err.println("   Generated pages will not contain a graphical view of table relationships.");
             }
 
