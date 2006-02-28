@@ -15,7 +15,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         return instance;
     }
 
-    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasImpliedRelationships, Set excludedColumns, LineWriter html) throws IOException {
+    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasImpliedRelationships, Set excludedColumns, LineWriter html) {
         File compactRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.compact.dot");
         File compactRelationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.compact.png");
         File largeRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.large.dot");
@@ -24,6 +24,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         File compactImpliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.compact.png");
         File largeImpliedDotFile = new File(graphDir, dotBaseFilespec + ".implied.large.dot");
         File largeImpliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.large.png");
+        boolean somethingFailed = false;
 
         try {
             Dot dot = getDot();
@@ -32,8 +33,13 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile);
             System.out.print(".");
-            dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
-            System.out.print(".");
+            try {
+                dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
+                System.out.print(".");
+            } catch (Dot.DotFailure dotFailure) {
+                System.err.println(dotFailure);
+                somethingFailed = true;
+            }
             writeHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
             html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
@@ -44,17 +50,32 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
             dot.writeMap(largeRelationshipsDotFile, html);
 
             if (hasImpliedRelationships) {
-                dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile);
-                dot.writeMap(compactImpliedDotFile, html);
-                System.out.print(".");
+                try {
+                    dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile);
+                    dot.writeMap(compactImpliedDotFile, html);
+                    System.out.print(".");
+                } catch (Dot.DotFailure dotFailure) {
+                    System.err.println(dotFailure);
+                    somethingFailed = true;
+                }
 
-                dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile);
-                dot.writeMap(largeImpliedDotFile, html);
-                System.out.print(".");
+                try {
+                    dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile);
+                    dot.writeMap(largeImpliedDotFile, html);
+                    System.out.print(".");
+                } catch (Dot.DotFailure dotFailure) {
+                    System.err.println(dotFailure);
+                    somethingFailed = true;
+                }
             }
 
             writeFooter(html);
+            if (somethingFailed) {
+                System.out.println();
+                System.out.println("Relationships page will be incomplete, but hopefully usable.");
+            }
         } catch (Dot.DotFailure dotFailure) {
+            System.err.println("Failed to create relationships page:");
             System.err.println(dotFailure);
             return false;
         } catch (IOException ioExc) {
