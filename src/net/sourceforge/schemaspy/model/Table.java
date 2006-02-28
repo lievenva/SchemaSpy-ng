@@ -32,7 +32,7 @@ public class Table implements Comparable {
             rs = meta.getImportedKeys(null, getSchema(), getName());
 
             while (rs.next())
-                addForeignKey(rs, tables, meta);
+                addForeignKey(rs, tables);
         } finally {
             if (rs != null)
                 rs.close();
@@ -58,7 +58,7 @@ public class Table implements Comparable {
      * @param meta DatabaseMetaData
      * @throws SQLException
      */
-    private void addForeignKey(ResultSet rs, Map tables, DatabaseMetaData meta) throws SQLException {
+    private void addForeignKey(ResultSet rs, Map tables) throws SQLException {
         String name = rs.getString("FK_NAME");
 
         if (name == null)
@@ -231,7 +231,7 @@ public class Table implements Comparable {
      *
      * @return boolean <code>true</code> if it worked, otherwise <code>false</code>
      */
-    private boolean initIndexes(Database db, String selectIndexesSql) throws SQLException {
+    private boolean initIndexes(Database db, String selectIndexesSql) {
         if (selectIndexesSql == null)
             return false;
 
@@ -513,7 +513,7 @@ public class Table implements Comparable {
      * @throws SQLException
      * @return int
      */
-    protected int fetchNumRows(Database db) throws SQLException {
+    protected int fetchNumRows(Database db) {
         try {
             // '*' should work best for the majority of cases
             return fetchNumRows(db, "count(*)");

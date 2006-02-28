@@ -1,7 +1,5 @@
 package net.sourceforge.schemaspy;
 
-import java.io.*;
-import java.net.*;
 import java.sql.*;
 import java.util.*;
 import net.sourceforge.schemaspy.model.*;
@@ -9,7 +7,7 @@ import net.sourceforge.schemaspy.model.*;
 public class SchemaSpy {
     private final Database database;
 
-    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, Properties properties, int maxThreads) throws SQLException, MalformedURLException {
+    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, Properties properties, int maxThreads) throws SQLException {
         database = new Database(connection, meta, dbName, schema, properties, maxThreads);
     }
 
@@ -26,7 +24,7 @@ public class SchemaSpy {
      *
      * @return
      */
-    public List sortTablesByRI(Collection recursiveConstraints) throws SQLException, IOException {
+    public List sortTablesByRI(Collection recursiveConstraints) {
         final List heads = new ArrayList();
         final List tails = new ArrayList();
         final List remainingTables = new ArrayList(getDatabase().getTables());

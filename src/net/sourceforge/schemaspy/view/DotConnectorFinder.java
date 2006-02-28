@@ -28,7 +28,7 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    public Set getRelatedConnectors(Table table, WriteStats stats) throws IOException {
+    public Set getRelatedConnectors(Table table, WriteStats stats) {
         Set relationships = new HashSet();
 
         Iterator iter = table.getColumns().iterator();
@@ -47,7 +47,7 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    public Set getRelatedConnectors(Table table1, Table table2, WriteStats stats) throws IOException {
+    public Set getRelatedConnectors(Table table1, Table table2, WriteStats stats) {
         Set relationships = new HashSet();
 
         Iterator iter = table1.getColumns().iterator();
@@ -69,7 +69,7 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    private Set getRelatedConnectors(TableColumn column, Table targetTable, WriteStats stats) throws IOException {
+    private Set getRelatedConnectors(TableColumn column, Table targetTable, WriteStats stats) {
         Set relatedConnectors = new HashSet();
         if (DotConnector.isExcluded(column, stats))
             return relatedConnectors;

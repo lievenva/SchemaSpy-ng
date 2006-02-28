@@ -73,8 +73,7 @@ public class ForeignKeyConstraint {
     public static String toString(List columns) {
         if (columns.size() == 1)
             return columns.iterator().next().toString();
-        else
-            return columns.toString();
+        return columns.toString();
     }
 
     public String toString() {

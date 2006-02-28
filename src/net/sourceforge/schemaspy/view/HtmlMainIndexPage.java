@@ -1,7 +1,6 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.*;
-import java.sql.*;
 import java.text.*;
 import java.util.*;
 import net.sourceforge.schemaspy.model.*;
@@ -21,7 +20,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection tables, boolean showRelationshipsGraph, boolean showOrphansGraph, LineWriter html) throws IOException, SQLException {
+    public void write(Database database, Collection tables, boolean showRelationshipsGraph, boolean showOrphansGraph, LineWriter html) throws IOException {
         Set byName = new TreeSet(new Comparator() {
             public int compare(Object object1, Object object2) {
                 return ((Table)object1).getName().compareTo(((Table)object2).getName());
@@ -50,7 +49,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         writeFooter(numRows, html);
     }
 
-    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasRelationships, boolean hasOrphans, LineWriter html) throws IOException, SQLException {
+    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasRelationships, boolean hasOrphans, LineWriter html) throws IOException {
         writeHeader(db, null, null, hasRelationships, hasOrphans, html);
         html.writeln("<table width='100%'>");
         html.writeln(" <tr><td class='container'>");

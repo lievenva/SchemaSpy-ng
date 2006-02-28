@@ -303,12 +303,12 @@ public class Main {
             List orderedTables = spy.sortTablesByRI(recursiveConstraints);
 
             out = new LineWriter(new FileWriter(new File(outputDir, "insertionOrder.txt")), 16 * 1024);
-            TextFormatter.getInstance().write(db, orderedTables, false, out);
+            TextFormatter.getInstance().write(orderedTables, false, out);
             out.close();
 
             out = new LineWriter(new FileWriter(new File(outputDir, "deletionOrder.txt")), 16 * 1024);
             Collections.reverse(orderedTables);
-            TextFormatter.getInstance().write(db, orderedTables, false, out);
+            TextFormatter.getInstance().write(orderedTables, false, out);
             out.close();
 
             /* we'll eventually want to put this functionality back in with a
@@ -411,7 +411,7 @@ public class Main {
     }
 
     private static Connection getConnection(String user, String password, String connectionURL,
-                      String driverClass, String driverPath, String propertiesLoadedFrom) throws SQLException, MalformedURLException {
+                      String driverClass, String driverPath, String propertiesLoadedFrom) throws MalformedURLException {
         System.out.println("Using database properties:");
         System.out.println("    " + propertiesLoadedFrom);
 

@@ -44,7 +44,7 @@ public class HtmlTablePage extends HtmlFormatter {
         writeHeader(db, table, null, hasRelationships, hasOrphans, out);
         out.writeln("<table width='100%' border='0'>");
         out.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
-        writeHeader(table, stats, hasRelationships, hasOrphans, graphDir, out);
+        writeHeader(table, stats, graphDir, out);
         out.writeln("</td><td class='container' rowspan='2' align='right' valign='top'>");
         writeLegend(true, out);
         out.writeln("</td><tr valign='top'><td class='container' align='left' valign='top'>");
@@ -67,7 +67,7 @@ public class HtmlTablePage extends HtmlFormatter {
         return stats;
     }
 
-    private void writeHeader(Table table, WriteStats stats, boolean hasRelationships, boolean hasOrphans, File graphDir, LineWriter html) throws IOException {
+    private void writeHeader(Table table, WriteStats stats, File graphDir, LineWriter html) throws IOException {
         StyleSheet css = StyleSheet.getInstance();
         html.writeln("<form name='options' action=''>");
         if (stats.wroteImplied()) {
