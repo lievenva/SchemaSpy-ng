@@ -1,0 +1,173 @@
+<html>
+<head>
+  <title>SchemaSpy Release Notes</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+  <style type="text/css">
+    body     { color: #000000; background-color: #F7F7F7; font-family: verdana, times, sans-serif; }
+    .release { font-weight: bold; padding-top: 12px}
+    li       { font-weight: normal; }
+  </style>
+</head>
+<body>
+<h3>SchemaSpy Release Notes</h3>
+<ul>
+
+<li class='release'>2.1.2 - 02/28/2006
+<ul>
+<li>Now generates a relatively useful relationships page even if dot fails 
+	to build the larger (and more likely to break Graphviz's dot) images.</li>
+<li>Lots of minor code cleanup after cranking up Eclipse's warning levels.</li>
+</ul>
+</li>
+
+<li class='release'>2.1.1 - 02/05/2006
+<ul>
+<li>Added a more descriptive error message when the correct version of 
+    Graphviz dot isn't installed.</li>
+<li>Some people were having problems by passing -cp to java and not to SchemaSpy.  
+    The classpath-related error messages now clearly specify where -cp belongs.</li>
+<li>Revamped the classpath-related error messages to include the classpath 
+    entries that weren't valid.  This should make it easier to track down JDBC 
+    driver issues.</li>
+<li>Updated MySQL's configuration file to point to the latest JDBC drivers.  
+    Also gave the URL for the Connector/J drivers.</li>
+</ul>
+</li>
+
+<li class='release'>2.1.0 - 11/23/2005
+<ul>
+<li>SchemaSpy can now analyze all of the schemas of a database with one command.
+    This feature should allow a DBA to do a bulk analysis, documenting every user 
+    schema with one command.</li>
+<li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1350392&group_id=137197&atid=737987">bug 1350392</a>
+    - NullPointer if FK table not in analyzed schema.</li>
+<li>Was missing the border along the top edge of the page.</li>
+<li>Luke Hutteman found a threading issue while reviewing portions of the code.  
+    Thanks Luke!</li>
+<li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1351460&group_id=137197&atid=737987">bug 1351460</a>
+    - Tab background color mis-named.</li>
+<li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1351488&group_id=137197&atid=737987">bug 1351488</a>
+    - Relationships tab displayed when no relationships exist.</li>
+<li>The layout of the tab area is now significantly cleaner.</li>
+<li>Added -rankdirbug option to deal with the dot bugs that invariably result from 
+    using a non-standard rankdir in .dot files.  
+    This option should not be used unless absolutely necessary.</li>
+<li>Refactored many of the 'formatters' to become 'pages'.</li>
+</ul>
+</li>
+
+<li class='release'>2.0.0 - 11/06/2005
+<ul>
+<li>SchemaSpy now uses a tabbed layout that results in a significantly cleaner page.</li>
+<li>You now have the ability to explicitly exclude columns from the relationship 
+    analysis using a regular expression notation.  
+    This keeps those pesky tables that are related to everything from severely 
+    cluttering your view of your schema.</li>
+<li>Added information in the graphs about how many 'parent' and 'child' tables are 
+    related to a given table.  
+    This gives a visual clue that there are more tables beyond the outskirts of 
+    what's currently visible.</li>
+<li>SchemaSpy now supports HSQLDB thanks to bension providing a hsqldb.properties 
+    configuration file.</li>
+<li>Added support for DB2 UDB Type 4 driver.</li>
+<li>The graphs are now clearer due to the use of a sans serif font.</li>
+<li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1340880&group_id=137197&atid=737987">bug 1340880</a>
+    - accent characters cause dot to fail.  
+    SchemaSpy now generates the .dot files using the UTF-8 character set, which 
+    is what the dot program expects.</li>
+</ul>
+</li>
+
+<li class='release'>1.7.1 - 10/20/2005
+<ul>
+<li>Added support for DB2's Net (Type 4) driver.</li>
+<li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1325650&group_id=137197&atid=737987">bug 1325650</a>.
+    Was having more problems with extracting information on Oracle indexes.  
+    Due to an Oracle driver bug (Oracle bug #2686037) I inverted how the 
+    selectIndexesSql gets evaluated and significantly optimized the SQL.  
+    Thanks to Andrea for helping to figure all of this out.</li>
+<li>Added details of the -cp option to the diagnostic messages when unable to 
+    load database drivers.</li>
+<li>Fixed some minor cosmetic problems.</li>
+</ul>
+</li>
+
+<li class='release'>1.7.0 - 10/11/2005
+<ul>
+<li>SchemaSpy now supports PostgreSQL thanks to Tomi Ollila providing a 
+    pgsql.properties.</li>
+<li>Added a new page that lists all of the columns (with details) in the schema.  
+    The intent of this page is to make it easier to find inconsistencies in the 
+    schema as well as make it easier to do things like search for all instances 
+    of a certain type of column (e.g. 'timestamp').</li>
+<li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1283622&group_id=137197&atid=737987">bug 1283622</a>.
+    A user from the Slovak Republic ran into problems where dot was unable to 
+    deal with some of the characters that are in this character set.  
+    Now it should handle them appropriately.</li>
+<li>Refactored how the links on each page get generated.  
+    It was pretty much cut and paste before.  
+    Now it's consolidated in HtmlFormatter.writeTableOfContents() so it's much 
+    more consistent and easier to change.</li>
+<li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1312220&group_id=137197&atid=737990">feature request 1312220</a>:
+    Modified build.xml to include an appropriate level of debug information 
+    (source files and line numbers).</li>
+</ul>
+</li>
+
+<li class='release'>1.6.1 - 09/16/2005
+<ul>
+<li>Fixed Utilities page to not have the 'Generated by SchemaSpy' label on each 
+    table.</li>
+<li>Yan-Fa Li figured out what was causing dot problems on Unix: quotes around 
+    filenames.</li>
+<li>Updated the legend to somewhat match the new IE diagram representation.</li>
+</ul>
+</li>
+
+<li class='release'>1.6.0 - 09/11/2005 
+<ul>
+<li>Now displays graphical relationships using Information Engineering (IE) notation.
+    This should make it easier to understand the different types of relationships 
+    in the schema.</li>
+<li>Beefed-up the code that detects if dot is being executed correctly.
+    Some users were getting output that implied that dot was working, but no images 
+    were created.</li>
+<li>Added version information to .dot files to help debugging.</li>
+<li>Anomalies page had some anomalies.</li>
+</ul>
+</li>
+
+<li class='release'>1.5.2 - 09/03/2005
+<ul>
+<li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1280949&group_id=137197&atid=737990">feature request 1280949</a>:
+    Many of DB2's error messages don't give table, column or constraint names but 
+    instead give their IDs.  
+    As a developer it's a pain to have to try to translate these IDs into something useful.
+    SchemaSpy previously gave these details before I converted to the JDBC metadata 
+    approach, which doesn't return these IDs.  
+    It now displays these IDs for database types that support it and that have the 
+    appropriate SQL defined in their properties files.</li>
+</ul>
+</li>
+
+<li class='release'>1.5.0 - 08/30/2005
+<ul>
+<li>Now displays two versions of the main relationships graph: a smaller 'compact' 
+    version and a large full-size version.  
+    The compact version should make it easier to get a 'big picture' view of the 
+    relationships.</li>
+<li>Now takes advantage of the GraphVis dot 2.6 ability to point to the East/West 
+    center of a node if running dot 2.6 or higher.</li>
+<li>Figured out a way to have the graph point to the appropriate portion of the 
+    main table in the table detail pages.</li>
+<li>Introduced a new anomaly: Columns whose default value is the word 'NULL' or 'null',
+    but the SQL NULL value may have been intended.</li>
+<li>Realized that index sort order relates to the column, not the index.  
+    Not sure what I was thinking.</li>
+<li>Added some instructions on the format of connectionSpec in the .properties files.</li>
+</ul>
+</li>
+
+</ul>
+</body>
+</html>
