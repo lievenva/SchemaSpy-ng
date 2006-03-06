@@ -66,8 +66,10 @@ public class Dot {
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
         } catch (DotFailure failed) {
+            graphFile.delete();
             throw failed;
         } catch (IOException failed) {
+            graphFile.delete();
             throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
         }
     }
