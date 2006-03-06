@@ -24,66 +24,58 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         File compactImpliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.compact.png");
         File largeImpliedDotFile = new File(graphDir, dotBaseFilespec + ".implied.large.dot");
         File largeImpliedGraphFile = new File(graphDir, dotBaseFilespec + ".implied.large.png");
-        boolean somethingFailed = false;
 
         try {
             Dot dot = getDot();
             if (dot == null)
                 return false;
 
+            System.out.print(".");
             dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile);
             System.out.print(".");
-            try {
-                dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
-                System.out.print(".");
-            } catch (Dot.DotFailure dotFailure) {
-                System.err.println(dotFailure);
-                somethingFailed = true;
-            }
             writeHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasImpliedRelationships, html);
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
             html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
             html.writeln("</td></tr></table>");
             writeExcludedColumns(excludedColumns, html);
-
             dot.writeMap(compactRelationshipsDotFile, html);
-            dot.writeMap(largeRelationshipsDotFile, html);
+            System.out.print(".");
 
-            if (hasImpliedRelationships) {
-                try {
+            // we've run into instances where the first graphs get generated, but then
+            // dot fails on the second one...try to recover from that scenario 'somewhat'
+            // gracefully
+            try {
+                dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
+                System.out.print(".");
+                dot.writeMap(largeRelationshipsDotFile, html);
+                System.out.print(".");
+    
+                if (hasImpliedRelationships) {
                     dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile);
+                    System.out.print(".");
                     dot.writeMap(compactImpliedDotFile, html);
                     System.out.print(".");
-                } catch (Dot.DotFailure dotFailure) {
-                    System.err.println(dotFailure);
-                    somethingFailed = true;
-                }
-
-                try {
+    
                     dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile);
+                    System.out.print(".");
                     dot.writeMap(largeImpliedDotFile, html);
                     System.out.print(".");
-                } catch (Dot.DotFailure dotFailure) {
-                    System.err.println(dotFailure);
-                    somethingFailed = true;
                 }
+            } catch (Dot.DotFailure dotFailure) {
+                System.err.println("dot failed to generate all of the relationships graphs:");
+                System.err.println(dotFailure);
+                System.err.println("...but the relationships page may still be usable.");
             }
 
             writeFooter(html);
-            if (somethingFailed) {
-                System.out.println();
-                System.out.println("Relationships page will be incomplete, but hopefully usable.");
-            }
+            return true;
         } catch (Dot.DotFailure dotFailure) {
-            System.err.println("Failed to create relationships page:");
             System.err.println(dotFailure);
             return false;
         } catch (IOException ioExc) {
             ioExc.printStackTrace();
             return false;
         }
-
-        return true;
     }
 
     private void writeHeader(Database db, File compactRelationshipsGraphFile, File largeRelationshipsGraphFile, File compactImpliedGraphFile, File largeImpliedGraphFile, String title, boolean hasOrphans, boolean hasImpliedRelationships, LineWriter html) throws IOException {
