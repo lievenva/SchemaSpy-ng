@@ -64,6 +64,24 @@ public class Database {
         String[] types = {"TABLE"};
         ResultSet rs = null;
 
+        // "macro" to validate that a table is somewhat valid
+        class TableValidator {
+            boolean isValid(ResultSet rs) throws SQLException {
+                // some databases (MySQL) return more than we wanted
+                if (!rs.getString("TABLE_TYPE").equalsIgnoreCase("TABLE"))
+                    return false;
+                
+                // Oracle 10g introduced problematic flashback tables
+                // with bizarre illegal names
+                String tableName = rs.getString("TABLE_NAME");
+                if (tableName.indexOf("$") != -1)
+                    return false;
+                
+                return true;
+            }
+        }
+        TableValidator tableValidator = new TableValidator();
+        
         try {
             // creating tables takes a LONG time (based on JProbe analysis).
             // it's actually DatabaseMetaData.getIndexInfo() that's the pig.
@@ -79,7 +97,7 @@ public class Database {
                 // "prime the pump" so if there's a database problem we'll probably see it now
                 // and not in a secondary thread
                 while (rs.next()) {
-                    if (rs.getString("TABLE_TYPE").equals("TABLE")) {  // some databases (MySQL) return more than we wanted
+                    if (tableValidator.isValid(rs)) {
                         new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
                         break;
                     }
@@ -87,7 +105,7 @@ public class Database {
             }
 
             while (rs.next()) {
-                if (rs.getString("TABLE_TYPE").equals("TABLE")) {  // some databases (MySQL) return more than we wanted
+                if (tableValidator.isValid(rs)) {
                     creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
                 }
             }
