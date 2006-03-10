@@ -156,7 +156,14 @@ public class Table implements Comparable {
             sql.append(getSchema());
             sql.append('.');
         }
+        
+        // SQL Server can have spaces in table names and wants []'s around them
+        boolean spaceInName = getName().indexOf(' ') != -1;
+        if (spaceInName)
+            sql.append('[');
         sql.append(getName());
+        if (spaceInName)
+            sql.append(']');
         sql.append(" where 0 = 1");
 
         try {
@@ -539,7 +546,14 @@ public class Table implements Comparable {
             sql.append(getSchema());
             sql.append('.');
         }
+
+        // SQL Server can have spaces in table names and wants []'s around them
+        boolean spaceInName = getName().indexOf(' ') != -1;
+        if (spaceInName)
+            sql.append('[');
         sql.append(getName());
+        if (spaceInName)
+            sql.append(']');
 
         try {
             stmt = db.getConnection().prepareStatement(sql.toString());
