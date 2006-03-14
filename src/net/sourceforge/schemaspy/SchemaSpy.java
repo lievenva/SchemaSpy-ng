@@ -25,9 +25,9 @@ public class SchemaSpy {
      * @return
      */
     public List sortTablesByRI(Collection recursiveConstraints) {
-        final List heads = new ArrayList();
-        final List tails = new ArrayList();
-        final List remainingTables = new ArrayList(getDatabase().getTables());
+        List heads = new ArrayList();
+        List tails = new ArrayList();
+        List remainingTables = new ArrayList(getDatabase().getTables());
         List unattached = new ArrayList();
 
         // first pass to gather the 'low hanging fruit'
@@ -86,8 +86,12 @@ public class SchemaSpy {
         List ordered = new ArrayList(heads.size() + tails.size());
         for (Iterator iter = heads.iterator(); iter.hasNext(); )
             ordered.add(iter.next());
+        heads = null; // allow gc ASAP
+        
         for (Iterator iter = tails.iterator(); iter.hasNext(); )
             ordered.add(iter.next());
+        tails = null; // allow gc ASAP
+        
         for (Iterator iter = unattached.iterator(); iter.hasNext(); )
             ordered.add(iter.next());
 
