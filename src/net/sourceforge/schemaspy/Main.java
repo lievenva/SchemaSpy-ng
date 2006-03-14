@@ -74,6 +74,11 @@ public class Main {
             try {
                 maxDetailedTables = Integer.parseInt(getParam(args, "-maxdet"));
             } catch (Exception notSpecified) {}
+            
+            Properties userProperties = new Properties();
+            String loc = getParam(args, "-connprops");
+            if (loc != null)
+                userProperties.load(new FileInputStream(loc));
 
             String classpath = getParam(args, "-cp");
 
@@ -127,7 +132,7 @@ public class Main {
             if (classpath != null)
                 driverPath = classpath + File.pathSeparator + driverPath;
 
-            Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), driverClass, driverPath, propertiesLoadedFrom.toString());
+            Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), driverClass, driverPath, propertiesLoadedFrom.toString(), userProperties);
             DatabaseMetaData meta = connection.getMetaData();
 
             if (analyzeAll) {
@@ -438,7 +443,7 @@ public class Main {
     }
 
     private static Connection getConnection(String user, String password, String connectionURL,
-                      String driverClass, String driverPath, String propertiesLoadedFrom) throws MalformedURLException {
+                      String driverClass, String driverPath, String propertiesLoadedFrom, Properties userProperties) throws MalformedURLException {
         System.out.println("Using database properties:");
         System.out.println("    " + propertiesLoadedFrom);
 
@@ -487,6 +492,7 @@ public class Main {
         connectionProperties.put("user", user);
         if (password != null)
             connectionProperties.put("password", password);
+        connectionProperties.putAll(userProperties);
 
         Connection connection = null;
         try {
