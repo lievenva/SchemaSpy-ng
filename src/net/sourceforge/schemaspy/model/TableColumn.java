@@ -10,10 +10,12 @@ public class TableColumn {
     private final Object id;
     private final String type;
     private final int length;
+    private final int decimalDigits;
     private final String detailedSize;
     private final boolean isNullable;
     private       boolean isAutoUpdated;
     private final Object defaultValue;
+    private final String remarks;
     private final Map parents = new HashMap();
     private final Map children = new TreeMap(new ColumnComparator());
 
@@ -28,7 +30,7 @@ public class TableColumn {
         this.table = table;
         name = rs.getString("COLUMN_NAME");
         type = rs.getString("TYPE_NAME");
-        int decimalDigits = rs.getInt("DECIMAL_DIGITS");
+        decimalDigits = rs.getInt("DECIMAL_DIGITS");
         length = rs.getInt("COLUMN_SIZE");
 
         StringBuffer buf = new StringBuffer();
@@ -41,6 +43,8 @@ public class TableColumn {
 
         isNullable = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
         defaultValue = rs.getString("COLUMN_DEF");
+        String tmp = rs.getString("REMARKS");
+        remarks = (tmp == null || tmp.length() == 0) ? null : tmp;
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
     }
 
@@ -62,6 +66,10 @@ public class TableColumn {
 
     public int getLength() {
         return length;
+    }
+    
+    public int getDecimalDigits() {
+        return decimalDigits;
     }
 
     public String getDetailedSize() {
@@ -97,6 +105,13 @@ public class TableColumn {
 
     public Object getDefaultValue() {
         return defaultValue;
+    }
+    
+    /**
+     * @return Remarks associated with this column, or <code>null</code> if none.
+     */
+    public String getRemarks() {
+        return remarks;
     }
 
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {

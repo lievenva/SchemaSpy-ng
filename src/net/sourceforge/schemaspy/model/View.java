@@ -6,7 +6,7 @@ public class View extends Table {
     private final String viewSql;
 
     public View(Database db, ResultSet rs, DatabaseMetaData meta, String selectViewSql) throws SQLException {
-        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), meta, null);
+        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), rs.getString("REMARKS"), meta, null);
         viewSql = getViewSql(db, selectViewSql);
     }
 

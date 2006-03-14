@@ -13,12 +13,14 @@ public class Table implements Comparable {
     private       Object id;
     private final Map checkConstraints = new TreeMap(new ByCheckConstraintStringsComparator());
     private final int numRows;
+    private final String remarks;
     private int maxChildren;
     private int maxParents;
 
-    public Table(Database db, String schema, String name, DatabaseMetaData meta, Properties properties) throws SQLException {
+    public Table(Database db, String schema, String name, String remarks, DatabaseMetaData meta, Properties properties) throws SQLException {
         this.schema = schema;
         this.name = name;
+        this.remarks = (remarks == null || remarks.length() == 0) ? null : remarks;
         initColumns(meta);
         initIndexes(db, meta, properties);
         initPrimaryKeys(meta);
@@ -157,13 +159,10 @@ public class Table implements Comparable {
             sql.append('.');
         }
         
-        // SQL Server can have spaces in table names and wants []'s around them
-        boolean spaceInName = getName().indexOf(' ') != -1;
-        if (spaceInName)
-            sql.append('[');
+        String escape = meta.getIdentifierQuoteString();
+        sql.append(escape);
         sql.append(getName());
-        if (spaceInName)
-            sql.append(']');
+        sql.append(escape);
         sql.append(" where 0 = 1");
 
         try {
@@ -324,6 +323,13 @@ public class Table implements Comparable {
 
     public List getPrimaryColumns() {
         return Collections.unmodifiableList(primaryKeys);
+    }
+    
+    /**
+     * @return Remarks associated with this table, or <code>null</code> if none.
+     */
+    public String getRemarks() {
+        return remarks;
     }
 
     public TableColumn getColumn(String columnName) {
