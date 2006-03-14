@@ -4,13 +4,17 @@ import java.io.*;
 import java.net.*;
 import java.sql.*;
 import java.util.*;
-import java.util.jar.*;
-import java.util.regex.*;
-//import javax.xml.parsers.*;
-//import org.w3c.dom.*;
-import net.sourceforge.schemaspy.model.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+import java.util.regex.Pattern;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.util.*;
 import net.sourceforge.schemaspy.view.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class Main {
     public static void main(String[] argv) {
@@ -41,7 +45,7 @@ public class Main {
             final boolean generateHtml = !args.remove("-nohtml");
             final boolean includeImpliedConstraints = !args.remove("-noimplied");
 
-            String outputDirName = getParam(args, "-o", true, false);
+            String outputDirName = getRequiredParam(args, "-o");
             // quoting command-line arguments sometimes leaves the trailing "
             if (outputDirName.endsWith("\""))
                 outputDirName = outputDirName.substring(0, outputDirName.length() - 1);
@@ -53,23 +57,27 @@ public class Main {
                 }
             }
 
-            String dbType = getParam(args, "-t", false, false);
+            String dbType = getParam(args, "-t");
             if (dbType == null)
                 dbType = "ora";
             StringBuffer propertiesLoadedFrom = new StringBuffer();
             Properties properties = getDbProperties(dbType, propertiesLoadedFrom);
 
-            String user = getParam(args, "-u", true, false);
-            String password = getParam(args, "-p", false, false);
+            String user = getRequiredParam(args, "-u");
+            String password = getParam(args, "-p");
             String schema = null;
             try {
                 schema = getParam(args, "-s", false, true);
-            } catch (Exception schemaNotSpecified) {
-            }
+            } catch (Exception schemaNotSpecified) {}
 
-            String classpath = getParam(args, "-cp", false, false);
+            int maxDetailedTables = 300;
+            try {
+                maxDetailedTables = Integer.parseInt(getParam(args, "-maxdet"));
+            } catch (Exception notSpecified) {}
 
-            String css = getParam(args, "-css", false, false);
+            String classpath = getParam(args, "-cp");
+
+            String css = getParam(args, "-css");
             if (css == null)
                 css = "schemaSpy.css";
 
@@ -86,7 +94,7 @@ public class Main {
             }
 
             Pattern exclusions;
-            String exclude = getParam(args, "-x", false, false);
+            String exclude = getParam(args, "-x");
             if (exclude != null) {
                 exclusions = Pattern.compile(exclude);
             } else {
@@ -104,7 +112,7 @@ public class Main {
             String dbName = urlBuilder.getDbName();
 
             boolean analyzeAll = args.remove("-all");
-            String schemaSpec = getParam(args, "-schemaSpec", false, false);
+            String schemaSpec = getParam(args, "-schemaSpec");
 
             if (args.size() != 0) {
                 System.out.print("Warning: Unrecognized option(s):");
@@ -124,9 +132,9 @@ public class Main {
 
             if (analyzeAll) {
                 args = new ArrayList(Arrays.asList(argv));
-                getParam(args, "-o", false, false);  // param will be replaced by something appropriate
-                getParam(args, "-s", false, false);  // param will be replaced by something appropriate
-                args.remove("-all");                 // param will be replaced by something appropriate
+                getParam(args, "-o");   // param will be replaced by something appropriate
+                getParam(args, "-s");   // param will be replaced by something appropriate
+                args.remove("-all");    // param will be replaced by something appropriate
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
                 MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, user, outputDir, getLoadedFromJar());
@@ -162,14 +170,15 @@ public class Main {
                 System.exit(2);
             }
 
-//            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-//            DocumentBuilder builder = factory.newDocumentBuilder();
-//            Document document = builder.newDocument();
-//            Element schemaNode = document.createElement("schema");
-//            document.appendChild(schemaNode);
-//            if (schema != null)
-//                DOMUtil.appendAttribute(schemaNode, "name", schema);
-//            DOMUtil.appendAttribute(schemaNode, "databaseType", db.getDatabaseProduct());
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.newDocument();
+            Element rootNode = document.createElement("database");
+            document.appendChild(rootNode);
+            DOMUtil.appendAttribute(rootNode, "name", dbName);
+            if (schema != null)
+                DOMUtil.appendAttribute(rootNode, "schema", schema);
+            DOMUtil.appendAttribute(rootNode, "type", db.getDatabaseProduct());
 
             if (generateHtml) {
                 startSummarizing = System.currentTimeMillis();
@@ -179,11 +188,13 @@ public class Main {
                 ImageWriter.getInstance().writeImages(outputDir);
                 System.out.print(".");
 
+                boolean showDetailedTables = tables.size() <= maxDetailedTables;
+
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
                 WriteStats stats = new WriteStats(exclusions, includeImpliedConstraints);
-                DotFormatter.getInstance().writeRealRelationships(tables, true, stats, out);
+                DotFormatter.getInstance().writeRealRelationships(tables, true, showDetailedTables, stats, out);
                 boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 stats = new WriteStats(stats);
                 out.close();
@@ -191,7 +202,7 @@ public class Main {
                 if (hasRelationships) {
                     System.out.print(".");
                     out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
-                    DotFormatter.getInstance().writeRealRelationships(tables, false, stats, out);
+                    DotFormatter.getInstance().writeRealRelationships(tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
                 }
@@ -213,7 +224,7 @@ public class Main {
                     File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
                     out = new LineWriter(new FileOutputStream(impliedDotFile));
                     stats = new WriteStats(exclusions, includeImpliedConstraints);
-                    DotFormatter.getInstance().writeAllRelationships(tables, true, stats, out);
+                    DotFormatter.getInstance().writeAllRelationships(tables, true, showDetailedTables, stats, out);
                     boolean hasImplied = stats.wroteImplied();
                     Set excludedColumns = stats.getExcludedColumns();
                     stats = new WriteStats(stats);
@@ -221,7 +232,7 @@ public class Main {
                     if (hasImplied) {
                         impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
                         out = new LineWriter(new FileOutputStream(impliedDotFile));
-                        DotFormatter.getInstance().writeAllRelationships(tables, false, stats, out);
+                        DotFormatter.getInstance().writeAllRelationships(tables, false, showDetailedTables, stats, out);
                         stats = new WriteStats(stats);
                         out.close();
                     } else {
@@ -279,8 +290,6 @@ public class Main {
                     tableFormatter.write(db, table, hasRelationships, hasOrphans, outputDir, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
-
-//                    XmlTableFormatter.getInstance().appendTable(schemaNode, table, outputDir);
                 }
 
                 out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.css")));
@@ -291,11 +300,29 @@ public class Main {
                 out.close();
             }
 
-//            out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.xml")), 24 * 1024);
-//            document.getDocumentElement().normalize();
-//            DOMUtil.printDOM(document, out);
-//            out.close();
 
+            XmlTableFormatter.getInstance().appendTables(rootNode, tables);
+            
+            String xmlName = dbName;
+            if (schema != null)
+                xmlName += '.' + schema;
+            out = new LineWriter(new FileWriter(new File(outputDir, xmlName + ".xml")), 24 * 1024);
+            document.getDocumentElement().normalize();
+            DOMUtil.printDOM(document, out);
+            out.close();
+
+            // 'try' to make some memory available for the sorting process
+            // (some people have run out of memory while RI sorting tables)
+            builder = null;
+            connection = null;
+            db = null;
+            document = null;
+            factory = null;
+            meta = null;
+            properties = null;
+            rootNode = null;
+            urlBuilder = null;
+            
             List recursiveConstraints = new ArrayList();
 
             // side effect is that the RI relationships get trashed
@@ -357,9 +384,9 @@ public class Main {
             threads = properties.getProperty("dbthreads");
         if (threads != null)
             maxThreads = Integer.parseInt(threads);
-        threads = getParam(args, "-dbThreads", false, false);
+        threads = getParam(args, "-dbThreads");
         if (threads == null)
-            threads = getParam(args, "-dbthreads", false, false);
+            threads = getParam(args, "-dbthreads");
         if (threads != null)
             maxThreads = Integer.parseInt(threads);
         if (maxThreads < 0)
@@ -652,6 +679,14 @@ public class Main {
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
     }
 
+    private static String getParam(List args, String paramId) {
+        return getParam(args, paramId, false, false);
+    }
+
+    private static String getRequiredParam(List args, String paramId) {
+        return getParam(args, paramId, true, false);
+    }
+
     private static String getParam(List args, String paramId, boolean required, boolean dbTypeSpecific) {
         int paramIndex = args.indexOf(paramId);
         if (paramIndex < 0) {
@@ -667,7 +702,7 @@ public class Main {
         args.remove(paramIndex);
         return param;
     }
-
+    
     /**
      * Allow an equal sign in args...like "-db=dbName"
      *
