@@ -268,19 +268,19 @@ public class DotFormatter {
         dot.writeln("  ];");
 }
 
-    public void writeRealRelationships(Collection tables, boolean compact, WriteStats stats, LineWriter dot) throws IOException {
+    public void writeRealRelationships(Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
         boolean oldImplied = stats.setIncludeImplied(false);
-        writeRelationships(tables, compact, stats, dot);
+        writeRelationships(tables, compact, details, stats, dot);
         stats.setIncludeImplied(oldImplied);
     }
 
-    public void writeAllRelationships(Collection tables, boolean compact, WriteStats stats, LineWriter dot) throws IOException {
+    public void writeAllRelationships(Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
         boolean oldImplied = stats.setIncludeImplied(true);
-        writeRelationships(tables, compact, stats, dot);
+        writeRelationships(tables, compact, details, stats, dot);
         stats.setIncludeImplied(oldImplied);
     }
 
-    private void writeRelationships(Collection tables, boolean compact, WriteStats stats, LineWriter dot) throws IOException {
+    private void writeRelationships(Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         String graphName;
         if (stats.includeImplied()) {
@@ -302,7 +302,7 @@ public class DotFormatter {
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
             if (!table.isOrphan(stats.includeImplied())) {
-                nodes.put(table, new DotNode(table, true, "tables/"));
+                nodes.put(table, new DotNode(table, details, "tables/"));
             }
         }
 
