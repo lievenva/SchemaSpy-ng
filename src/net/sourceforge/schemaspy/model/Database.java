@@ -98,7 +98,7 @@ public class Database {
                 // and not in a secondary thread
                 while (rs.next()) {
                     if (tableValidator.isValid(rs)) {
-                        new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                        new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), rs.getString("REMARKS"), properties);
                         break;
                     }
                 }
@@ -106,7 +106,7 @@ public class Database {
 
             while (rs.next()) {
                 if (tableValidator.isValid(rs)) {
-                    creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), properties);
+                    creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), rs.getString("REMARKS"), properties);
                 }
             }
 
@@ -313,12 +313,12 @@ public class Database {
         /**
          * Create a table and put it into <code>tables</code>
          */
-        void create(String schemaName, String tableName, Properties properties) throws SQLException {
-            createImpl(schemaName, tableName, properties);
+        void create(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
+            createImpl(schemaName, tableName, remarks, properties);
         }
 
-        protected void createImpl(String schemaName, String tableName, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, schemaName, tableName, meta, properties);
+        protected void createImpl(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
+            Table table = new Table(Database.this, schemaName, tableName, remarks, meta, properties);
             tables.put(table.getName().toUpperCase(), table);
             System.out.print('.');
         }
@@ -342,11 +342,11 @@ public class Database {
             this.maxThreads = maxThreads;
         }
 
-        void create(final String schemaName, final String tableName, final Properties properties) throws SQLException {
+        void create(final String schemaName, final String tableName, final String remarks, final Properties properties) throws SQLException {
             Thread runner = new Thread() {
                 public void run() {
                     try {
-                        createImpl(schemaName, tableName, properties);
+                        createImpl(schemaName, tableName, remarks, properties);
                     } catch (SQLException exc) {
                         exc.printStackTrace(); // nobody above us in call stack...dump it here
                     } finally {
