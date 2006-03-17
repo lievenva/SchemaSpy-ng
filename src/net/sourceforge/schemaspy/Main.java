@@ -621,6 +621,7 @@ public class Main {
             System.out.println("                           use 1 if you get 'already closed' type errors");
             System.out.println("   -x columnNamesRegex   exclude matching columns from analysis");
             System.out.println("                           e.g.: -x \"(book.isbn)|(borrower.address)\"");
+            System.out.println("   -maxdet               max tables to put on relationships page w/full details");
             System.out.println("   -nohtml               defaults to generate html");
             System.out.println("   -noimplied            defaults to generate implied relationships");
             System.out.println("   -all                  analyze all \"user\" schemas in the specified database");
