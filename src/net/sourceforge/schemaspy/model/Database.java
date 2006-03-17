@@ -134,7 +134,8 @@ public class Database {
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
                     Table table = (Table)tables.get(tableName.toUpperCase());
-                    table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
+                    if (table != null)
+                        table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
             } catch (SQLException sqlException) {
                 System.err.println();
@@ -289,7 +290,8 @@ public class Database {
                 if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
                     System.out.print('.');
                     Table view = new View(this, rs, metadata, properties.getProperty("selectViewSql"));
-                    views.put(view.getName().toUpperCase(), view);
+                    if (view != null)
+                        views.put(view.getName().toUpperCase(), view);
                 }
             }
         } finally {
