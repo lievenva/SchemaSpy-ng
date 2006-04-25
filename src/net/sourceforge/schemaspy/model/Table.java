@@ -88,10 +88,10 @@ public class Table implements Comparable {
                 childColumn.addParent(parentColumn, foreignKey);
                 parentColumn.addChild(childColumn, foreignKey);
             } else {
-                System.err.println("Couldn't add FK - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
+                System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
             }
         } else {
-            System.err.println("Couldn't add FK - Unknown Parent Table '" + rs.getString("PKTABLE_NAME") + "'");
+            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Table '" + rs.getString("PKTABLE_NAME") + "'");
         }
     }
 

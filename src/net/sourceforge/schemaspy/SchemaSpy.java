@@ -2,13 +2,14 @@ package net.sourceforge.schemaspy;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.*;
 
 public class SchemaSpy {
     private final Database database;
 
-    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, Properties properties, int maxThreads) throws SQLException {
-        database = new Database(connection, meta, dbName, schema, properties, maxThreads);
+    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, Properties properties, Pattern include, int maxThreads) throws SQLException {
+        database = new Database(connection, meta, dbName, schema, properties, include, maxThreads);
     }
 
     public Database getDatabase() {

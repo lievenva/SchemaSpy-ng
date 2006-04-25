@@ -103,7 +103,15 @@ public class Main {
             if (exclude != null) {
                 exclusions = Pattern.compile(exclude);
             } else {
-                exclusions = Pattern.compile("[^.]");  // match nothing
+                exclusions = Pattern.compile("[^.]");   // match nothing
+            }
+            
+            Pattern inclusions;
+            String include = getParam(args, "-i");
+            if (include != null) {
+                inclusions = Pattern.compile(include);
+            } else {
+                inclusions = Pattern.compile(".*");     // match anything
             }
 
             ConnectionURLBuilder urlBuilder = null;
@@ -163,7 +171,7 @@ public class Main {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties, maxDbThreads);
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties, inclusions, maxDbThreads);
             Database db = spy.getDatabase();
 
             LineWriter out;
@@ -171,7 +179,7 @@ public class Main {
             tables.addAll(db.getViews());
 
             if (tables.isEmpty()) {
-                dumpNoTablesMessage(schema, user, meta);
+                dumpNoTablesMessage(schema, user, meta, include != null);
                 System.exit(2);
             }
 
@@ -409,22 +417,27 @@ public class Main {
      * @param user String
      * @param meta DatabaseMetaData
      */
-    private static void dumpNoTablesMessage(String schema, String user, DatabaseMetaData meta) throws SQLException {
+    private static void dumpNoTablesMessage(String schema, String user, DatabaseMetaData meta, boolean specifiedInclusions) throws SQLException {
         System.out.println();
         System.out.println();
-        System.out.println("No tables or views were found in schema " + schema + ".");
+        System.out.println("No tables or views were found in schema '" + schema + "'.");
         List schemas = DBAnalyzer.getSchemas(meta);
-        if (schemas.contains(schema)) {
-            System.out.println("The schema exists in the database, but the user you specified '" + user + "'");
+        if (schema == null || schemas.contains(schema)) {
+            System.out.println("The schema exists in the database, but the user you specified (" + user + ')');
             System.out.println("  might not have rights to read its contents.");
+            if (specifiedInclusions) {
+                System.out.println("Another possibility is that the regular expression that you specified");
+                System.out.println("  for what to include (via -i) didn't match any tables.");
+            }
         } else {
             System.out.println("The schema does not exist in the database.");
-            System.out.println("Make sure you specify a valid schema with the -s option and that the user");
-            System.out.println("  specified '" + user + "' can read from the schema.");
+            System.out.println("Make sure that you specify a valid schema with the -s option and that");
+            System.out.println("  the user specified (" + user + ") can read from the schema.");
             System.out.println("Note that schema names are usually case sensitive.");
         }
         System.out.println();
-        System.out.println(schemas.size() + " schemas exist in this database.");
+        boolean plural = schemas.size() != 1;
+        System.out.println(schemas.size() + " schema" + (plural ? "s" : "") + " exist" + (plural ? "" : "s") + " in this database.");
         System.out.println("Some of these \"schemas\" may be users or system schemas.");
         System.out.println();
         Iterator iter = schemas.iterator();
@@ -432,7 +445,6 @@ public class Main {
             System.out.print(iter.next() + " ");
         }
 
-        System.out.println();
         System.out.println();
         System.out.println("These schemas contain tables/views that user '" + user + "' can see:");
         System.out.println();
