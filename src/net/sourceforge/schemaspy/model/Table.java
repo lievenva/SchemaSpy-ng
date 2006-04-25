@@ -553,13 +553,10 @@ public class Table implements Comparable {
             sql.append('.');
         }
 
-        // SQL Server can have spaces in table names and wants []'s around them
-        boolean spaceInName = getName().indexOf(' ') != -1;
-        if (spaceInName)
-            sql.append('[');
+        String escape = db.getMetaData().getIdentifierQuoteString();
+        sql.append(escape);
         sql.append(getName());
-        if (spaceInName)
-            sql.append(']');
+        sql.append(escape);
 
         try {
             stmt = db.getConnection().prepareStatement(sql.toString());
