@@ -1,9 +1,10 @@
 package net.sourceforge.schemaspy.model;
 
 import java.sql.*;
-import java.text.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 public class Database {
     private final String databaseName;
@@ -14,12 +15,12 @@ public class Database {
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, int maxThreads) throws SQLException, MissingResourceException {
+    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, Pattern include, int maxThreads) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         this.databaseName = name;
         this.schema = schema;
-        initTables(schema, this.meta, properties, maxThreads);
+        initTables(schema, this.meta, properties, include, maxThreads);
         initViews(schema, this.meta, properties);
         connectTables(this.meta);
     }
@@ -60,7 +61,7 @@ public class Database {
         }
     }
 
-    private void initTables(String schema, final DatabaseMetaData metadata, final Properties properties, final int maxThreads) throws SQLException {
+    private void initTables(String schema, final DatabaseMetaData metadata, final Properties properties, final Pattern include, final int maxThreads) throws SQLException {
         String[] types = {"TABLE"};
         ResultSet rs = null;
 
@@ -75,6 +76,9 @@ public class Database {
                 // with bizarre illegal names
                 String tableName = rs.getString("TABLE_NAME");
                 if (tableName.indexOf("$") != -1)
+                    return false;
+    
+                if (!include.matcher(tableName).matches())
                     return false;
                 
                 return true;
