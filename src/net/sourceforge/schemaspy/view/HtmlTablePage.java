@@ -10,14 +10,6 @@ import net.sourceforge.schemaspy.util.*;
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set keywords = null;
-    private Map sqlToHtmlMap = new HashMap();
-    {
-        sqlToHtmlMap.put("<", "&lt;");
-        sqlToHtmlMap.put(">", "&gt;");
-        sqlToHtmlMap.put("\n", "<br>" + System.getProperty("line.separator"));
-        sqlToHtmlMap.put("\r", "");
-        sqlToHtmlMap.put(" ", "&nbsp;");
-    }
 
     private Map defaultValueAliases = new HashMap();
     {
@@ -96,7 +88,13 @@ public class HtmlTablePage extends HtmlFormatter {
 
     public boolean writeMainTable(Table table, LineWriter out) throws IOException {
         boolean onCascadeDelete = false;
-        writeMainTableHeader(table.getId() != null, false, out);
+        boolean hasComments = false;
+        for (Iterator iter = table.getColumns().iterator(); !hasComments && iter.hasNext(); ) {
+            TableColumn column = (TableColumn)iter.next();
+            hasComments |= column.getComments() != null;
+        }
+        
+        writeMainTableHeader(table.getId() != null, false, hasComments, out);
 
         out.writeln("<tbody valign='top'>");
         Set primaries = new HashSet(table.getPrimaryColumns());
@@ -106,17 +104,17 @@ public class HtmlTablePage extends HtmlFormatter {
             TableIndex index = (TableIndex)indexIter.next();
             indexedColumns.addAll(index.getColumns());
         }
-
+        
         for (Iterator iter = table.getColumns().iterator(); iter.hasNext(); ) {
             TableColumn column = (TableColumn)iter.next();
-            onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, out);
+            onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, hasComments, out);
         }
         out.writeln("</table>");
 
         return onCascadeDelete;
     }
 
-    public void writeMainTableHeader(boolean hasTableIds, boolean hasTableName, LineWriter out) throws IOException {
+    public void writeMainTableHeader(boolean hasTableIds, boolean hasTableName, boolean hasComments, LineWriter out) throws IOException {
         out.writeln("<table class='dataTable' border='1' rules='groups'>");
         int span = 6;
         if (hasTableIds)
@@ -141,11 +139,13 @@ public class HtmlTablePage extends HtmlFormatter {
         out.writeln("  <th title='Default value'>Default</th>");
         out.writeln("  <th title='Columns in tables that reference this column'>Children</th>");
         out.writeln("  <th title='Columns in tables that are referenced by this column'>Parents</th>");
+        if (hasComments)
+            out.writeln("  <th title='Comments'>Comments</th>");
         out.writeln("</tr>");
         out.writeln("</thead>");
     }
 
-    public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, LineWriter out) throws IOException {
+    public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, boolean includeComments, LineWriter out) throws IOException {
         out.writeln("<tr>");
         Table table = column.getTable();
         if (table.getId() != null) {
@@ -212,6 +212,15 @@ public class HtmlTablePage extends HtmlFormatter {
         out.write(" <td>");
         onCascadeDelete |= writeRelatives(column, true, path, out);
         out.writeln(" </td>");
+        if (includeComments) {
+            out.write(" <td class='detail'>");
+            String comments = column.getComments();
+            if (comments != null) {
+                for (int i = 0; i < comments.length(); ++i)
+                    out.write(HtmlEncoder.encode(comments.charAt(i)));
+            }
+            out.writeln(" </td>");
+        }
         out.writeln("</tr>");
         return onCascadeDelete;
     }
@@ -417,11 +426,7 @@ public class HtmlTablePage extends HtmlFormatter {
                     out.write(nextToken);
                     out.write("</a>");
                 } else {
-                    String htmlIzed = (String)sqlToHtmlMap.get(nextToken);
-                    if (htmlIzed != null)
-                        out.write(htmlIzed);
-                    else
-                        out.write(nextToken);
+                    out.write(HtmlEncoder.encode(nextToken));
                 }
             }
 
