@@ -50,7 +50,7 @@ public class XmlTableFormatter {
         DOMUtil.appendAttribute(tableNode, "name", table.getName());
         DOMUtil.appendAttribute(tableNode, "numRows", String.valueOf(table.getNumRows()));
         DOMUtil.appendAttribute(tableNode, "type", table.isView() ? "VIEW" : "TABLE");
-        DOMUtil.appendAttribute(tableNode, "remarks", table.getRemarks() == null ? "" : table.getRemarks());
+        DOMUtil.appendAttribute(tableNode, "remarks", table.getComments() == null ? "" : table.getComments());
         appendColumns(tableNode, table);
         appendPrimaryKeys(tableNode, table);
         appendIndexes(tableNode, table);
@@ -78,7 +78,7 @@ public class XmlTableFormatter {
         DOMUtil.appendAttribute(columnNode, "autoUpdated", String.valueOf(column.isAutoUpdated()));
         if (column.getDefaultValue() != null)
             DOMUtil.appendAttribute(columnNode, "defaultValue", String.valueOf(column.getDefaultValue()));
-        DOMUtil.appendAttribute(columnNode, "remarks", column.getRemarks() == null ? "" : column.getRemarks());
+        DOMUtil.appendAttribute(columnNode, "remarks", column.getComments() == null ? "" : column.getComments());
 
         Iterator iter = column.getChildren().iterator();
         while (iter.hasNext()) {
