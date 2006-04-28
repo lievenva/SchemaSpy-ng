@@ -28,14 +28,14 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         });
         byName.addAll(tables);
 
-        Table tempTable = tables.isEmpty() ? null : (Table)tables.iterator().next();
-        boolean showIds = tempTable != null && tempTable.getId() != null;
-
+        boolean showIds = false;
         int numViews = 0;
+        
         for (Iterator iter = byName.iterator(); iter.hasNext(); ) {
             Table table = (Table)iter.next();
             if (table.isView())
                 ++numViews;
+            showIds |= table.getId() != null;
         }
 
         writeHeader(database, byName.size() - numViews, numViews, showIds, showRelationshipsGraph, showOrphansGraph, html);
@@ -43,7 +43,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         int numRows = 0;
         for (Iterator iter = byName.iterator(); iter.hasNext(); ) {
             Table table = (Table)iter.next();
-            numRows += writeLineItem(table, html);
+            numRows += writeLineItem(table, showIds, html);
         }
 
         writeFooter(numRows, html);
@@ -96,6 +96,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("<colgroup>");
         html.writeln("<colgroup>");
         html.writeln("<colgroup>");
+        html.writeln("<colgroup>");
         if (showIds)
             html.writeln("<colgroup>");
         html.writeln("<thead align='left'>");
@@ -106,12 +107,13 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  <th align='right' valign='bottom'>Children</th>");
         html.writeln("  <th align='right' valign='bottom'>Parents</th>");
         html.writeln("  <th align='right' valign='bottom'>Rows</th>");
+        html.writeln("  <th align='left' valign='bottom'>Comments</th>");
         html.writeln("</tr>");
         html.writeln("</thead>");
         html.writeln("<tbody>");
     }
 
-    private int writeLineItem(Table table, LineWriter html) throws IOException {
+    private int writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
         html.writeln(" <tr>");
         html.write("  <td class='detail'><a href='tables/");
         html.write(table.getName());
@@ -119,7 +121,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.write(table.getName());
         html.writeln("</a></td>");
 
-        if (table.getId() != null) {
+        if (showIds) {
             html.write("  <td class='detail' align='right'>");
             html.write(String.valueOf(table.getId()));
             html.writeln("</td>");

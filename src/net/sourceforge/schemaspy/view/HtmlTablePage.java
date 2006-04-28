@@ -80,6 +80,7 @@ public class HtmlTablePage extends HtmlFormatter {
             html.write("syncDegrees();\">");
             html.writeln("Implied relationships");
         }
+        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".tableKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
         html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
@@ -88,13 +89,8 @@ public class HtmlTablePage extends HtmlFormatter {
 
     public boolean writeMainTable(Table table, LineWriter out) throws IOException {
         boolean onCascadeDelete = false;
-        boolean hasComments = false;
-        for (Iterator iter = table.getColumns().iterator(); !hasComments && iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
-            hasComments |= column.getComments() != null;
-        }
         
-        writeMainTableHeader(table.getId() != null, false, hasComments, out);
+        writeMainTableHeader(table.getId() != null, false, out);
 
         out.writeln("<tbody valign='top'>");
         Set primaries = new HashSet(table.getPrimaryColumns());
@@ -105,16 +101,17 @@ public class HtmlTablePage extends HtmlFormatter {
             indexedColumns.addAll(index.getColumns());
         }
         
+        boolean showIds = table.getId() != null;
         for (Iterator iter = table.getColumns().iterator(); iter.hasNext(); ) {
             TableColumn column = (TableColumn)iter.next();
-            onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, hasComments, out);
+            onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, showIds, out);
         }
         out.writeln("</table>");
 
         return onCascadeDelete;
     }
 
-    public void writeMainTableHeader(boolean hasTableIds, boolean hasTableName, boolean hasComments, LineWriter out) throws IOException {
+    public void writeMainTableHeader(boolean hasTableIds, boolean hasTableName, LineWriter out) throws IOException {
         out.writeln("<table class='dataTable' border='1' rules='groups'>");
         int span = 6;
         if (hasTableIds)
@@ -124,6 +121,7 @@ public class HtmlTablePage extends HtmlFormatter {
         out.writeln("<colgroup span='" + span + "'>");
         out.writeln("<colgroup>");
         out.writeln("<colgroup>");
+        out.writeln("<colgroup class='comment'>");
 
         out.writeln("<thead align='left'>");
         out.writeln("<tr>");
@@ -139,16 +137,14 @@ public class HtmlTablePage extends HtmlFormatter {
         out.writeln("  <th title='Default value'>Default</th>");
         out.writeln("  <th title='Columns in tables that reference this column'>Children</th>");
         out.writeln("  <th title='Columns in tables that are referenced by this column'>Parents</th>");
-        if (hasComments)
-            out.writeln("  <th title='Comments'>Comments</th>");
+        out.writeln("  <th title='Comments' class='comment'>Comments</th>");
         out.writeln("</tr>");
         out.writeln("</thead>");
     }
 
-    public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, boolean includeComments, LineWriter out) throws IOException {
+    public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
         out.writeln("<tr>");
-        Table table = column.getTable();
-        if (table.getId() != null) {
+        if (showIds) {
             out.write(" <td class='detail' align='right'>");
             out.write(String.valueOf(column.getId()));
             out.writeln("</td>");
@@ -212,15 +208,13 @@ public class HtmlTablePage extends HtmlFormatter {
         out.write(" <td>");
         onCascadeDelete |= writeRelatives(column, true, path, out);
         out.writeln(" </td>");
-        if (includeComments) {
-            out.write(" <td class='detail'>");
-            String comments = column.getComments();
-            if (comments != null) {
-                for (int i = 0; i < comments.length(); ++i)
-                    out.write(HtmlEncoder.encode(comments.charAt(i)));
-            }
-            out.writeln(" </td>");
+        out.write(" <td class='comment'>");
+        String comments = column.getComments();
+        if (comments != null) {
+            for (int i = 0; i < comments.length(); ++i)
+                out.write(HtmlEncoder.encode(comments.charAt(i)));
         }
+        out.writeln(" </td>");
         out.writeln("</tr>");
         return onCascadeDelete;
     }

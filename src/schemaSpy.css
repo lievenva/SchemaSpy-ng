@@ -113,6 +113,11 @@ table {
   text-align: right;
 }
 
+.comment {
+  display: none;
+  padding: 0px 4px;
+}
+
 .impliedNotOrphan {
 }
 

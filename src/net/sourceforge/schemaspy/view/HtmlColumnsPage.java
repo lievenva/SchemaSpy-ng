@@ -46,27 +46,20 @@ public class HtmlColumnsPage extends HtmlFormatter {
             }
         }
         
-        boolean hasComments = false;
-        iter = columns.iterator();
-        while (!hasComments && iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
-            hasComments |= column.getComments() != null;
-        }
-
-        writeHeader(database, columns.size(), showRelationshipsGraph, showOrphansGraph, hasComments, html);
+        writeHeader(database, columns.size(), showRelationshipsGraph, showOrphansGraph, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
         iter = columns.iterator();
         while (iter.hasNext()) {
             TableColumn column = (TableColumn)iter.next();
-            formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, false, hasComments, html);
+            formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, false, false, html);
         }
 
         writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfColumns, boolean hasRelationships, boolean hasOrphans, boolean hasComments, LineWriter html) throws IOException {
+    private void writeHeader(Database db, int numberOfColumns, boolean hasRelationships, boolean hasOrphans, LineWriter html) throws IOException {
         writeHeader(db, null, "Columns", hasRelationships, hasOrphans, html);
 
         html.writeln("<table width='100%' border='0'>");
@@ -79,6 +72,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<p/>");
         StyleSheet css = StyleSheet.getInstance();
         html.writeln("<form name='options' action=''>");
+        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".tableKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
         html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
@@ -97,7 +91,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.write(" columns:</b>");
         Collection tables = db.getTables();
         boolean hasTableIds = tables.size() > 0 && ((Table)tables.iterator().next()).getId() != null;
-        HtmlTablePage.getInstance().writeMainTableHeader(hasTableIds, true, hasComments, html);
+        HtmlTablePage.getInstance().writeMainTableHeader(hasTableIds, true, html);
         html.writeln("<tbody valign='top'>");
     }
 
