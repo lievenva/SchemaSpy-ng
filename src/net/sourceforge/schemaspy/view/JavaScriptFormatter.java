@@ -31,7 +31,12 @@ public class JavaScriptFormatter {
         out.writeln("function syncOptions() {");
         out.writeln("  var options = document.options;");
         out.writeln("  if (options) {");
-        out.writeln("    var cb = options.showRelatedCols;");
+        out.writeln("    var cb = options.showComments;");
+        out.writeln("    if (cb && cb.checked) {");
+        out.writeln("      cb.checked=false;");
+        out.writeln("      cb.click();");
+        out.writeln("    }");
+        out.writeln("    cb = options.showRelatedCols;");
         out.writeln("    if (cb && cb.checked) {");
         out.writeln("      cb.checked=false;");
         out.writeln("      cb.click();");
