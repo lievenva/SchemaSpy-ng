@@ -242,7 +242,7 @@ public class DotFormatter {
         dot.writeln("// dot " + Dot.getInstance().getVersion() + " on " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
         dot.writeln("digraph \"" + graphName + "\" {");
         dot.writeln("  graph [");
-        boolean rankdirbug = System.getProperty("rankdirbug") != null;  // another nasty hack
+        boolean rankdirbug = Boolean.getBoolean("rankdirbug");  // another nasty hack
         if (!rankdirbug)
             dot.writeln("    rankdir=\"RL\"");
         dot.writeln("    bgcolor=\"" + StyleSheet.getInstance().getBodyBackground() + "\"");
