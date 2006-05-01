@@ -15,7 +15,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         return instance;
     }
 
-    public boolean write(Database db, List orphanTables, boolean hasRelationships, File graphDir, LineWriter html) throws IOException {
+    public boolean write(Database db, List orphanTables, File graphDir, LineWriter html) throws IOException {
         Dot dot = getDot();
         if (dot == null)
             return false;
@@ -29,7 +29,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
             }
         }
 
-        writeHeader(db, "Utility Tables Graph", hasRelationships, !orphansWithImpliedRelationships.isEmpty(), html);
+        writeHeader(db, "Utility Tables Graph", !orphansWithImpliedRelationships.isEmpty(), html);
 
         html.writeln("<a name='graph'>");
         try {
@@ -73,8 +73,8 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         }
     }
 
-    private void writeHeader(Database db, String title, boolean hasRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
-        writeHeader(db, null, title, hasRelationships, true, html);
+    private void writeHeader(Database db, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+        writeHeader(db, null, title, true, html);
         html.writeln("<table class='container' width='100%'>");
         html.writeln("<tr><td class='container'>");
         writeGeneratedBy(db.getConnectTime(), html);

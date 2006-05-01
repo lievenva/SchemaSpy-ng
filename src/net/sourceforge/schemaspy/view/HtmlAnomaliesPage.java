@@ -20,8 +20,8 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection tables, List impliedConstraints, boolean hasRelationships, boolean hasOrphans, LineWriter out) throws IOException {
-        writeHeader(database, hasRelationships, hasOrphans, out);
+    public void write(Database database, Collection tables, List impliedConstraints, boolean hasOrphans, LineWriter out) throws IOException {
+        writeHeader(database, hasOrphans, out);
         writeImpliedConstraints(impliedConstraints, out);
         writeTablesWithoutIndexes(DBAnalyzer.getTablesWithoutIndexes(new HashSet(tables)), out);
         writeUniqueNullables(DBAnalyzer.getMustBeUniqueNullableColumns(new HashSet(tables)), out);
@@ -31,8 +31,8 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         writeFooter(out);
     }
 
-    private void writeHeader(Database database, boolean hasRelationships, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(database, null, "Anomalies", hasRelationships, hasOrphans, html);
+    private void writeHeader(Database database, boolean hasOrphans, LineWriter html) throws IOException {
+        writeHeader(database, null, "Anomalies", hasOrphans, html);
         html.writeln("<table width='100%'>");
         if (sourceForgeLogoEnabled())
             html.writeln("  <tr><td class='container' align='right' valign='top' colspan='2'><a href='http://sourceforge.net' target='_blank'><img src='http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1' alt='SourceForge.net' border='0' height='31' width='88'></a></td></tr>");
