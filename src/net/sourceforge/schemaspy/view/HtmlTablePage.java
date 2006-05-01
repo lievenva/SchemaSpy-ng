@@ -29,11 +29,11 @@ public class HtmlTablePage extends HtmlFormatter {
         return instance;
     }
 
-    public WriteStats write(Database db, Table table, boolean hasRelationships, boolean hasOrphans, File outputDir, WriteStats stats, LineWriter out) throws IOException {
+    public WriteStats write(Database db, Table table, boolean hasOrphans, File outputDir, WriteStats stats, LineWriter out) throws IOException {
         File graphDir = new File(outputDir, "graphs");
         generateDots(table, graphDir, stats);
 
-        writeHeader(db, table, null, hasRelationships, hasOrphans, out);
+        writeHeader(db, table, null, hasOrphans, out);
         out.writeln("<table width='100%' border='0'>");
         out.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         writeHeader(table, stats, graphDir, out);
@@ -77,8 +77,10 @@ public class HtmlTablePage extends HtmlFormatter {
             html.write(" selectGraph('../graphs/" + impliedGraphFile.getName() + "', '#impliedTwoDegreesRelationshipsGraph'); ");
             html.write("toggle(" + css.getOffsetOf(".impliedRelationship") + ");");
             html.write("toggle(" + css.getOffsetOf(".degrees") + ");");
-            html.write("syncDegrees();\">");
-            html.writeln("Implied relationships");
+            html.write("syncDegrees();\"");
+            if (table.isOrphan(false))
+                html.write(" checked");
+            html.writeln(">Implied relationships");
         }
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".tableKey") + ");\" id=showRelatedCols>Related columns");
@@ -211,8 +213,11 @@ public class HtmlTablePage extends HtmlFormatter {
         out.write(" <td class='comment'>");
         String comments = column.getComments();
         if (comments != null) {
-            for (int i = 0; i < comments.length(); ++i)
-                out.write(HtmlEncoder.encode(comments.charAt(i)));
+            if (Boolean.getBoolean("encodeComments"))
+                for (int i = 0; i < comments.length(); ++i)
+                    out.write(HtmlEncoder.encode(comments.charAt(i)));
+            else
+                out.write(comments);
         }
         out.writeln(" </td>");
         out.writeln("</tr>");

@@ -123,6 +123,8 @@ public class Database {
         initCheckConstraints(properties);
         initTableIds(properties);
         initIndexIds(properties);
+        initTableComments(properties);
+        initColumnComments(properties);
     }
 
     private void initCheckConstraints(Properties properties) throws SQLException {
@@ -214,7 +216,68 @@ public class Database {
             }
         }
     }
+    
+    private void initTableComments(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectTableCommentsSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
 
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String tableName = rs.getString("table_name");
+                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    if (table != null)
+                        table.setComments(rs.getString("comments"));
+                }
+            } catch (SQLException sqlException) {
+                System.err.println();
+                System.err.println(sql);
+                throw sqlException;
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+    
+    private void initColumnComments(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectColumnCommentsSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String tableName = rs.getString("table_name");
+                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    if (table != null) {
+                        TableColumn column = table.getColumn(rs.getString("column_name"));
+                        if (column != null)
+                            column.setComments(rs.getString("comments"));
+                    }
+                }
+            } catch (SQLException sqlException) {
+                System.err.println();
+                System.err.println(sql);
+                throw sqlException;
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+    
     /**
      * Create a <code>PreparedStatement</code> from the specified SQL.
      * The SQL can contain these named parameters (but <b>not</b> question marks).
@@ -260,8 +323,11 @@ public class Database {
      */
     private List getSqlParams(StringBuffer sql, String tableName) {
         Map namedParams = new HashMap();
-        namedParams.put(":schema", getSchema());
-        namedParams.put(":owner", getSchema()); // alias for :schema
+        String schema = getSchema();
+        if (schema == null)
+            schema = getName(); // some 'schema-less' db's treat the db name like a schema (unusual case)
+        namedParams.put(":schema", schema);
+        namedParams.put(":owner", schema); // alias for :schema
         if (tableName != null) {
             namedParams.put(":table", tableName);
             namedParams.put(":view", tableName); // alias for :table

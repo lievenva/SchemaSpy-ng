@@ -88,15 +88,15 @@ public class Main {
 
             int maxDbThreads = getMaxDbThreads(args, properties);
 
-            if (!args.remove("-nologo")) {
-                // nasty hack, but passing this info everywhere churns my stomach
-                System.setProperty("sourceforgelogo", "true");
-            }
+            // nasty hack, but passing this info everywhere churns my stomach
+            System.setProperty("sourceforgelogo", String.valueOf(args.remove("-nologo")));
 
-            if (args.remove("-rankdirbug")) {
-                // and another nasty hack with the same justification as the one above
-                System.setProperty("rankdirbug", "true");
-            }
+            // and another nasty hack with the same justification as the one above
+            System.setProperty("rankdirbug", String.valueOf(args.remove("-rankdirbug")));
+            
+            // and yet another one (Allow Html In Comments - encode them unless otherwise specified)
+            System.setProperty("encodeComments", String.valueOf(!args.remove("-ahic")));
+            
 
             Pattern exclusions;
             String exclude = getParam(args, "-x");
@@ -208,11 +208,11 @@ public class Main {
                 out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
                 WriteStats stats = new WriteStats(exclusions, includeImpliedConstraints);
                 DotFormatter.getInstance().writeRealRelationships(tables, true, showDetailedTables, stats, out);
-                boolean hasRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
+                boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 stats = new WriteStats(stats);
                 out.close();
 
-                if (hasRelationships) {
+                if (hasRealRelationships) {
                     System.out.print(".");
                     out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
                     DotFormatter.getInstance().writeRealRelationships(tables, false, showDetailedTables, stats, out);
@@ -231,42 +231,40 @@ public class Main {
                 List orphans = DBAnalyzer.getOrphans(tables);
                 boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
 
-                if (hasRelationships) {
-                    System.out.print(".");
+                System.out.print(".");
 
-                    File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
+                File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
+                out = new LineWriter(new FileOutputStream(impliedDotFile));
+                stats = new WriteStats(exclusions, includeImpliedConstraints);
+                DotFormatter.getInstance().writeAllRelationships(tables, true, showDetailedTables, stats, out);
+                boolean hasImplied = stats.wroteImplied();
+                Set excludedColumns = stats.getExcludedColumns();
+                stats = new WriteStats(stats);
+                out.close();
+                if (hasImplied) {
+                    impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
                     out = new LineWriter(new FileOutputStream(impliedDotFile));
-                    stats = new WriteStats(exclusions, includeImpliedConstraints);
-                    DotFormatter.getInstance().writeAllRelationships(tables, true, showDetailedTables, stats, out);
-                    boolean hasImplied = stats.wroteImplied();
-                    Set excludedColumns = stats.getExcludedColumns();
+                    DotFormatter.getInstance().writeAllRelationships(tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
-                    if (hasImplied) {
-                        impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
-                        out = new LineWriter(new FileOutputStream(impliedDotFile));
-                        DotFormatter.getInstance().writeAllRelationships(tables, false, showDetailedTables, stats, out);
-                        stats = new WriteStats(stats);
-                        out.close();
-                    } else {
-                        impliedDotFile.delete();
-                    }
-
-                    out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                    hasRelationships = HtmlRelationshipsPage.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasImplied, excludedColumns, out);
-                    out.close();
+                } else {
+                    impliedDotFile.delete();
                 }
+
+                out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
+                HtmlRelationshipsPage.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
+                out.close();
 
                 System.out.print(".");
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
-                HtmlOrphansPage.getInstance().write(db, orphans, hasRelationships, graphsDir, out);
+                HtmlOrphansPage.getInstance().write(db, orphans, graphsDir, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
-                HtmlMainIndexPage.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                HtmlMainIndexPage.getInstance().write(db, tables, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
@@ -274,19 +272,19 @@ public class Main {
                 List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
-                constraintIndexFormatter.write(db, constraints, tables, hasRelationships, hasOrphans, out);
+                constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
-                HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasRelationships, hasOrphans, out);
+                HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new FileWriter(new File(outputDir, "columns.html")), 16 * 1024);
-                HtmlColumnsPage.getInstance().write(db, tables, hasRelationships, hasOrphans, out);
+                HtmlColumnsPage.getInstance().write(db, tables, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
@@ -300,7 +298,7 @@ public class Main {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
-                    tableFormatter.write(db, table, hasRelationships, hasOrphans, outputDir, stats, out);
+                    tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
                 }

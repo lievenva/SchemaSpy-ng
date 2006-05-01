@@ -18,7 +18,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection tables, boolean showRelationshipsGraph, boolean showOrphansGraph, LineWriter html) throws IOException {
+    public void write(Database database, Collection tables, boolean showOrphansGraph, LineWriter html) throws IOException {
         Set columns = new TreeSet(new Comparator() {
             public int compare(Object object1, Object object2) {
                 TableColumn column1 = (TableColumn)object1;
@@ -46,7 +46,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
             }
         }
         
-        writeHeader(database, columns.size(), showRelationshipsGraph, showOrphansGraph, html);
+        writeHeader(database, columns.size(), showOrphansGraph, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
@@ -59,8 +59,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfColumns, boolean hasRelationships, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(db, null, "Columns", hasRelationships, hasOrphans, html);
+    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, LineWriter html) throws IOException {
+        writeHeader(db, null, "Columns", hasOrphans, html);
 
         html.writeln("<table width='100%' border='0'>");
         html.writeln("<tr><td class='container'>");

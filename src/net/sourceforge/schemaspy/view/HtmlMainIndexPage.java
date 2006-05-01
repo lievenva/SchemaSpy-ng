@@ -20,7 +20,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection tables, boolean showRelationshipsGraph, boolean showOrphansGraph, LineWriter html) throws IOException {
+    public void write(Database database, Collection tables, boolean showOrphansGraph, LineWriter html) throws IOException {
         Set byName = new TreeSet(new Comparator() {
             public int compare(Object object1, Object object2) {
                 return ((Table)object1).getName().compareTo(((Table)object2).getName());
@@ -38,7 +38,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             showIds |= table.getId() != null;
         }
 
-        writeHeader(database, byName.size() - numViews, numViews, showIds, showRelationshipsGraph, showOrphansGraph, html);
+        writeHeader(database, byName.size() - numViews, numViews, showIds, showOrphansGraph, html);
 
         int numRows = 0;
         for (Iterator iter = byName.iterator(); iter.hasNext(); ) {
@@ -49,8 +49,8 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         writeFooter(numRows, html);
     }
 
-    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasRelationships, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(db, null, null, hasRelationships, hasOrphans, html);
+    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, LineWriter html) throws IOException {
+        writeHeader(db, null, null, hasOrphans, html);
         html.writeln("<table width='100%'>");
         html.writeln(" <tr><td class='container'>");
         writeGeneratedBy(db.getConnectTime(), html);
@@ -143,6 +143,16 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
         else
             html.write("<span title='Views contain no real rows'>view</span>");
+        html.writeln("</td>");
+        html.write("  <td class='detail'>");
+        String comments = table.getComments();
+        if (comments != null) {
+            if (Boolean.getBoolean("encodeComments"))
+                for (int i = 0; i < comments.length(); ++i)
+                    html.write(HtmlEncoder.encode(comments.charAt(i)));
+            else
+                html.write(comments);
+        }
         html.writeln("</td>");
         html.writeln("  </tr>");
 

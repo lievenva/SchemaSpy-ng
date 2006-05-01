@@ -15,7 +15,7 @@ public class TableColumn {
     private final boolean isNullable;
     private       boolean isAutoUpdated;
     private final Object defaultValue;
-    private final String comments;
+    private       String comments;
     private final Map parents = new HashMap();
     private final Map children = new TreeMap(new ColumnComparator());
 
@@ -43,8 +43,7 @@ public class TableColumn {
 
         isNullable = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
         defaultValue = rs.getString("COLUMN_DEF");
-        String tmp = rs.getString("REMARKS");
-        comments = (tmp == null || tmp.length() == 0) ? null : tmp;
+        setComments(rs.getString("REMARKS"));
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
     }
 
@@ -112,6 +111,10 @@ public class TableColumn {
      */
     public String getComments() {
         return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
     }
 
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {

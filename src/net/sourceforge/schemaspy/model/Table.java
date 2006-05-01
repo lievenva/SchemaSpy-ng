@@ -13,14 +13,14 @@ public class Table implements Comparable {
     private       Object id;
     private final Map checkConstraints = new TreeMap(new ByCheckConstraintStringsComparator());
     private final int numRows;
-    private final String comments;
+    private       String comments;
     private int maxChildren;
     private int maxParents;
 
     public Table(Database db, String schema, String name, String comments, DatabaseMetaData meta, Properties properties) throws SQLException {
         this.schema = schema;
         this.name = name;
-        this.comments = (comments == null || comments.length() == 0) ? null : comments;
+        setComments(comments);
         initColumns(meta);
         initIndexes(db, meta, properties);
         initPrimaryKeys(meta);
@@ -330,6 +330,10 @@ public class Table implements Comparable {
      */
     public String getComments() {
         return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
     }
 
     public TableColumn getColumn(String columnName) {
