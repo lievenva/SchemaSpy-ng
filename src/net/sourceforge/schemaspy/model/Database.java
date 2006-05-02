@@ -234,9 +234,10 @@ public class Database {
                         table.setComments(rs.getString("comments"));
                 }
             } catch (SQLException sqlException) {
+                // don't die just because this failed
                 System.err.println();
+                System.err.println("Failed to retrieve table comments: " + sqlException);
                 System.err.println(sql);
-                throw sqlException;
             } finally {
                 if (rs != null)
                     rs.close();
@@ -266,9 +267,10 @@ public class Database {
                     }
                 }
             } catch (SQLException sqlException) {
+                // don't die just because this failed
                 System.err.println();
+                System.err.println("Failed to retrieve column comments: " + sqlException);
                 System.err.println(sql);
-                throw sqlException;
             } finally {
                 if (rs != null)
                     rs.close();
