@@ -8,6 +8,12 @@ import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
+    protected final boolean encodeComments;
+
+    protected HtmlFormatter() {
+        encodeComments = Boolean.getBoolean("encodeComments");
+    }
+    
     protected void writeHeader(Database db, Table table, String text, boolean showOrphans, LineWriter out) throws IOException {
         out.writeln("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>");
         out.writeln("<html>");
@@ -32,10 +38,10 @@ public class HtmlFormatter {
             out.write("SchemaSpy Analysis of ");
         out.write(getDescription(db, table, text, true));
         out.write("</h1>");
-        if (table != null && table.getComments() != null) {
+        String comments = table != null ? table.getComments() : null;
+        if (comments != null) {
             out.write("&nbsp;<b>Comments:</b>&nbsp;&nbsp;");
-            String comments = table.getComments();
-            if (Boolean.getBoolean("encodeComments"))
+            if (encodeComments)
                 for (int i = 0; i < comments.length(); ++i)
                     out.write(HtmlEncoder.encode(comments.charAt(i)));
             else

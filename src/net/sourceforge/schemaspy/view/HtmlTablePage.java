@@ -10,6 +10,7 @@ import net.sourceforge.schemaspy.util.*;
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set keywords = null;
+    private final boolean encodeComments;
 
     private Map defaultValueAliases = new HashMap();
     {
@@ -23,7 +24,9 @@ public class HtmlTablePage extends HtmlFormatter {
     /**
      * Singleton...don't allow instantiation
      */
-    private HtmlTablePage() {}
+    private HtmlTablePage() {
+        encodeComments = Boolean.getBoolean("encodeComments");
+    }
 
     public static HtmlTablePage getInstance() {
         return instance;
@@ -213,7 +216,7 @@ public class HtmlTablePage extends HtmlFormatter {
         out.write(" <td class='comment'>");
         String comments = column.getComments();
         if (comments != null) {
-            if (Boolean.getBoolean("encodeComments"))
+            if (encodeComments)
                 for (int i = 0; i < comments.length(); ++i)
                     out.write(HtmlEncoder.encode(comments.charAt(i)));
             else

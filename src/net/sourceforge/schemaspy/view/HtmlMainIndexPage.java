@@ -147,7 +147,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.write("  <td class='detail'>");
         String comments = table.getComments();
         if (comments != null) {
-            if (Boolean.getBoolean("encodeComments"))
+            if (encodeComments)
                 for (int i = 0; i < comments.length(); ++i)
                     html.write(HtmlEncoder.encode(comments.charAt(i)));
             else
