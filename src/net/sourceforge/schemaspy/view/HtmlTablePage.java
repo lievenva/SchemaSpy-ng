@@ -206,11 +206,11 @@ public class HtmlTablePage extends HtmlFormatter {
         } else {
             out.writeln(" <td></td>");
         }
-        out.write(" <td>");
+        out.write(" <td class='detail'>");
         String path = tableName == null ? "" : "tables/";
         onCascadeDelete |= writeRelatives(column, false, path, out);
         out.writeln(" </td>");
-        out.write(" <td>");
+        out.write(" <td class='detail'>");
         onCascadeDelete |= writeRelatives(column, true, path, out);
         out.writeln(" </td>");
         out.write(" <td class='comment'>");
@@ -243,7 +243,7 @@ public class HtmlTablePage extends HtmlFormatter {
 
         if (numColumns > 0) {
             out.newLine();
-            out.writeln("  <table border='0' width='100%'>");
+            out.writeln("  <table border='0' width='100%' cellspacing='0' cellpadding='0'>");
         }
 
         for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
@@ -251,9 +251,9 @@ public class HtmlTablePage extends HtmlFormatter {
             String columnTableName = column.getTable().getName();
             ForeignKeyConstraint constraint = dumpParents ? column.getChildConstraint(baseRelative) : column.getParentConstraint(baseRelative);
             if (constraint.isImplied())
-                out.writeln("   <tr class='impliedRelationship'>");
+                out.writeln("   <tr class='impliedRelationship' valign='top'>");
             else
-                out.writeln("   <tr>");
+                out.writeln("   <tr valign='top'>");
             out.write("    <td class='detail' title=\"");
             out.write(constraint.toString());
             out.write("\">");

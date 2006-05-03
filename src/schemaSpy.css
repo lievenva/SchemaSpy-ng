@@ -106,15 +106,18 @@ table {
 .tableKey {
   display: none;
   text-align: right;
+  padding: 0px 4px;
 }
 
 .constraint {
   display: none;
   text-align: right;
+  padding: 0px 4px;
 }
 
 .comment {
   display: none;
+  text-align: left;
   padding: 0px 4px;
 }
 
