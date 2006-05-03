@@ -67,7 +67,6 @@ table {
 .impliedRelationship {
   display: none;
   font-style: italic;
-  text-decoration: underline;
   color: #183118
 }
 
@@ -103,10 +102,13 @@ table {
   color: #000000
 }
 
-.tableKey {
-  display: none;
-  text-align: right;
+.relatedTable {
   padding: 0px 4px;
+}
+
+.relatedKey {
+  display: none;
+  padding: 0px -4px 0px 4px;
 }
 
 .constraint {

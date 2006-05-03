@@ -86,7 +86,7 @@ public class HtmlTablePage extends HtmlFormatter {
             html.writeln(">Implied relationships");
         }
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".tableKey") + ");\" id=showRelatedCols>Related columns");
+        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
         html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
         html.writeln("</form>");
@@ -206,11 +206,11 @@ public class HtmlTablePage extends HtmlFormatter {
         } else {
             out.writeln(" <td></td>");
         }
-        out.write(" <td class='detail'>");
+        out.write(" <td>");
         String path = tableName == null ? "" : "tables/";
         onCascadeDelete |= writeRelatives(column, false, path, out);
         out.writeln(" </td>");
-        out.write(" <td class='detail'>");
+        out.write(" <td>");
         onCascadeDelete |= writeRelatives(column, true, path, out);
         out.writeln(" </td>");
         out.write(" <td class='comment'>");
@@ -254,7 +254,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.writeln("   <tr class='impliedRelationship' valign='top'>");
             else
                 out.writeln("   <tr valign='top'>");
-            out.write("    <td class='detail' title=\"");
+            out.write("    <td class='relatedTable' title=\"");
             out.write(constraint.toString());
             out.write("\">");
             out.write("<a href='");
@@ -263,15 +263,14 @@ public class HtmlTablePage extends HtmlFormatter {
             out.write(".html'>");
             out.write(columnTableName);
             out.write("</a>");
+            out.write("<span class='relatedKey'>.");
+            out.write(column.getName());
+            out.writeln("</span>");
             if (constraint.isOnDeleteCascade()) {
                 out.write("<span title='On Delete Cascade\n Automatically deletes child tables when their parent is deleted'>*</span>");
                 onCascadeDelete = true;
             }
-            out.writeln("</td>");
-
-            out.write("    <td class='tableKey'>");
-            out.write(column.getName());
-            out.writeln("</td>");
+            out.writeln("    </td>");
 
             out.write("    <td class='constraint'>");
             out.write(constraint.getName());

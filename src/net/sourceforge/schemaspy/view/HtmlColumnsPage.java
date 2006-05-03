@@ -73,7 +73,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         StyleSheet css = StyleSheet.getInstance();
         html.writeln("<form name='options' action=''>");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".tableKey") + ");\" id=showRelatedCols>Related columns");
+        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
         html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
         html.writeln("</form>");
