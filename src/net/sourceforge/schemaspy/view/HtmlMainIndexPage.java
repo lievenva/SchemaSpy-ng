@@ -114,7 +114,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
     }
 
     private int writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
-        html.writeln(" <tr>");
+        html.writeln(" <tr valign='top'>");
         html.write("  <td class='detail'><a href='tables/");
         html.write(table.getName());
         html.write(".html'>");
