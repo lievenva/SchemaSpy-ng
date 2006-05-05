@@ -5,7 +5,6 @@ import net.sourceforge.schemaspy.util.LineWriter;
 
 public class JavaScriptFormatter {
     private static JavaScriptFormatter instance = new JavaScriptFormatter();
-    private boolean commentsInitiallyDisplayed = Boolean.getBoolean("commentsInitiallyDisplayed");
 
     public static JavaScriptFormatter getInstance() {
         return instance;
