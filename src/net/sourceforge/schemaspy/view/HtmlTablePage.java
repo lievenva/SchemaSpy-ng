@@ -10,7 +10,8 @@ import net.sourceforge.schemaspy.util.*;
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set keywords = null;
-    private final boolean encodeComments;
+    private final boolean encodeComments = Boolean.getBoolean("encodeComments");
+    private final boolean commentsInitiallyDisplayed = Boolean.getBoolean("commentsInitiallyDisplayed");
 
     private Map defaultValueAliases = new HashMap();
     {
@@ -25,7 +26,6 @@ public class HtmlTablePage extends HtmlFormatter {
      * Singleton...don't allow instantiation
      */
     private HtmlTablePage() {
-        encodeComments = Boolean.getBoolean("encodeComments");
     }
 
     public static HtmlTablePage getInstance() {
@@ -85,9 +85,10 @@ public class HtmlTablePage extends HtmlFormatter {
                 html.write(" checked");
             html.writeln(">Implied relationships");
         }
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
+        String commentStatus = commentsInitiallyDisplayed  ? "checked " : "";
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
+        html.writeln(" <input type=checkbox " + commentStatus + "onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
         html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
         html.writeln("</form>");
     }
@@ -209,7 +210,7 @@ public class HtmlTablePage extends HtmlFormatter {
         out.write(" <td>");
         String path = tableName == null ? "" : "tables/";
         onCascadeDelete |= writeRelatives(column, false, path, out);
-        out.writeln(" </td>");
+        out.writeln("</td>");
         out.write(" <td>");
         onCascadeDelete |= writeRelatives(column, true, path, out);
         out.writeln(" </td>");
@@ -222,7 +223,7 @@ public class HtmlTablePage extends HtmlFormatter {
             else
                 out.write(comments);
         }
-        out.writeln(" </td>");
+        out.writeln("</td>");
         out.writeln("</tr>");
         return onCascadeDelete;
     }

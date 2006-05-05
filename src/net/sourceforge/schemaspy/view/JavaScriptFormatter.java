@@ -5,6 +5,7 @@ import net.sourceforge.schemaspy.util.LineWriter;
 
 public class JavaScriptFormatter {
     private static JavaScriptFormatter instance = new JavaScriptFormatter();
+    private boolean commentsInitiallyDisplayed = Boolean.getBoolean("commentsInitiallyDisplayed");
 
     public static JavaScriptFormatter getInstance() {
         return instance;
@@ -31,17 +32,17 @@ public class JavaScriptFormatter {
         out.writeln("function syncOptions() {");
         out.writeln("  var options = document.options;");
         out.writeln("  if (options) {");
-        out.writeln("    var cb = options.showComments;");
-        out.writeln("    if (cb && cb.checked) {");
-        out.writeln("      cb.checked=false;");
-        out.writeln("      cb.click();");
-        out.writeln("    }");
-        out.writeln("    cb = options.showRelatedCols;");
+        out.writeln("    var cb = options.showRelatedCols;");
         out.writeln("    if (cb && cb.checked) {");
         out.writeln("      cb.checked=false;");
         out.writeln("      cb.click();");
         out.writeln("    }");
         out.writeln("    cb = options.showConstNames;");
+        out.writeln("    if (cb && cb.checked) {");
+        out.writeln("      cb.checked=false;");
+        out.writeln("      cb.click();");
+        out.writeln("    }");
+        out.writeln("    cb = options.showComments;");
         out.writeln("    if (cb && cb.checked) {");
         out.writeln("      cb.checked=false;");
         out.writeln("      cb.click();");

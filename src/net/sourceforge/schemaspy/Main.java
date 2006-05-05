@@ -89,13 +89,16 @@ public class Main {
             int maxDbThreads = getMaxDbThreads(args, properties);
 
             // nasty hack, but passing this info everywhere churns my stomach
-            System.setProperty("sourceforgelogo", String.valueOf(args.remove("-nologo")));
+            System.setProperty("sourceforgelogo", String.valueOf(!args.remove("-nologo")));
 
             // and another nasty hack with the same justification as the one above
             System.setProperty("rankdirbug", String.valueOf(args.remove("-rankdirbug")));
             
             // and yet another one (Allow Html In Comments - encode them unless otherwise specified)
             System.setProperty("encodeComments", String.valueOf(!args.remove("-ahic")));
+            
+            // ugh, another...
+            System.setProperty("commentsInitiallyDisplayed", String.valueOf(args.remove("-cid")));            
             
 
             Pattern exclusions;
