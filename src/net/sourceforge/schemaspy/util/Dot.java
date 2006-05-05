@@ -21,6 +21,7 @@ public class Dot {
                 tokenizer.nextToken();                  // skip 'version'
                 tempVersion = tokenizer.nextToken();    // x.x.x
             } else {
+                System.err.println();
                 System.err.println("Invalid dot configuration detected.  '" + dotCommand + "' returned:");
                 System.err.println("   " + versionLine);
             }
