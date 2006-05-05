@@ -15,10 +15,15 @@ public class Dot {
             String dotCommand = "dot -V";
             Process process = Runtime.getRuntime().exec(dotCommand);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
-            tokenizer.nextToken(); // skip 'dot'
-            tokenizer.nextToken(); // skip 'version'
-            tempVersion = tokenizer.nextToken();
+            String versionLine = reader.readLine();
+            StringTokenizer tokenizer = new StringTokenizer(versionLine);
+            if (tokenizer.nextToken().equals("dot")) {  // skip 'dot'
+                tokenizer.nextToken();                  // skip 'version'
+                tempVersion = tokenizer.nextToken();    // x.x.x
+            } else {
+                System.err.println("Invalid dot configuration detected.  '" + dotCommand + "' returned:");
+                System.err.println("   " + versionLine);
+            }
         } catch (Exception validDotDoesntExist) {
         }
 
