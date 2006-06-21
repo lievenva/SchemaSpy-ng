@@ -33,11 +33,14 @@ public class HtmlFormatter {
         out.writeln("<div class='content' style='clear:both;'>");
         out.writeln("<table width='100%' border='0' cellpadding='0'>");
         out.writeln(" <tr>");
-        out.write("  <td class='heading' valign='top'><h1>");
+        out.write("  <td class='heading' valign='center'>");
+        out.write("<span class='header'>");
         if (table == null)
             out.write("SchemaSpy Analysis of ");
         out.write(getDescription(db, table, text, true));
-        out.write("</h1>");
+        out.write("</span>");
+        if (table == null && db.getDescription() != null)
+            out.write("<span class='description'>" + db.getDescription() + "</span>");
         String comments = table != null ? table.getComments() : null;
         if (comments != null) {
             out.write("<div style='padding: 0px 4px;'>");
@@ -122,7 +125,7 @@ public class HtmlFormatter {
 
     protected boolean sourceForgeLogoEnabled() {
         // I hate this hack, but I don't want to have to pass this boolean everywhere...
-        return Boolean.getBoolean("sourceforgelogo");
+        return Boolean.getBoolean("sourceforgelogo") | true;
     }
 
     protected void writeLegend(boolean tableDetails, LineWriter out) throws IOException {

@@ -9,17 +9,19 @@ import java.util.regex.Pattern;
 public class Database {
     private final String databaseName;
     private final String schema;
+    private final String description;
     private final Map tables = new HashMap();
     private final Map views = new HashMap();
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, Pattern include, int maxThreads) throws SQLException, MissingResourceException {
+    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         this.databaseName = name;
         this.schema = schema;
+        this.description = description;
         initTables(schema, this.meta, properties, include, maxThreads);
         initViews(schema, this.meta, properties);
         connectTables(this.meta);
@@ -31,6 +33,13 @@ public class Database {
 
     public String getSchema() {
         return schema;
+    }
+    
+    /**
+     * @return null if a description wasn't specified.
+     */
+    public String getDescription() {
+        return description;
     }
 
     public Collection getTables() {
@@ -102,7 +111,7 @@ public class Database {
                 // and not in a secondary thread
                 while (rs.next()) {
                     if (tableValidator.isValid(rs)) {
-                        new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), rs.getString("REMARKS"), properties);
+                        new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
                         break;
                     }
                 }
@@ -110,7 +119,7 @@ public class Database {
 
             while (rs.next()) {
                 if (tableValidator.isValid(rs)) {
-                    creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), rs.getString("REMARKS"), properties);
+                    creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
                 }
             }
 
@@ -125,6 +134,20 @@ public class Database {
         initIndexIds(properties);
         initTableComments(properties);
         initColumnComments(properties);
+    }
+    
+    /**
+     * Some databases don't play nice with their metadata.
+     * E.g. Oracle doesn't have a REMARKS column at all.
+     * This method ignores those types of failures, replacing them with null.
+     */
+    public String getOptionalString(ResultSet rs, String columnName)
+    {
+        try {
+            return rs.getString(columnName);
+        } catch (SQLException ignore) {
+            return null;
+        }
     }
 
     private void initCheckConstraints(Properties properties) throws SQLException {

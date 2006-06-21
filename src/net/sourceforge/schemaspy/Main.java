@@ -85,6 +85,8 @@ public class Main {
             String css = getParam(args, "-css");
             if (css == null)
                 css = "schemaSpy.css";
+            
+            String description = getParam(args, "-desc");
 
             int maxDbThreads = getMaxDbThreads(args, properties);
 
@@ -174,7 +176,7 @@ public class Main {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, properties, inclusions, maxDbThreads);
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, description, properties, inclusions, maxDbThreads);
             Database db = spy.getDatabase();
 
             LineWriter out;
@@ -320,7 +322,8 @@ public class Main {
             String xmlName = dbName;
             if (schema != null)
                 xmlName += '.' + schema;
-            out = new LineWriter(new FileWriter(new File(outputDir, xmlName + ".xml")), 24 * 1024);
+            // use OutputStream constructor to force it to use UTF8 (per Bernard D'Havé)
+            out = new LineWriter(new FileOutputStream(new File(outputDir, xmlName + ".xml")));
             document.getDocumentElement().normalize();
             DOMUtil.printDOM(document, out);
             out.close();
@@ -625,26 +628,11 @@ public class Main {
             System.out.println("   -s schema             defaults to the specified user");
             System.out.println("   -p password           defaults to no password");
             System.out.println("   -o outputDirectory    directory to place the generated output in");
-            System.out.println("   -css styleSheet.css   defaults to schemaSpy.css");
             System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
-            System.out.println("                           in driverPath in [databaseType].properties");
+            System.out.println("                           in driverPath in [databaseType].properties.");
 			System.out.println("                           must be specified after " + getLoadedFromJar());
-            System.out.println("   -dbthreads            max concurrent threads when accessing metadata");
-            System.out.println("                           defaults to -1 (no limit)");
-            System.out.println("                           use 1 if you get 'already closed' type errors");
-            System.out.println("   -x columnNamesRegex   exclude matching columns from analysis");
-            System.out.println("                           e.g.: -x \"(book.isbn)|(borrower.address)\"");
-            System.out.println("   -maxdet               max tables to put on relationships page w/full details");
-            System.out.println("   -nohtml               defaults to generate html");
-            System.out.println("   -noimplied            defaults to generate implied relationships");
-            System.out.println("   -all                  analyze all \"user\" schemas in the specified database");
-            System.out.println("   -schemaSpec           used with -all to specify \"user\" schemas");
-            System.out.println("                         overrides schemaSpec in .properties file");
-            System.out.println("                         see db2.properties for more details");
-            System.out.println("   -help                 detailed help");
-            System.out.println("   -dbhelp               display databaseType-specific help");
-            System.out.println();
-            System.out.println("Go to http://schemaspy.sourceforge.net for more details or the latest version.");
+            System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description"); 
+            System.out.println(" of additional parameters.");
             System.out.println();
         }
 

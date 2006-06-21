@@ -76,7 +76,21 @@ table {
 }
 
 .heading {
-  background: #F7F7F7;
+  background: transparent;
+  padding: 8px 0px;
+}
+
+.header {
+  color: #000000;
+  background: transparent;
+  font-weight: bold;
+  font-size: 130%;
+  text-align: left;
+}
+
+.description {
+  display: block;
+  padding: 8px 0px;
 }
 
 .signature {
