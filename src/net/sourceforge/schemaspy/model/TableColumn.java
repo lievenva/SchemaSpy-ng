@@ -34,7 +34,7 @@ public class TableColumn {
         length = rs.getInt("COLUMN_SIZE");
 
         StringBuffer buf = new StringBuffer();
-        buf.append(rs.getInt("COLUMN_SIZE"));
+        buf.append(length);
         if (decimalDigits > 0) {
             buf.append(',');
             buf.append(decimalDigits);
