@@ -288,10 +288,14 @@ public class Main {
                 out.close();
 
                 System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "columns.html")), 16 * 1024);
-                HtmlColumnsPage.getInstance().write(db, tables, hasOrphans, out);
-                stats = new WriteStats(stats);
-                out.close();
+                Iterator iter = HtmlColumnsPage.getInstance().getColumns().iterator();
+                while (iter.hasNext()) {
+                    HtmlColumnsPage.ColumnInfo columnInfo = (HtmlColumnsPage.ColumnInfo)iter.next();
+                    out = new LineWriter(new FileWriter(new File(outputDir, columnInfo.getPageName())), 16 * 1024);
+                    HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
+                    stats = new WriteStats(stats);
+                    out.close();
+                }
 
 
                 startGraphingDetails = System.currentTimeMillis();
@@ -299,7 +303,7 @@ public class Main {
                 System.out.print("Writing/graphing results");
 
                 HtmlTablePage tableFormatter = HtmlTablePage.getInstance();
-                for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
+                for (iter = tables.iterator(); iter.hasNext(); ) {
                     System.out.print('.');
                     Table table = (Table)iter.next();
                     out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);

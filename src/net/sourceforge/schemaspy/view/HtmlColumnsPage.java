@@ -17,19 +17,58 @@ public class HtmlColumnsPage extends HtmlFormatter {
     public static HtmlColumnsPage getInstance() {
         return instance;
     }
+    
+    public List getColumns()
+    {
+        List columns = new ArrayList();
+        
+        columns.add(new ColumnInfo("Column", new ByColumnComparator()));
+        columns.add(new ColumnInfo("Table", new ByTableComparator()));
+        columns.add(new ColumnInfo("Type", new ByTypeComparator()));
+        columns.add(new ColumnInfo("Size", new BySizeComparator()));
+        columns.add(new ColumnInfo("Nulls", new ByNullableComparator()));
+        columns.add(new ColumnInfo("Auto", new ByAutoUpdateComparator()));
+        columns.add(new ColumnInfo("Default", new ByDefaultValueComparator()));
+        columns.add(new ColumnInfo("Children", new ByChildrenComparator()));
+        columns.add(new ColumnInfo("Parents", new ByParentsComparator()));
+        
+        return columns;
+    }
+    
+    public class ColumnInfo
+    {
+        private final String columnName;
+        private final Comparator comparator;
+        
+        private ColumnInfo(String columnName, Comparator comparator)
+        {
+            this.columnName = columnName;
+            this.comparator = comparator;
+        }
+        
+        public String getColumnName() {
+            return columnName;
+        }
+        
+        public String getPageName() {
+            return getPageName(columnName);
+        }
+        
+        public String getPageName(String columnName) {
+            return "columns.by" + columnName + ".html";
+        }
 
-    public void write(Database database, Collection tables, boolean showOrphansGraph, LineWriter html) throws IOException {
-        Set columns = new TreeSet(new Comparator() {
-            public int compare(Object object1, Object object2) {
-                TableColumn column1 = (TableColumn)object1;
-                TableColumn column2 = (TableColumn)object2;
-                int rc = column1.getName().compareTo(column2.getName());
-                if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-                return rc;
-            }
-        });
+        private Comparator getComparator() {
+            return comparator;
+        }
+        
+        public String toString() {
+            return getPageName();
+        }
+    }
 
+    public void write(Database database, Collection tables, ColumnInfo columnInfo, boolean showOrphansGraph, LineWriter html) throws IOException {
+        Set columns = new TreeSet(columnInfo.getComparator());
         Set primaryColumns = new HashSet();
         Set indexedColumns = new HashSet();
 
@@ -46,7 +85,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
             }
         }
         
-        writeHeader(database, columns.size(), showOrphansGraph, html);
+        writeHeader(database, columns.size(), showOrphansGraph, columnInfo, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
@@ -59,7 +98,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, LineWriter html) throws IOException {
+    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, ColumnInfo selectedColumn, LineWriter html) throws IOException {
         writeHeader(db, null, "Columns", hasOrphans, html);
 
         html.writeln("<table width='100%' border='0'>");
@@ -92,10 +131,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.write(" columns:</b>");
         Collection tables = db.getTables();
         boolean hasTableIds = tables.size() > 0 && ((Table)tables.iterator().next()).getId() != null;
-        HtmlTablePage.getInstance().writeMainTableHeader(hasTableIds, true, html);
+        HtmlTablePage.getInstance().writeMainTableHeader(hasTableIds, selectedColumn, html);
         html.writeln("<tbody valign='top'>");
     }
-
+    
     protected void writeFooter(LineWriter html) throws IOException {
         html.writeln("</table>");
         html.writeln("</div>");
@@ -104,5 +143,128 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
     protected boolean isColumnsPage() {
         return true;
+    }
+    
+    private class ByColumnComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.getName().compareTo(column2.getName());
+            if (rc == 0)
+                rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            return rc;
+        }
+    }
+    
+    private class ByTableComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            if (rc == 0)
+                rc = column1.getName().compareTo(column2.getName());
+            return rc;
+        }
+    }
+
+    private class ByTypeComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.getType().compareTo(column2.getType());
+            if (rc == 0) {
+                rc = column1.getLength() - column2.getLength();
+                if (rc == 0) {
+                    rc = column1.getName().compareTo(column2.getName());
+                    if (rc == 0)
+                        rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+                }
+            }
+            return rc;
+        }
+    }
+
+    private class BySizeComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.getLength() - column2.getLength();
+            if (rc == 0) {
+                rc = column1.getName().compareTo(column2.getName());
+                if (rc == 0)
+                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            }
+            return rc;
+        }
+    }
+
+    private class ByNullableComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.isNullable() == column2.isNullable() ? 0 : column1.isNullable() ? -1 : 1;
+            if (rc == 0) {
+                rc = column1.getName().compareTo(column2.getName());
+                if (rc == 0)
+                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            }
+            return rc;
+        }
+    }
+
+    private class ByAutoUpdateComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = column1.isAutoUpdated() == column2.isAutoUpdated() ? 0 : column1.isAutoUpdated() ? -1 : 1;
+            if (rc == 0) {
+                rc = column1.getName().compareTo(column2.getName());
+                if (rc == 0)
+                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            }
+            return rc;
+        }
+    }
+
+    private class ByDefaultValueComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = String.valueOf(column1.getDefaultValue()).compareTo(String.valueOf(column2.getDefaultValue()));
+            if (rc == 0) {
+                rc = column1.getName().compareTo(column2.getName());
+                if (rc == 0)
+                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            }
+            return rc;
+        }
+    }
+
+    private class ByChildrenComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = String.valueOf(column1.getChildren()).compareTo(String.valueOf(column2.getChildren()));
+            if (rc == 0) {
+                rc = column1.getName().compareTo(column2.getName());
+                if (rc == 0)
+                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            }
+            return rc;
+        }
+    }
+
+    private class ByParentsComparator implements Comparator {
+        public int compare(Object object1, Object object2) {
+            TableColumn column1 = (TableColumn)object1;
+            TableColumn column2 = (TableColumn)object2;
+            int rc = String.valueOf(column1.getParents()).compareTo(String.valueOf(column2.getParents()));
+            if (rc == 0) {
+                rc = column1.getName().compareTo(column2.getName());
+                if (rc == 0)
+                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            }
+            return rc;
+        }
     }
 }

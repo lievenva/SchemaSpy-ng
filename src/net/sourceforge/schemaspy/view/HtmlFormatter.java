@@ -79,7 +79,7 @@ public class HtmlFormatter {
             html.writeln("  <li" + (isOrphansPage() ? " id='current'" : "") + "><a href='" + path + "utilities.html' title='Graphical view of tables with neither parents nor children'>Utility&nbsp;Tables</a></li>");
         html.writeln("  <li" + (isConstraintsPage() ? " id='current'" : "") + "><a href='" + path + "constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a></li>");
         html.writeln("  <li" + (isAnomaliesPage() ? " id='current'" : "") + "><a href='" + path + "anomalies.html' title=\"Things that aren't quite right\">Anomalies</a></li>");
-        html.writeln("  <li" + (isColumnsPage() ? " id='current'" : "") + "><a href='" + path + "columns.html' title=\"All of the columns in the schema\">Columns</a></li>");
+        html.writeln("  <li" + (isColumnsPage() ? " id='current'" : "") + "><a href='" + path + HtmlColumnsPage.getInstance().getColumns().get(0) + "' title=\"All of the columns in the schema\">Columns</a></li>");
         html.writeln("  <li><a href='http://sourceforge.net/donate/index.php?group_id=137197' title='Please help keep SchemaSpy alive' target='_blank'>Donate</a></li>");
         html.writeln(" </ul>");
         html.writeln("</div>");

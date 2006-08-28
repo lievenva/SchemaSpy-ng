@@ -96,7 +96,7 @@ public class HtmlTablePage extends HtmlFormatter {
     public boolean writeMainTable(Table table, LineWriter out) throws IOException {
         boolean onCascadeDelete = false;
         
-        writeMainTableHeader(table.getId() != null, false, out);
+        writeMainTableHeader(table.getId() != null, null, out);
 
         out.writeln("<tbody valign='top'>");
         Set primaries = new HashSet(table.getPrimaryColumns());
@@ -117,12 +117,12 @@ public class HtmlTablePage extends HtmlFormatter {
         return onCascadeDelete;
     }
 
-    public void writeMainTableHeader(boolean hasTableIds, boolean hasTableName, LineWriter out) throws IOException {
+    public void writeMainTableHeader(boolean hasTableIds, HtmlColumnsPage.ColumnInfo selectedColumn, LineWriter out) throws IOException {
+        boolean showTableName = selectedColumn != null;
+        out.writeln("<a name='columns'/>");
         out.writeln("<table class='dataTable' border='1' rules='groups'>");
         int span = 6;
-        if (hasTableIds)
-            ++span;
-        if (hasTableName)
+        if (hasTableIds || showTableName)
             ++span;
         out.writeln("<colgroup span='" + span + "'>");
         out.writeln("<colgroup>");
@@ -131,21 +131,30 @@ public class HtmlTablePage extends HtmlFormatter {
 
         out.writeln("<thead align='left'>");
         out.writeln("<tr>");
-        if (hasTableIds)
-            out.writeln("  <th align='right'>ID</th>");
-        out.writeln("  <th>Column</th>");
-        if (hasTableName)
-            out.writeln("  <th>Table</th>");
-        out.writeln("  <th>Type</th>");
-        out.writeln("  <th>Size</th>");
-        out.writeln("  <th title='Are nulls allowed?'>Nulls</th>");
-        out.writeln("  <th title='Is column automatically updated?'>Auto</th>");
-        out.writeln("  <th title='Default value'>Default</th>");
-        out.writeln("  <th title='Columns in tables that reference this column'>Children</th>");
-        out.writeln("  <th title='Columns in tables that are referenced by this column'>Parents</th>");
-        out.writeln("  <th title='Comments' class='comment'>Comments</th>");
+        if (hasTableIds && !showTableName)
+            out.writeln("  <th align='right'>" + getHref(selectedColumn, "ID") + "</th>");
+        out.writeln("  <th>" + getHref(selectedColumn, "Column") + "</th>");
+        if (showTableName)
+            out.writeln("  <th>" + getHref(selectedColumn, "Table") + "</th>");
+        out.writeln("  <th>" + getHref(selectedColumn, "Type") + "</th>");
+        out.writeln("  <th>" + getHref(selectedColumn, "Size") + "</th>");
+        out.writeln("  <th title='Are nulls allowed?'>" + getHref(selectedColumn, "Nulls") + "</th>");
+        out.writeln("  <th title='Is column automatically updated?'>" + getHref(selectedColumn, "Auto") + "</th>");
+        out.writeln("  <th title='Default value'>" + getHref(selectedColumn, "Default") + "</th>");
+        out.writeln("  <th title='Columns in tables that reference this column'>" + getHref(selectedColumn, "Children") + "</th>");
+        out.writeln("  <th title='Columns in tables that are referenced by this column'>" + getHref(selectedColumn, "Parents") + "</th>");
+        out.writeln("  <th title='Comments' class='comment'>" + getHref(selectedColumn, "Comments") + "</th>");
         out.writeln("</tr>");
         out.writeln("</thead>");
+    }
+    
+    private String getHref(HtmlColumnsPage.ColumnInfo selectedColumn, String columnName) {
+        if (selectedColumn != null) {
+            if (!selectedColumn.getColumnName().equals(columnName))
+                return "<a href='" + selectedColumn.getPageName(columnName) + "#columns'><span class='notSortedByColumn'>" + columnName + "</span></a>";
+            return "<span class='sortedByColumn'>" + columnName + "</span>";
+        }
+        return columnName;
     }
 
     public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {

@@ -159,6 +159,14 @@ a:visited {
   color: #183118;
 }
 
+.sortedByColumn {
+  color: #000000;
+}
+
+.notSortedByColumn {
+  color: #444444;
+}
+
 /* Tabs from http://www.alistapart.com/articles/slidingdoors/ */
 
 /* resolve an issue with always having a scrollbar for #header */
