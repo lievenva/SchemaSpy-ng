@@ -22,9 +22,9 @@ public class Database {
         this.databaseName = name;
         this.schema = schema;
         this.description = description;
-        initTables(schema, this.meta, properties, include, maxThreads);
-        initViews(schema, this.meta, properties);
-        connectTables(this.meta);
+        initTables(schema, meta, properties, include, maxThreads);
+        initViews(schema, meta, properties, include);
+        connectTables(meta);
     }
 
     public String getName() {
@@ -371,7 +371,7 @@ public class Database {
     }
 
 
-    private void initViews(String schema, DatabaseMetaData metadata, Properties properties) throws SQLException {
+    private void initViews(String schema, DatabaseMetaData metadata, Properties properties, Pattern include) throws SQLException {
         String[] types = {"VIEW"};
         ResultSet rs = null;
 
@@ -381,8 +381,10 @@ public class Database {
             while (rs.next()) {
                 if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
                     System.out.print('.');
+                    
                     Table view = new View(this, rs, metadata, properties.getProperty("selectViewSql"));
-                    views.put(view.getName().toUpperCase(), view);
+                    if (include.matcher(view.getName()).matches())
+                        views.put(view.getName().toUpperCase(), view);
                 }
             }
         } finally {
