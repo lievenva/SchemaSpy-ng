@@ -314,7 +314,24 @@ public class HtmlColumnsPage extends HtmlFormatter {
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
-            int rc = String.valueOf(column1.getChildren()).compareTo(String.valueOf(column2.getChildren()));
+            Set childTables1 = new TreeSet();
+            Set childTables2 = new TreeSet();
+            
+            Iterator iter = column1.getChildren().iterator();
+            while (iter.hasNext()) {
+                TableColumn column = (TableColumn)iter.next();
+                if (!column.getParentConstraint(column1).isImplied())
+                    childTables1.add(column.getTable().getName());
+            }
+
+            iter = column2.getChildren().iterator();
+            while (iter.hasNext()) {
+                TableColumn column = (TableColumn)iter.next();
+                if (!column.getParentConstraint(column2).isImplied())
+                    childTables2.add(column.getTable().getName());
+            }
+            
+            int rc = childTables1.toString().compareTo(childTables2.toString());
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;
@@ -327,7 +344,24 @@ public class HtmlColumnsPage extends HtmlFormatter {
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
-            int rc = String.valueOf(column1.getParents()).compareTo(String.valueOf(column2.getParents()));
+            Set parentTables1 = new TreeSet();
+            Set parentTables2 = new TreeSet();
+            
+            Iterator iter = column1.getParents().iterator();
+            while (iter.hasNext()) {
+                TableColumn column = (TableColumn)iter.next();
+                if (!column.getChildConstraint(column1).isImplied())
+                    parentTables1.add(column.getTable().getName());
+            }
+            
+            iter = column2.getParents().iterator();
+            while (iter.hasNext()) {
+                TableColumn column = (TableColumn)iter.next();
+                if (!column.getChildConstraint(column2).isImplied())
+                    parentTables2.add(column.getTable().getName());
+            }
+            
+            int rc = parentTables1.toString().compareTo(parentTables2.toString());
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;
