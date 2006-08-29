@@ -160,11 +160,11 @@ a:visited {
 }
 
 .sortedByColumn {
-  color: #000000;
+  background-color: #6C7769;
 }
 
 .notSortedByColumn {
-  color: #444444;
+  color: #000000;
 }
 
 /* Tabs from http://www.alistapart.com/articles/slidingdoors/ */
