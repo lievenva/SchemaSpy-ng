@@ -288,10 +288,10 @@ public class Main {
                 out.close();
 
                 System.out.print(".");
-                Iterator iter = HtmlColumnsPage.getInstance().getColumns().iterator();
+                Iterator iter = HtmlColumnsPage.getInstance().getColumnInfos().iterator();
                 while (iter.hasNext()) {
                     HtmlColumnsPage.ColumnInfo columnInfo = (HtmlColumnsPage.ColumnInfo)iter.next();
-                    out = new LineWriter(new FileWriter(new File(outputDir, columnInfo.getPageName())), 16 * 1024);
+                    out = new LineWriter(new FileWriter(new File(outputDir, columnInfo.getLocation())), 16 * 1024);
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
                     stats = new WriteStats(stats);
                     out.close();
@@ -815,9 +815,11 @@ public class Main {
             }
         } catch (IOException exc) {
         } finally {
-            try {
-                jar.close();
-            } catch (Exception ignore) {}
+            if (jar != null) {
+                try {
+                    jar.close();
+                } catch (IOException ignore) {}
+            }
         }
 
         return databaseTypes;
@@ -830,9 +832,10 @@ public class Main {
         cssFile = new File(System.getProperty("user.dir"), cssName);
         if (cssFile.exists())
             return new FileReader(cssFile);
-        Reader css = new InputStreamReader(StyleSheet.class.getClassLoader().getResourceAsStream(cssName));
-        if (css == null)
+        
+        InputStream cssStream = StyleSheet.class.getClassLoader().getResourceAsStream(cssName);
+        if (cssStream == null)
             throw new IllegalStateException("Unable to find requested style sheet: " + cssName);
-        return css;
+        return new InputStreamReader(cssStream);
     }
 }

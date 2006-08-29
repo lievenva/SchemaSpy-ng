@@ -18,7 +18,12 @@ public class HtmlColumnsPage extends HtmlFormatter {
         return instance;
     }
     
-    public List getColumns()
+    /**
+     * Returns details about the columns that are displayed on this page.
+     * 
+     * @return
+     */
+    public List getColumnInfos()
     {
         List columns = new ArrayList();
         
@@ -50,11 +55,11 @@ public class HtmlColumnsPage extends HtmlFormatter {
             return columnName;
         }
         
-        public String getPageName() {
-            return getPageName(columnName);
+        public String getLocation() {
+            return getLocation(columnName);
         }
         
-        public String getPageName(String columnName) {
+        public String getLocation(String columnName) {
             return "columns.by" + columnName + ".html";
         }
 
@@ -63,7 +68,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
         
         public String toString() {
-            return getPageName();
+            return getLocation();
         }
     }
 
@@ -131,10 +136,77 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.write(" columns:</b>");
         Collection tables = db.getTables();
         boolean hasTableIds = tables.size() > 0 && ((Table)tables.iterator().next()).getId() != null;
-        HtmlTablePage.getInstance().writeMainTableHeader(hasTableIds, selectedColumn, html);
+        writeMainTableHeader(hasTableIds, selectedColumn, html);
         html.writeln("<tbody valign='top'>");
     }
-    
+
+    public void writeMainTableHeader(boolean hasTableIds, ColumnInfo selectedColumn, LineWriter out) throws IOException {
+        boolean showTableName = selectedColumn != null;
+        out.writeln("<a name='columns'/>");
+        out.writeln("<table class='dataTable' border='1' rules='groups'>");
+        int span = 6;
+        if (hasTableIds || showTableName)
+            ++span;
+        out.writeln("<colgroup span='" + span + "'>");
+        out.writeln("<colgroup>");
+        out.writeln("<colgroup>");
+        out.writeln("<colgroup class='comment'>");
+
+        out.writeln("<thead align='left'>");
+        out.writeln("<tr>");
+        if (hasTableIds && !showTableName)
+            out.writeln(getTH(selectedColumn, "ID", null, "right"));
+        out.writeln(getTH(selectedColumn, "Column", null, null));
+        if (showTableName)
+            out.writeln(getTH(selectedColumn, "Table", null, null));
+        out.writeln(getTH(selectedColumn, "Type", null, null));
+        out.writeln(getTH(selectedColumn, "Size", null, null));
+        out.writeln(getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));
+        out.writeln(getTH(selectedColumn, "Auto", "Is column automatically updated?", null));
+        out.writeln(getTH(selectedColumn, "Default", "Default value", null));
+        out.writeln(getTH(selectedColumn, "Children", "Columns in tables that reference this column", null));
+        out.writeln(getTH(selectedColumn, "Parents", "Columns in tables that are referenced by this column", null));
+        out.writeln("  <th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
+        out.writeln("</tr>");
+        out.writeln("</thead>");
+    }
+   
+    private String getTH(ColumnInfo selectedColumn, String columnName, String title, String align) {
+        StringBuffer buf = new StringBuffer("  <th");
+        
+        if (align != null) {
+            buf.append(" align='");
+            buf.append(align);
+            buf.append("'");
+        }
+        
+        if (title != null) {
+            buf.append(" title='");
+            buf.append(title);
+            buf.append("'");
+        }
+        
+        if (selectedColumn != null) {
+            if (selectedColumn.getColumnName().equals(columnName)) {
+                buf.append(" class='sortedByColumn'>");
+                buf.append(columnName);
+            } else {
+                buf.append(" class='notSortedByColumn'>");
+                buf.append("<a href='");
+                buf.append(selectedColumn.getLocation(columnName));
+                buf.append("#columns'><span class='notSortedByColumn'>");
+                buf.append(columnName);
+                buf.append("</span></a>");
+            }
+        } else {
+            buf.append('>');
+            buf.append(columnName);
+        }
+        buf.append("</th>");
+        
+        return buf.toString();
+    }
+
     protected void writeFooter(LineWriter html) throws IOException {
         html.writeln("</table>");
         html.writeln("</div>");
@@ -168,102 +240,96 @@ public class HtmlColumnsPage extends HtmlFormatter {
     }
 
     private class ByTypeComparator implements Comparator {
+        private Comparator bySize = new BySizeComparator();
+        
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = column1.getType().compareTo(column2.getType());
             if (rc == 0) {
-                rc = column1.getLength() - column2.getLength();
-                if (rc == 0) {
-                    rc = column1.getName().compareTo(column2.getName());
-                    if (rc == 0)
-                        rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-                }
+                rc = bySize.compare(column1, column2);
             }
             return rc;
         }
     }
 
     private class BySizeComparator implements Comparator {
+        private Comparator byColumn = new ByColumnComparator();
+        
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = column1.getLength() - column2.getLength();
             if (rc == 0) {
-                rc = column1.getName().compareTo(column2.getName());
+                rc = column1.getDecimalDigits() - column2.getDecimalDigits();
                 if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+                    rc = byColumn.compare(column1, column2);
             }
             return rc;
         }
     }
 
     private class ByNullableComparator implements Comparator {
+        private Comparator byColumn = new ByColumnComparator();
+
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = column1.isNullable() == column2.isNullable() ? 0 : column1.isNullable() ? -1 : 1;
-            if (rc == 0) {
-                rc = column1.getName().compareTo(column2.getName());
-                if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-            }
+            if (rc == 0)
+                rc = byColumn.compare(column1, column2);
             return rc;
         }
     }
 
     private class ByAutoUpdateComparator implements Comparator {
+        private Comparator byColumn = new ByColumnComparator();
+
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = column1.isAutoUpdated() == column2.isAutoUpdated() ? 0 : column1.isAutoUpdated() ? -1 : 1;
-            if (rc == 0) {
-                rc = column1.getName().compareTo(column2.getName());
-                if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-            }
+            if (rc == 0)
+                rc = byColumn.compare(column1, column2);
             return rc;
         }
     }
 
     private class ByDefaultValueComparator implements Comparator {
+        private Comparator byColumn = new ByColumnComparator();
+
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = String.valueOf(column1.getDefaultValue()).compareTo(String.valueOf(column2.getDefaultValue()));
-            if (rc == 0) {
-                rc = column1.getName().compareTo(column2.getName());
-                if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-            }
+            if (rc == 0)
+                rc = byColumn.compare(column1, column2);
             return rc;
         }
     }
 
     private class ByChildrenComparator implements Comparator {
+        private Comparator byColumn = new ByColumnComparator();
+
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = String.valueOf(column1.getChildren()).compareTo(String.valueOf(column2.getChildren()));
-            if (rc == 0) {
-                rc = column1.getName().compareTo(column2.getName());
-                if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-            }
+            if (rc == 0)
+                rc = byColumn.compare(column1, column2);
             return rc;
         }
     }
 
     private class ByParentsComparator implements Comparator {
+        private Comparator byColumn = new ByColumnComparator();
+
         public int compare(Object object1, Object object2) {
             TableColumn column1 = (TableColumn)object1;
             TableColumn column2 = (TableColumn)object2;
             int rc = String.valueOf(column1.getParents()).compareTo(String.valueOf(column2.getParents()));
-            if (rc == 0) {
-                rc = column1.getName().compareTo(column2.getName());
-                if (rc == 0)
-                    rc = column1.getTable().getName().compareTo(column2.getTable().getName());
-            }
+            if (rc == 0)
+                rc = byColumn.compare(column1, column2);
             return rc;
         }
     }

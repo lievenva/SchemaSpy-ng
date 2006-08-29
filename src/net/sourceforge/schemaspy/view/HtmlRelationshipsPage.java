@@ -27,8 +27,14 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
         try {
             Dot dot = getDot();
-            if (dot == null)
+            if (dot == null) {
+                writeHeader(db, null, "Relationships Graph", hasOrphans, html);
+                html.writeln("<div class='content'>");
+                writeInvalidGraphvizInstallation(html);
+                html.writeln("</div>");
+                writeFooter(html);
                 return false;
+            }
 
             writeHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasRealRelationships, hasImpliedRelationships, html);
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");

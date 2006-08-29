@@ -317,19 +317,16 @@ public class Database {
      * @return PreparedStatement
      */
     public PreparedStatement prepareStatement(String sql, String tableName) throws SQLException {
-        PreparedStatement stmt = null;
         StringBuffer sqlBuf = new StringBuffer(sql);
         List sqlParams = getSqlParams(sqlBuf, tableName); // modifies sqlBuf
+        PreparedStatement stmt = getConnection().prepareStatement(sqlBuf.toString());
 
         try {
-            stmt = getConnection().prepareStatement(sqlBuf.toString());
-
             for (int i = 0; i < sqlParams.size(); ++i) {
                 stmt.setString(i + 1, sqlParams.get(i).toString());
             }
         } catch (SQLException exc) {
-            if (stmt != null)
-                stmt.close();
+            stmt.close();
             throw exc;
         }
 
@@ -385,8 +382,7 @@ public class Database {
                 if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
                     System.out.print('.');
                     Table view = new View(this, rs, metadata, properties.getProperty("selectViewSql"));
-                    if (view != null)
-                        views.put(view.getName().toUpperCase(), view);
+                    views.put(view.getName().toUpperCase(), view);
                 }
             }
         } finally {

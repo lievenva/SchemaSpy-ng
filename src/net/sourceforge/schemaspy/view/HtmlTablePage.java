@@ -96,7 +96,7 @@ public class HtmlTablePage extends HtmlFormatter {
     public boolean writeMainTable(Table table, LineWriter out) throws IOException {
         boolean onCascadeDelete = false;
         
-        writeMainTableHeader(table.getId() != null, null, out);
+        HtmlColumnsPage.getInstance().writeMainTableHeader(table.getId() != null, null, out);
 
         out.writeln("<tbody valign='top'>");
         Set primaries = new HashSet(table.getPrimaryColumns());
@@ -115,46 +115,6 @@ public class HtmlTablePage extends HtmlFormatter {
         out.writeln("</table>");
 
         return onCascadeDelete;
-    }
-
-    public void writeMainTableHeader(boolean hasTableIds, HtmlColumnsPage.ColumnInfo selectedColumn, LineWriter out) throws IOException {
-        boolean showTableName = selectedColumn != null;
-        out.writeln("<a name='columns'/>");
-        out.writeln("<table class='dataTable' border='1' rules='groups'>");
-        int span = 6;
-        if (hasTableIds || showTableName)
-            ++span;
-        out.writeln("<colgroup span='" + span + "'>");
-        out.writeln("<colgroup>");
-        out.writeln("<colgroup>");
-        out.writeln("<colgroup class='comment'>");
-
-        out.writeln("<thead align='left'>");
-        out.writeln("<tr>");
-        if (hasTableIds && !showTableName)
-            out.writeln("  <th align='right'>" + getHref(selectedColumn, "ID") + "</th>");
-        out.writeln("  <th>" + getHref(selectedColumn, "Column") + "</th>");
-        if (showTableName)
-            out.writeln("  <th>" + getHref(selectedColumn, "Table") + "</th>");
-        out.writeln("  <th>" + getHref(selectedColumn, "Type") + "</th>");
-        out.writeln("  <th>" + getHref(selectedColumn, "Size") + "</th>");
-        out.writeln("  <th title='Are nulls allowed?'>" + getHref(selectedColumn, "Nulls") + "</th>");
-        out.writeln("  <th title='Is column automatically updated?'>" + getHref(selectedColumn, "Auto") + "</th>");
-        out.writeln("  <th title='Default value'>" + getHref(selectedColumn, "Default") + "</th>");
-        out.writeln("  <th title='Columns in tables that reference this column'>" + getHref(selectedColumn, "Children") + "</th>");
-        out.writeln("  <th title='Columns in tables that are referenced by this column'>" + getHref(selectedColumn, "Parents") + "</th>");
-        out.writeln("  <th title='Comments' class='comment'>" + getHref(selectedColumn, "Comments") + "</th>");
-        out.writeln("</tr>");
-        out.writeln("</thead>");
-    }
-    
-    private String getHref(HtmlColumnsPage.ColumnInfo selectedColumn, String columnName) {
-        if (selectedColumn != null) {
-            if (!selectedColumn.getColumnName().equals(columnName))
-                return "<a href='" + selectedColumn.getPageName(columnName) + "#columns'><span class='notSortedByColumn'>" + columnName + "</span></a>";
-            return "<span class='sortedByColumn'>" + columnName + "</span>";
-        }
-        return columnName;
     }
 
     public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
@@ -204,7 +164,7 @@ public class HtmlTablePage extends HtmlFormatter {
             Object alias = defaultValueAliases.get(String.valueOf(defaultValue).trim());
             if (alias != null) {
                 out.write(" <td class='detail' align='right' title='");
-                out.write(defaultValue.toString());
+                out.write(String.valueOf(defaultValue));
                 out.write("'><i>");
                 out.write(alias.toString());
                 out.writeln("</i></td>");
@@ -568,10 +528,8 @@ public class HtmlTablePage extends HtmlFormatter {
                 html.writeln("</td></tr></table>");
                 writeExcludedColumns(stats.getExcludedColumns(), html);
             } else {
-                html.writeln("</td></tr></table>");
-                html.writeln("<p><br>SchemaSpy was unable to generate a graphical representation of table relationships.");
-                html.writeln("<br>An appropriate version of dot must be in your path when generating these pages.");
-                html.writeln("<br>Requires " + Dot.getInstance().getSupportedVersions() + " from <a href=\"http://www.graphviz.org\">www.graphviz.org</a>.");
+                html.writeln("</td></tr></table><p/>");
+                writeInvalidGraphvizInstallation(html);
             }
         }
     }

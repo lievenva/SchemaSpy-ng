@@ -107,9 +107,11 @@ public class Dot {
         } catch (IOException failed) {
             throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
         } finally {
-            try {
-                mapReader.close();
-            } catch (Exception ignore) {}
+            if (mapReader != null) {
+                try {
+                    mapReader.close();
+                } catch (IOException ignore) {}
+            }
         }
     }
 
