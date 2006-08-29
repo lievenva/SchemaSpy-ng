@@ -31,7 +31,11 @@ public class TableColumn {
         name = rs.getString("COLUMN_NAME");
         type = rs.getString("TYPE_NAME");
         decimalDigits = rs.getInt("DECIMAL_DIGITS");
-        length = rs.getInt("COLUMN_SIZE");
+        Number bufLength = (Number)rs.getObject("BUFFER_LENGTH");
+        if (bufLength != null && bufLength.shortValue() > 0)
+            length = bufLength.shortValue();
+        else
+            length = rs.getInt("COLUMN_SIZE");
 
         StringBuffer buf = new StringBuffer();
         buf.append(length);
