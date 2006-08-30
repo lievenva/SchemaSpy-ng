@@ -405,10 +405,13 @@ public class Table implements Comparable {
     public ForeignKeyConstraint removeSelfReferencingConstraint() {
         ForeignKeyConstraint recursiveConstraint = getSelfReferencingConstraint();
         if (recursiveConstraint != null) {
-            TableColumn childColumn = (TableColumn)recursiveConstraint.getChildColumns().get(0);
-            TableColumn parentColumn = (TableColumn)recursiveConstraint.getParentColumns().get(0);
-            childColumn.removeParent(parentColumn);
-            parentColumn.removeChild(childColumn);
+            // more drastic removal solution by Remke Rutgers:
+            for (int i = 0; i < recursiveConstraint.getChildColumns().size(); i++) {
+                TableColumn childColumn = (TableColumn)recursiveConstraint.getChildColumns().get(i);
+                TableColumn parentColumn = (TableColumn)recursiveConstraint.getParentColumns().get(i);
+                childColumn.removeParent(parentColumn);
+                parentColumn.removeChild(childColumn);
+            }
             return recursiveConstraint;
         }
 
