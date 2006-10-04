@@ -165,15 +165,43 @@ extremely limited schema so it doesn't show the full power of the tool.<br>
           </tr>
           <tr>
             <td>&nbsp;</td>
+            <td class="param"><code>-desc "Schema description"</code></td>
+            <td class="param">Displays the specified textual description on summary pages.</td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-i tableNamesRegex</code></td>
+            <td class="param">Only include matching tables/views.
+                This is a regular expression that's used to determine which
+                tables/views to include.  <br>For example: <code>-i -i "(.*book.*)|(library.*)"</code> 
+                includes only those tables/views with 'book' in their names or that start with 'library'.<br>
+                You might want to use -desc with this option to describe the subset of tables.
+            </td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
             <td class="param"><code>-x columnNamesRegex</code></td>
             <td class="param">Exclude matching columns from relationship analysis to
                 simplify the generated graphs.
                 This is a regular expression that's used to determine which
                 columns to exclude.  It must match table name, followed by a dot, followed by
-                column name.<br>For example: <code>-x "(book.isbn)|(borrower.address)"</code><br/>
+                column name.<br/>For example: <code>-x "(book.isbn)|(borrower.address)"</code><br/>
                 Note that each column name regular expression must be surround by <code>()</code>'s and
                 separated from other column names by a <code>|</code>.
             </td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-ahic</code></td>
+            <td class="param"><em>A</em>llow <em>H</em>TML <em>I</em>n <em>C</em>omments.<br/>
+                Any HTML embedded in comments normally gets encoded so that it's rendered as text.  
+                This option allows it to be rendered as HTML.</td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-cid</code></td>
+            <td class="param"><em>C</em>omments <em>I</em>nitially <em>D</em>isplayed.<br/>
+                Column comments are normally hidden by default.  This option displays them by default.</td>
           </tr>
           <tr>
             <td>&nbsp;</td>

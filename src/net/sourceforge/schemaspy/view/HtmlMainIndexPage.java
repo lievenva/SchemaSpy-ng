@@ -92,12 +92,8 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         }
         html.writeln(":</b>");
         html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
-        html.writeln("<colgroup>");
-        html.writeln("<colgroup>");
-        html.writeln("<colgroup>");
-        html.writeln("<colgroup>");
-        html.writeln("<colgroup>");
-        if (showIds)
+        int numGroups = 4 + (showIds ? 1 : 0) + (displayTableComments ? 1 : 0);
+        for (int i = 0; i < numGroups; ++i)
             html.writeln("<colgroup>");
         html.writeln("<thead align='left'>");
         html.writeln("<tr>");
@@ -107,7 +103,8 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  <th align='right' valign='bottom'>Children</th>");
         html.writeln("  <th align='right' valign='bottom'>Parents</th>");
         html.writeln("  <th align='right' valign='bottom'>Rows</th>");
-        html.writeln("  <th align='left' valign='bottom'>Comments</th>");
+        if (displayTableComments)
+            html.writeln("  <th align='left' valign='bottom'>Comments</th>");
         html.writeln("</tr>");
         html.writeln("</thead>");
         html.writeln("<tbody>");

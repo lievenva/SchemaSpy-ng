@@ -10,9 +10,11 @@ import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
     protected final boolean encodeComments;
+    protected final boolean displayTableComments;
 
     protected HtmlFormatter() {
         encodeComments = Boolean.getBoolean("encodeComments");
+        displayTableComments = Boolean.getBoolean("displayTableComments");
     }
     
     protected void writeHeader(Database db, Table table, String text, boolean showOrphans, LineWriter out) throws IOException {
@@ -42,7 +44,7 @@ public class HtmlFormatter {
         out.write("</span>");
         if (table == null && db.getDescription() != null)
             out.write("<span class='description'>" + db.getDescription() + "</span>");
-        String comments = table != null ? table.getComments() : null;
+        String comments = displayTableComments && table != null ? table.getComments() : null;
         if (comments != null) {
             out.write("<div style='padding: 0px 4px;'>");
             if (encodeComments)
