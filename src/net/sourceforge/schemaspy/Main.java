@@ -99,8 +99,9 @@ public class Main {
             // and yet another one (Allow Html In Comments - encode them unless otherwise specified)
             System.setProperty("encodeComments", String.valueOf(!args.remove("-ahic")));
             
-            // ugh, another...
-            System.setProperty("commentsInitiallyDisplayed", String.valueOf(args.remove("-cid")));            
+            // ugh, some more...
+            System.setProperty("commentsInitiallyDisplayed", String.valueOf(args.remove("-cid")));
+            System.setProperty("displayTableComments", String.valueOf(!args.remove("-notablecomments")));
             
 
             Pattern exclusions;
