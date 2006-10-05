@@ -102,6 +102,7 @@ public class Main {
             // ugh, some more...
             System.setProperty("commentsInitiallyDisplayed", String.valueOf(args.remove("-cid")));
             System.setProperty("displayTableComments", String.valueOf(!args.remove("-notablecomments")));
+            System.setProperty("displayNumRows", String.valueOf(!args.remove("-norows")));
             
 
             Pattern exclusions;

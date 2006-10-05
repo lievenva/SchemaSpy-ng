@@ -9,12 +9,11 @@ import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
-    protected final boolean encodeComments;
-    protected final boolean displayTableComments;
+    protected final boolean encodeComments       = Boolean.getBoolean("encodeComments");
+    protected final boolean displayTableComments = Boolean.getBoolean("displayTableComments");;
+    protected final boolean displayNumRows       = Boolean.getBoolean("displayNumRows");
 
     protected HtmlFormatter() {
-        encodeComments = Boolean.getBoolean("encodeComments");
-        displayTableComments = Boolean.getBoolean("displayTableComments");
     }
     
     protected void writeHeader(Database db, Table table, String text, boolean showOrphans, LineWriter out) throws IOException {

@@ -24,7 +24,7 @@ public class Table implements Comparable {
         initColumns(meta);
         initIndexes(db, meta, properties);
         initPrimaryKeys(meta);
-        numRows = fetchNumRows(db);
+        numRows = Boolean.getBoolean("displayNumRows") ? fetchNumRows(db) : -1;
     }
 
     public void connectForeignKeys(Map tables, DatabaseMetaData meta) throws SQLException {

@@ -12,6 +12,7 @@ public class DotNode {
     private final String path;
     private final Set excludedColumns = new HashSet();
     private final String lineSeparator = System.getProperty("line.separator");
+    private final boolean displayNumRows = Boolean.getBoolean("displayNumRows");
 
     /**
      * Create a DotNode that is a focal point of a graph
@@ -115,14 +116,18 @@ public class DotNode {
             buf.append("  ");
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
-        if (table.isView()) {
-            buf.append("view");
-        } else {
-            buf.append(NumberFormat.getInstance().format(table.getNumRows()));
-            buf.append(" row");
-            if (table.getNumRows() != 1)
-                buf.append('s');
+        if (displayNumRows) {
+            if (table.isView()) {
+                buf.append("view");
+            } else {
+                buf.append(NumberFormat.getInstance().format(table.getNumRows()));
+                buf.append(" row");
+                if (table.getNumRows() != 1)
+                    buf.append('s');
+            }
         }
+        else
+            buf.append("  ");
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
         int numChildren = showImplied ? table.getNumChildren() : table.getNumRealChildren();

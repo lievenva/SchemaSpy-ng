@@ -92,7 +92,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         }
         html.writeln(":</b>");
         html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
-        int numGroups = 4 + (showIds ? 1 : 0) + (displayTableComments ? 1 : 0);
+        int numGroups = 3 + (showIds ? 1 : 0) + (displayTableComments ? 1 : 0) + (displayNumRows ? 1 : 0);
         for (int i = 0; i < numGroups; ++i)
             html.writeln("<colgroup>");
         html.writeln("<thead align='left'>");
@@ -102,7 +102,8 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.writeln("  <th align='center' valign='bottom'>ID</th>");
         html.writeln("  <th align='right' valign='bottom'>Children</th>");
         html.writeln("  <th align='right' valign='bottom'>Parents</th>");
-        html.writeln("  <th align='right' valign='bottom'>Rows</th>");
+        if (displayNumRows)
+            html.writeln("  <th align='right' valign='bottom'>Rows</th>");
         if (displayTableComments)
             html.writeln("  <th align='left' valign='bottom'>Comments</th>");
         html.writeln("</tr>");
@@ -135,12 +136,14 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.write(String.valueOf(integerFormatter.format(numRelatives)));
         html.writeln("</td>");
 
-        html.write("  <td class='detail' align='right'>");
-        if (!table.isView())
-            html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
-        else
-            html.write("<span title='Views contain no real rows'>view</span>");
-        html.writeln("</td>");
+        if (displayNumRows) {
+            html.write("  <td class='detail' align='right'>");
+            if (!table.isView())
+                html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
+            else
+                html.write("<span title='Views contain no real rows'>view</span>");
+            html.writeln("</td>");
+        }
         if (displayTableComments) {
             html.write("  <td class='detail'>");
             String comments = table.getComments();
@@ -160,8 +163,10 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
     protected void writeFooter(int numRows, LineWriter html) throws IOException {
         html.writeln("</TABLE>");
-        html.write("<p/>Total rows: ");
-        html.write(String.valueOf(integerFormatter.format(numRows)));
+        if (displayNumRows) {
+            html.write("<p/>Total rows: ");
+            html.write(String.valueOf(integerFormatter.format(numRows)));
+        }
         html.writeln("</div>");
         super.writeFooter(html);
     }

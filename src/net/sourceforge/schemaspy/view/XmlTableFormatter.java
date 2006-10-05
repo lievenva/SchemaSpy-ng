@@ -48,7 +48,8 @@ public class XmlTableFormatter {
         if (table.getSchema() != null)
             DOMUtil.appendAttribute(tableNode, "schema", table.getSchema());
         DOMUtil.appendAttribute(tableNode, "name", table.getName());
-        DOMUtil.appendAttribute(tableNode, "numRows", String.valueOf(table.getNumRows()));
+        if (table.getNumRows() != -1)
+            DOMUtil.appendAttribute(tableNode, "numRows", String.valueOf(table.getNumRows()));
         DOMUtil.appendAttribute(tableNode, "type", table.isView() ? "VIEW" : "TABLE");
         DOMUtil.appendAttribute(tableNode, "remarks", table.getComments() == null ? "" : table.getComments());
         appendColumns(tableNode, table);

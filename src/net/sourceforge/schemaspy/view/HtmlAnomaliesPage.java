@@ -119,10 +119,14 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         if (!unindexedTables.isEmpty()) {
             out.writeln("<table class='dataTable' border='1' rules='groups'>");
             out.writeln("<colgroup>");
-            out.writeln("<colgroup>");
+            if (displayNumRows)
+                out.writeln("<colgroup>");
             out.writeln("<thead align='left'>");
             out.writeln("<tr>");
-            out.writeln("  <th>Table</th><th>Rows</th>");
+            out.write("  <th>Table</th>");
+            if (displayNumRows)
+                out.write("<th>Rows</th>");
+            out.writeln();
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
@@ -137,10 +141,12 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
                 out.write(table.getName());
                 out.write("</a>");
                 out.writeln("</td>");
-                out.write("  <td class='detail' align='right'>");
-                if (!table.isView())
-                    out.write(String.valueOf(NumberFormat.getIntegerInstance().format(table.getNumRows())));
-                out.writeln("</td>");
+                if (displayNumRows) {
+                    out.write("  <td class='detail' align='right'>");
+                    if (!table.isView())
+                        out.write(String.valueOf(NumberFormat.getIntegerInstance().format(table.getNumRows())));
+                    out.writeln("</td>");
+                }
                 out.writeln(" </tr>");
             }
 

@@ -256,8 +256,11 @@ public class HtmlTablePage extends HtmlFormatter {
     }
 
     private void writeNumRows(Database db, Table table, LineWriter out) throws IOException {
-        if (!table.isView())
-            out.writeln("<p/>Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at " + db.getConnectTime());
+        if (displayNumRows && !table.isView())
+            out.write("<p/>Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at ");
+        else
+            out.write("<p/>Analyzed at ");
+        out.writeln(db.getConnectTime());
     }
 
     private void writeCheckConstraints(Table table, LineWriter out) throws IOException {
