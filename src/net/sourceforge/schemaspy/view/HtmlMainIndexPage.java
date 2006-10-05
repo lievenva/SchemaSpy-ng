@@ -141,16 +141,18 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         else
             html.write("<span title='Views contain no real rows'>view</span>");
         html.writeln("</td>");
-        html.write("  <td class='detail'>");
-        String comments = table.getComments();
-        if (comments != null) {
-            if (encodeComments)
-                for (int i = 0; i < comments.length(); ++i)
-                    html.write(HtmlEncoder.encode(comments.charAt(i)));
-            else
-                html.write(comments);
+        if (displayTableComments) {
+            html.write("  <td class='detail'>");
+            String comments = table.getComments();
+            if (comments != null) {
+                if (encodeComments)
+                    for (int i = 0; i < comments.length(); ++i)
+                        html.write(HtmlEncoder.encode(comments.charAt(i)));
+                else
+                    html.write(comments);
+            }
+            html.writeln("</td>");
         }
-        html.writeln("</td>");
         html.writeln("  </tr>");
 
         return table.getNumRows();
