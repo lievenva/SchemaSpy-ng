@@ -17,7 +17,6 @@ public class HtmlEncoder {
         map.put(">", "&gt;");
         map.put("\n", "<br>" + System.getProperty("line.separator"));
         map.put("\r", "");
-        map.put(" ", "&nbsp;");
     }
    
     private HtmlEncoder() {}
