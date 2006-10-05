@@ -160,13 +160,11 @@ extremely limited schema so it doesn't show the full power of the tool.<br>
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-nohtml</code></td>
-            <td class="param">Only generate files needed for insertion/deletion of data (e.g. for scripts)</td>
-          </tr>
-          <tr>
-            <td>&nbsp;</td>
             <td class="param"><code>-desc "Schema description"</code></td>
-            <td class="param">Displays the specified textual description on summary pages.</td>
+            <td class="param">Displays the specified textual description on summary pages.
+                If your description includes an equals sign then escape it with a backslash.<br>
+                For example:<br>
+                -desc "&lt;a href\='http://schemaspy.sourceforge.net'&gt;SchemaSpy&lt;/a&gt;".</td>
           </tr>
           <tr>
             <td>&nbsp;</td>
@@ -205,8 +203,19 @@ extremely limited schema so it doesn't show the full power of the tool.<br>
           </tr>
           <tr>
             <td>&nbsp;</td>
+            <td class="param"><code>-notablecomments</code></td>
+            <td class="param">Don't display table-based comments.
+            	for databases like MySQL that stuff unrelated data where comments belong.</td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
             <td class="param"><code>-noimplied</code></td>
             <td class="param">Don't include implied foreign key relationships in the generated table details</td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-nohtml</code></td>
+            <td class="param">Only generate files needed for insertion/deletion of data (e.g. for scripts)</td>
           </tr>
         </tbody>
       </table>
