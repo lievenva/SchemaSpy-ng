@@ -14,48 +14,48 @@
 
 <li class='release'>3.1.0 - 10/05/2006
 <ul>
-    <li>The Columns page is now sortable by column, table, type, size, nullability, 
+    <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1537790&group_id=137197&atid=737990">
+        feature request 1537790</a> - Column name sort.<br>
+        The Columns page is now sortable by column, table, type, size, nullability, 
         auto increment, default value, children or parents.  Thanks to John Danilson for the suggestion.
-        <br>Implementation of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1537790&group_id=137197&atid=737990">
-        feature request 1537790</a>.
     </li>
-    <li>Added a new option (-desc) to provide a description of the schema that is displayed
+    <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1479956&group_id=137197&atid=737990">
+        feature request 1479956</a> - Add description.<br>
+	    Added a new option (-desc) to provide a description of the schema that is displayed
         on the non-detail pages.  Thanks to Amihay Gonen for the suggestion.
-        <br>Implementation of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1479956&group_id=137197&atid=737990">
-        feature request 1479956</a>.
     </li>
-    <li>Added -notablecomments option for databases like MySQL that stuff unrelated data where comments belong.
-        <br>Implementation of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1570467&group_id=137197&atid=737990">
-        feature request 1570467</a>.
+    <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1570467&group_id=137197&atid=737990">
+        feature request 1570467</a> - No table comments option.<br>
+	    Added -notablecomments option for databases like MySQL that stuff unrelated data where comments belong.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1484462&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1484462&group_id=137197&atid=737987">
         bug 1484462</a> - SchemaSpy_3.0.0 and Oracle 10g problems.
         <br>Now ignores tables associated with Oracle's recycle bin.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1558067&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1558067&group_id=137197&atid=737987">
         bug 1558067</a> - OutOfMemoryError on Linux while trying to determine insertion order with
         recursive constraints.  Thanks to Remke Rutgers for his solution.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1530945&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1530945&group_id=137197&atid=737987">
         bug 1530945</a> - Incorrect variables size in DB2.  
         <br>Now uses the value from BUFFER_LENGTH if it's available.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1487385&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1487385&group_id=137197&atid=737987">
         bug 1487385</a> - XML file is not a valid UTF8.
         <br>Bernard D'Havé provided the code to resolve this one.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1507335&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1507335&group_id=137197&atid=737987">
         bug 1507335</a> - Views are not filtered with the regular expressions.</li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1502357&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1502357&group_id=137197&atid=737987">
         bug 1502357</a> - Blank Relationships tab.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1530965&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1530965&group_id=137197&atid=737987">
         bug 1530965</a> - columns.html table output issues with DB2.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1487385&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1487385&group_id=137197&atid=737987">
         bug 1487385</a> - XML file is not valid UTF8.
     </li>
-    <li>Resolution of <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1571077&group_id=137197&atid=737987">
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1571077&group_id=137197&atid=737987">
         bug 1571077</a> - Long comments don't wrap.
     </li>
 </ul>
@@ -82,7 +82,7 @@
     <li>The relationships page will now always be available, even if there are no relationships or just
         implied relationships.</li>
     <li>Tables that contain only implied relationships will now show them by default.</li>
-    <li>Resolution of <a
+    <li>Resolved <a
         href="https://sourceforge.net/tracker/index.php?func=detail&aid=1440650&group_id=137197&atid=737987">bug
         1440650</a> - Oracle 10g flashback tables with bizarre illegal names
         cause SchemaSpy to crash.</li>
@@ -91,7 +91,7 @@
         request 1445745</a>) and reserved words (<a
         href="http://sourceforge.net/tracker/index.php?func=detail&aid=1449203&group_id=137197&atid=737987">bug
         1449203</a>).</li>
-    <li>Resolution of <a
+    <li>Resolved <a
         href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=1481396&group_id=137197">bug
         1481396</a> - NumberFormatException in view.DotFormatter.writeHeader.  Now includes
         diagnostics to help identify Graphviz configuration issues.</li>
