@@ -729,7 +729,9 @@ public class Main {
         while (iter.hasNext()) {
             String arg = iter.next().toString();
             int indexOfEquals = arg.indexOf('=');
-            if (indexOfEquals != -1) {
+            if (indexOfEquals != -1 && arg.indexOf('\\') == indexOfEquals - 1) { // "\=" (escaped)
+                expandedArgs.add(arg.substring(0, indexOfEquals - 1) + arg.substring(indexOfEquals));
+            } else if (indexOfEquals != -1) {
                 expandedArgs.add(arg.substring(0, indexOfEquals));
                 expandedArgs.add(arg.substring(indexOfEquals + 1));
             } else {
