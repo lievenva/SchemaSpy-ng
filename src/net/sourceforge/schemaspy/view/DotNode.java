@@ -116,18 +116,19 @@ public class DotNode {
             buf.append("  ");
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
-        if (displayNumRows) {
-            if (table.isView()) {
-                buf.append("view");
-            } else {
-                buf.append(NumberFormat.getInstance().format(table.getNumRows()));
+        if (table.isView())
+            buf.append("view");
+        else {
+            final int numRows = table.getNumRows();
+            if (displayNumRows && numRows != -1) {
+                buf.append(NumberFormat.getInstance().format(numRows));
                 buf.append(" row");
-                if (table.getNumRows() != 1)
+                if (numRows != 1)
                     buf.append('s');
+            } else {
+                buf.append("  ");
             }
         }
-        else
-            buf.append("  ");
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
         int numChildren = showImplied ? table.getNumChildren() : table.getNumRealChildren();
