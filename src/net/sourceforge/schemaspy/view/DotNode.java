@@ -122,7 +122,7 @@ public class DotNode {
             final int numRows = table.getNumRows();
             if (displayNumRows && numRows != -1) {
                 buf.append(NumberFormat.getInstance().format(numRows));
-                buf.append(" row");
+                buf.append(" row"); 
                 if (numRows != 1)
                     buf.append('s');
             } else {
