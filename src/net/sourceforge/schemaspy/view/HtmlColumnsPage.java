@@ -133,7 +133,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
         html.write(" contains ");
         html.write(String.valueOf(numberOfColumns));
-        html.write(" columns:</b>");
+        html.write(" columns</b> - click on heading to sort:");
         Collection tables = db.getTables();
         boolean hasTableIds = tables.size() > 0 && ((Table)tables.iterator().next()).getId() != null;
         writeMainTableHeader(hasTableIds, selectedColumn, html);
