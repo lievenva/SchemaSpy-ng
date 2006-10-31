@@ -12,6 +12,7 @@ public class HtmlFormatter {
     protected final boolean encodeComments       = Boolean.getBoolean("encodeComments");
     protected final boolean displayTableComments = Boolean.getBoolean("displayTableComments");;
     protected final boolean displayNumRows       = Boolean.getBoolean("displayNumRows");
+    private   final boolean isMetered            = Boolean.getBoolean("isMetered");
 
     protected HtmlFormatter() {
     }
@@ -192,6 +193,18 @@ public class HtmlFormatter {
 
     protected void writeFooter(LineWriter html) throws IOException {
         html.writeln("</div>");
+        if (isMetered) {
+            html.writeln("<span style='float: right;' title='This link is only on the SchemaSpy sample pages'>");
+            html.writeln("<!-- Site Meter -->");
+            html.writeln("<script type='text/javascript' src='http://s28.sitemeter.com/js/counter.js?site=s28schemaspy'>");
+            html.writeln("</script>");
+            html.writeln("<noscript>");
+            html.writeln("<a href='http://s28.sitemeter.com/stats.asp?site=s28schemaspy' target='_top'>");
+            html.writeln("<img src='http://s28.sitemeter.com/meter.asp?site=s28schemaspy' alt='Site Meter' border='0'/></a>");
+            html.writeln("</noscript>");
+            html.writeln("<!-- Copyright (c)2006 Site Meter -->");
+            html.writeln("</span>");
+        }
         html.writeln("</body>");
         html.writeln("</html>");
     }
