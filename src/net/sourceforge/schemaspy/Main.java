@@ -103,6 +103,7 @@ public class Main {
             System.setProperty("commentsInitiallyDisplayed", String.valueOf(args.remove("-cid")));
             System.setProperty("displayTableComments", String.valueOf(!args.remove("-notablecomments")));
             System.setProperty("displayNumRows", String.valueOf(!args.remove("-norows")));
+            System.setProperty("isMetered", String.valueOf(args.remove("-meter")));
             
 
             Pattern exclusions;
