@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -15,8 +15,13 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.util.ConnectionURLBuilder;
 
 /**
  * Configuration of an SchemaSpy run
@@ -26,9 +31,7 @@ import java.util.regex.Pattern;
 public class Config
 {
     private List options;
-    private PrintWriter output;
-    private Pattern classPattern;
-    private String xpathQuery;
+    private Pattern exclusions;
     private boolean helpRequired;
     private boolean dbHelpRequired;
     private Boolean generateHtml;
@@ -51,6 +54,9 @@ public class Config
     private Boolean tableCommentsEnabled;
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
+    private Pattern inclusions;
+    private Boolean evaluteAll;
+    private String dbPropertiesLoadedFrom;
 
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -252,7 +258,7 @@ public class Config
         this.maxDbThreads = Integer.valueOf(maxDbThreads);
     }
     
-    public int getMaxDbThreads() {
+    public int getMaxDbThreads() throws IOException {
         if (maxDbThreads == null) {
             Properties properties = getDbProperties(getDatabaseType());
             
@@ -285,6 +291,10 @@ public class Config
     public boolean isLogoEnabled() {
         if (logoEnabled == null)
             logoEnabled = Boolean.valueOf(!options.remove("-nologo"));
+        
+        // nasty hack, but passing this info everywhere churns my stomach
+        System.setProperty("sourceforgelogo", String.valueOf(logoEnabled));
+        
         return logoEnabled.booleanValue();
     }
     
@@ -295,6 +305,10 @@ public class Config
     public boolean isRankDirBugEnabled() {
         if (rankDirBugEnabled == null)
             rankDirBugEnabled = Boolean.valueOf(options.remove("-rankdirbug"));
+        
+        // another nasty hack with the same justification as the one above
+        System.setProperty("rankdirbug", String.valueOf(rankDirBugEnabled));
+        
         return rankDirBugEnabled.booleanValue();
     }
     
@@ -302,9 +316,16 @@ public class Config
         this.encodeCommentsEnabled = Boolean.valueOf(enabled);
     }
     
+    /**
+     * Allow Html In Comments - encode them unless otherwise specified
+     * @return
+     */
     public boolean isEncodeCommentsEnabled() {
         if (encodeCommentsEnabled == null)
             encodeCommentsEnabled = Boolean.valueOf(!options.remove("-ahic"));
+        
+        System.setProperty("encodeComments", String.valueOf(encodeCommentsEnabled));
+        
         return encodeCommentsEnabled.booleanValue();
     }
 
@@ -315,6 +336,9 @@ public class Config
     public boolean isDisplayCommentsIntiallyEnabled() {
         if (displayCommentsInitiallyEnabled == null)
             displayCommentsInitiallyEnabled = Boolean.valueOf(options.remove("-cid"));
+        
+        System.setProperty("commentsInitiallyDisplayed", String.valueOf(displayCommentsInitiallyEnabled));
+        
         return displayCommentsInitiallyEnabled.booleanValue();
     }
 
@@ -325,6 +349,9 @@ public class Config
     public boolean isTableCommentsEnabled() {
         if (tableCommentsEnabled == null)
             tableCommentsEnabled = Boolean.valueOf(!options.remove("-notablecomments"));
+        
+        System.setProperty("displayTableComments", String.valueOf(tableCommentsEnabled));
+        
         return tableCommentsEnabled.booleanValue();
     }
 
@@ -335,6 +362,9 @@ public class Config
     public boolean isNumRowsEnabled() {
         if (numRowsEnabled == null)
             numRowsEnabled = Boolean.valueOf(!options.remove("-norows"));
+        
+        System.setProperty("displayNumRows", String.valueOf(numRowsEnabled));
+        
         return numRowsEnabled.booleanValue();
     }
 
@@ -345,124 +375,104 @@ public class Config
     public boolean isMeterEnabled() {
         if (meterEnabled == null)
             meterEnabled = Boolean.valueOf(options.remove("-meter"));
+        
+        System.setProperty("isMetered", String.valueOf(meterEnabled));
+        
         return meterEnabled.booleanValue();
     }
-////////////////STOPPED HERE at metered///////////////////////////////
-//TODO
 
-    /**
-     * Set what LRIDs to include in the transformed output as a regular
-     * expression. Defaults to all: <code>Pattern.compile(".*")</code>
-     * 
-     * @param classPattern
-     * @see #setClassPattern(Pattern)
-     */
-    public void setClassPattern(Pattern classPattern)
-    {
-        this.classPattern = classPattern;
+    public void setExclusions(Pattern exclusions) {
+        this.exclusions = exclusions;
     }
 
-    /**
-     * @see #setClassPattern(Pattern)
-     */
-    public void setClassPattern(String classPattern)
-    {
-        this.classPattern = Pattern.compile(classPattern);
+    public void setExclusions(String exclusions) {
+        this.exclusions = Pattern.compile(exclusions);
     }
 
-    /**
-     * Returns the <code>Pattern</code> that specifies which LRIDs to
-     * transform. Is subsequenty filtered by
-     * {@link #getXPathQuery() XPath query}.
-     * 
-     * @return
-     * @see #setClassPattern(Pattern)
-     */
-    public Pattern getClassPattern()
-    {
-        if (classPattern == null)
-        {
-            String lridSpec = pullParam("-lrid");
-            if (lridSpec == null)
-                lridSpec = ".*";
+    public Pattern getExclusions() {
+        if (exclusions == null) {
+            String strExclusions = pullParam("-x");
+            if (strExclusions == null)
+                strExclusions = "[^.]";   // match nothing
 
-            classPattern = Pattern.compile(lridSpec);
+            exclusions = Pattern.compile(strExclusions);
         }
 
-        return classPattern;
+        return exclusions;
     }
 
-    /**
-     * Set the <a href="http://www.w3.org/TR/xpath">XPath query</a> to apply
-     * after filtering by {@link #getClassPattern()() class pattern}.
-     * 
-     * @param xpathQuery
-     * @see #getXPathQuery()
-     */
-    public void setXPathQuery(String xpathQuery)
-    {
-        this.xpathQuery = xpathQuery;
+    public void setInclusions(Pattern exclusions) {
+        this.inclusions = exclusions;
     }
 
-    /**
-     * Returns the <a href="http://www.w3.org/TR/xpath">XPath query</a> to
-     * apply after filtering by {@link #getClassPattern()() class pattern}.
-     * 
-     * @return
-     * @see #setXPathQuery(String)
-     */
-    public String getXPathQuery()
-    {
-        if (xpathQuery == null)
-        {
-            xpathQuery = pullParam("-query");
-            if (xpathQuery == null)
-                xpathQuery = "/LRIDs/LRID/*";
+    public void setInclusions(String exclusions) {
+        this.inclusions = Pattern.compile(exclusions);
+    }
+
+    public Pattern getInclusions() {
+        if (inclusions == null) {
+            String strInclusions = pullParam("-i");
+            if (strInclusions == null)
+                strInclusions = ".*";     // match anything
+
+            inclusions = Pattern.compile(strInclusions);
         }
 
-        return xpathQuery;
+        return inclusions;
     }
-
+    
+    public void setEvaluateAllEnabled(boolean enabled) {
+        this.evaluteAll = Boolean.valueOf(enabled);
+    }
+    
+    public boolean isEvaluateAllEnabled() {
+        if (evaluteAll == null)
+            evaluteAll = Boolean.valueOf(options.remove("-all"));
+        return evaluteAll.booleanValue();
+    }
+    
     /**
      * Returns <code>true</code> if the options indicate that the user wants
      * to see some help information.
      * 
      * @return
      */
-    public boolean isHelpRequired()
-    {
+    public boolean isHelpRequired() {
         return helpRequired;
     }
     
+    public boolean isDbHelpRequired() {
+        return dbHelpRequired;
+    }
     
-    public static String getLoadedFromJar() {
+    
+    public String getLoadedFromJar() {
         String classpath = System.getProperty("java.class.path");
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
     }
 
-    public Properties getDbProperties(StringBuffer loadedFrom) throws IOException {
+    public Properties getDbProperties(String dbType) throws IOException {
         ResourceBundle bundle = null;
-        String dbType = getDatabaseType();
 
         try {
             File propertiesFile = new File(dbType);
             bundle = new PropertyResourceBundle(new FileInputStream(propertiesFile));
-            loadedFrom.append(propertiesFile.getAbsolutePath());
+            dbPropertiesLoadedFrom = propertiesFile.getAbsolutePath();
         } catch (FileNotFoundException notFoundOnFilesystemWithoutExtension) {
             try {
                 File propertiesFile = new File(dbType + ".properties");
                 bundle = new PropertyResourceBundle(new FileInputStream(propertiesFile));
-                loadedFrom.append(propertiesFile.getAbsolutePath());
+                dbPropertiesLoadedFrom = propertiesFile.getAbsolutePath();
             } catch (FileNotFoundException notFoundOnFilesystemWithExtensionTackedOn) {
                 try {
                     bundle = ResourceBundle.getBundle(dbType);
-                    loadedFrom.append("[" + getLoadedFromJar() + "]" + File.separator + dbType + ".properties");
+                    dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]" + File.separator + dbType + ".properties";
                 } catch (Exception notInJarWithoutPath) {
                     try {
                         String path = SchemaSpy.class.getPackage().getName() + ".dbTypes." + dbType;
                         path = path.replace('.', '/');
                         bundle = ResourceBundle.getBundle(path);
-                        loadedFrom.append("[" + getLoadedFromJar() + "]/" + path + ".properties");
+                        dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]/" + path + ".properties";
                     } catch (Exception notInJar) {
                         notInJar.printStackTrace();
                         notFoundOnFilesystemWithExtensionTackedOn.printStackTrace();
@@ -473,15 +483,24 @@ public class Config
         }
 
         Properties properties;
-
+        String save = dbPropertiesLoadedFrom;
+        
         try {
             String baseDbType = bundle.getString("extends").trim();
-            properties = getDbProperties(baseDbType, new StringBuffer());
+            properties = getDbProperties(baseDbType);
         } catch (MissingResourceException doesntExtend) {
             properties = new Properties();
+        } finally {
+            dbPropertiesLoadedFrom = save;
         }
 
         return add(properties, bundle);
+    }
+    
+    protected String getDbPropertiesLoadedFrom() throws IOException {
+        if (dbPropertiesLoadedFrom == null)
+            getDbProperties(getDatabaseType());
+        return dbPropertiesLoadedFrom;
     }
 
     /**
@@ -491,7 +510,7 @@ public class Config
      * @param bundle ResourceBundle
      * @return Properties
      */
-    private static Properties add(Properties properties, ResourceBundle bundle) {
+    protected static Properties add(Properties properties, ResourceBundle bundle) {
         Enumeration iter = bundle.getKeys();
         while (iter.hasMoreElements()) {
             Object key = iter.nextElement();
@@ -524,12 +543,9 @@ public class Config
     private String pullParam(String paramId, boolean required, boolean dbTypeSpecific) {
         int paramIndex = options.indexOf(paramId);
         if (paramIndex < 0) {
-            if (required) {
-                dumpUsage("Parameter '" + paramId + "' missing." + (dbTypeSpecific ? "  It is required for this database type." : ""), !dbTypeSpecific, dbTypeSpecific);
-                System.exit(1);
-            } else {
-                return null;
-            }
+            if (required)
+                throw new MissingRequiredParameterException(paramId, dbTypeSpecific);
+            return null;
         }
         options.remove(paramIndex);
         String param = options.get(paramIndex).toString();
@@ -537,6 +553,22 @@ public class Config
         return param;
     }
     
+    static public class MissingRequiredParameterException extends RuntimeException {
+        private boolean dbTypeSpecific;
+
+        public MissingRequiredParameterException(String paramId, boolean dbTypeSpecific) {
+            this(paramId, null, dbTypeSpecific);
+        }
+        
+        public MissingRequiredParameterException(String paramId, String description, boolean dbTypeSpecific) {
+            super("Parameter '" + paramId + "' " + (description == null ? "" : "(" + description + ") ") + "missing." + (dbTypeSpecific ? "  It is required for this database type." : ""));
+            this.dbTypeSpecific = dbTypeSpecific;
+        }
+        
+        public boolean isDbTypeSpecific() {
+            return dbTypeSpecific;
+        }
+    }
 
     /**
      * Allow an equal sign in args...like "-o=foo.bar". Useful for things like
@@ -546,7 +578,7 @@ public class Config
      *            List
      * @return List
      */
-    private static List fixupArgs(List args)
+    protected List fixupArgs(List args)
     {
         List expandedArgs = new ArrayList();
 
@@ -568,25 +600,113 @@ public class Config
 
         return expandedArgs;
     }
-
+    
     /**
+     * Call all the getters to populate all the lazy initialized stuff.
+     * After this call the remaining options can be evaluated.
      * 
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
      */
-    public static void dumpUsage(PrintStream stream, String indent)
-    {
-        stream.println(indent + "-f inputLrids - what LRID file to read");
-        stream.println(indent + "                defaults to standard input");
-        stream.println(indent + "-o outputFile - where to sent the output");
-        stream.println(indent + "                defaults to standard output");
-        stream.println(indent + "-from begin   - beginning time");
-        stream.println(indent + "                defaults to \"start of epoch\" (1970-01-01 00:00:00.000000000)");
-        stream.println(indent + "-to end       - ending time");
-        stream.println(indent + "                defaults to \"end of epoch\" (2262-04-11 23:47:16.854775807)");
-        stream.println(indent + "-lrid regex   - which LRID classes to include");
-        stream.println(indent + "                regular expression - defaults to all (\".*\")");
-        stream.println(indent + "-query xpath  - after filtered by -lrid, XPath expression");
-        stream.println(indent + "                 of which LRIDs to transform");
-        stream.println(indent + "                defaults to \"/LRIDs/LRID/*\"");
-        stream.println(indent + "-skip         skip bad records");
+    protected void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+        Method[] methods = getClass().getMethods();
+        for (int i = 0; i < methods.length; ++i) {
+            Method method = methods[i];
+            if (method.getParameterTypes().length == 0 &&
+                (method.getName().startsWith("is") || method.getName().startsWith("get"))) {
+                method.invoke(this, null);
+            }
+        }
+    }
+
+    public static Set getBuiltInDatabaseTypes(String loadedFromJar) {
+        Set databaseTypes = new TreeSet();
+        JarInputStream jar = null;
+
+        try {
+            jar = new JarInputStream(new FileInputStream(loadedFromJar));
+            JarEntry entry;
+
+            while ((entry = jar.getNextJarEntry()) != null) {
+                String entryName = entry.getName();
+                int dotPropsIndex = entryName.indexOf(".properties");
+                if (dotPropsIndex != -1)
+                    databaseTypes.add(entryName.substring(0, dotPropsIndex));
+            }
+        } catch (IOException exc) {
+        } finally {
+            if (jar != null) {
+                try {
+                    jar.close();
+                } catch (IOException ignore) {}
+            }
+        }
+
+        return databaseTypes;
+    }
+    
+    protected void dumpUsage(String errorMessage, boolean detailedDb) {
+        if (errorMessage != null) {
+            System.err.println("*** " + errorMessage + " ***");
+        }
+
+        System.out.println("SchemaSpy generates an HTML representation of a database schema's relationships.");
+        System.out.println();
+
+        if (!detailedDb) {
+            System.out.println("Usage:");
+            System.out.println(" java -jar " + getLoadedFromJar() + " [options]");
+            System.out.println("   -t databaseType       type of database - defaults to ora");
+            System.out.println("                           use -dbhelp for a list of built-in types");
+            System.out.println("   -u user               connect to the database with this user id");
+            System.out.println("   -s schema             defaults to the specified user");
+            System.out.println("   -p password           defaults to no password");
+            System.out.println("   -o outputDirectory    directory to place the generated output in");
+            System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
+            System.out.println("                           in driverPath in [databaseType].properties.");
+            System.out.println("                           must be specified after " + getLoadedFromJar());
+            System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description"); 
+            System.out.println(" of additional parameters.");
+            System.out.println();
+        }
+
+        if (detailedDb) {
+            System.out.println("Built-in database types and their required connection parameters:");
+            Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
+            class DbPropLoader {
+                Properties load(String dbType) {
+                    ResourceBundle bundle = ResourceBundle.getBundle(dbType);
+                    Properties properties;
+                    try {
+                        String baseDbType = bundle.getString("extends");
+                        int lastSlash = dbType.lastIndexOf('/');
+                        if (lastSlash != -1)
+                            baseDbType = dbType.substring(0, dbType.lastIndexOf("/") + 1) + baseDbType;
+                        properties = load(baseDbType);
+                    } catch (MissingResourceException doesntExtend) {
+                        properties = new Properties();
+                    }
+
+                    return add(properties, bundle);
+                }
+            }
+
+            for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
+                String dbType = iter.next().toString();
+                new ConnectionURLBuilder(dbType, null, new DbPropLoader().load(dbType)).dumpUsage();
+            }
+            System.out.println();
+        }
+
+        if (detailedDb) {
+            System.out.println("You can use your own database types by specifying the filespec of a .properties file with -t.");
+            System.out.println("Grab one out of " + getLoadedFromJar() + " and modify it to suit your needs.");
+            System.out.println();
+        }
+
+        System.out.println("Sample usage using the default database type (implied -t ora):");
+        System.out.println(" java -jar schemaSpy.jar -db mydb -s myschema -u devuser -p password -o output");
+        System.out.println();
     }
 }

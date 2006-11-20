@@ -4,9 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.sql.*;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.sourceforge.schemaspy.model.Database;
@@ -18,158 +15,76 @@ import org.w3c.dom.Element;
 
 public class Main {
     public static void main(String[] argv) {
+        List args = new ArrayList(Arrays.asList(argv)); // can't mod the original
+        Config config = new Config(args);
+        
         try {
-            List args = new ArrayList(Arrays.asList(argv)); // can't mod the original
-            if (args.size() == 0 || args.remove("-h") || args.remove("-?") || args.remove("?") || args.remove("/?")) {
-                dumpUsage(null, false, false);
+            if (config.isHelpRequired()) {
+                config.dumpUsage(null, false);
                 System.exit(1);
             }
 
-            if (args.remove("-help")) {
-                dumpUsage(null, true, false);
+            if (config.isDbHelpRequired()) {
+                config.dumpUsage(null, true);
                 System.exit(1);
             }
 
-            if (args.remove("-dbhelp")) {
-                dumpUsage(null, true, true);
-                System.exit(1);
-            }
+            // allow '=' in param specs
+            args = config.fixupArgs(args);
 
             long start = System.currentTimeMillis();
             long startGraphingDetails = start;
             long startSummarizing = start;
 
-            // allow '=' in param specs
-            args = fixupArgs(args);
+            final boolean includeImpliedConstraints = config.isImpliedConstraintsEnabled();
 
-            final boolean generateHtml = !args.remove("-nohtml");
-            final boolean includeImpliedConstraints = !args.remove("-noimplied");
+            File outputDir = config.getOutputDir();
 
-            String outputDirName = getRequiredParam(args, "-o");
-            // quoting command-line arguments sometimes leaves the trailing "
-            if (outputDirName.endsWith("\""))
-                outputDirName = outputDirName.substring(0, outputDirName.length() - 1);
-            File outputDir = new File(outputDirName).getCanonicalFile();
-            if (!outputDir.isDirectory()) {
-                if (!outputDir.mkdirs()) {
-                    System.err.println("Failed to create directory '" + outputDir + "'");
-                    System.exit(2);
-                }
-            }
+            Properties properties = config.getDbProperties(config.getDatabaseType());
 
-            String dbType = getParam(args, "-t");
-            if (dbType == null)
-                dbType = "ora";
-            StringBuffer propertiesLoadedFrom = new StringBuffer();
-            Properties properties = getDbProperties(dbType, propertiesLoadedFrom);
+            String schema = config.getSchema();
 
-            String user = getRequiredParam(args, "-u");
-            String password = getParam(args, "-p");
-            String schema = null;
-            try {
-                schema = getParam(args, "-s", false, true);
-            } catch (Exception schemaNotSpecified) {}
-
-            int maxDetailedTables = 300;
-            try {
-                maxDetailedTables = Integer.parseInt(getParam(args, "-maxdet"));
-            } catch (Exception notSpecified) {}
-            
-            Properties userProperties = new Properties();
-            String loc = getParam(args, "-connprops");
-            if (loc != null)
-                userProperties.load(new FileInputStream(loc));
-
-            String classpath = getParam(args, "-cp");
-
-            String css = getParam(args, "-css");
-            if (css == null)
-                css = "schemaSpy.css";
-            
-            String description = getParam(args, "-desc");
-
-            int maxDbThreads = getMaxDbThreads(args, properties);
-
-            // nasty hack, but passing this info everywhere churns my stomach
-            System.setProperty("sourceforgelogo", String.valueOf(!args.remove("-nologo")));
-
-            // and another nasty hack with the same justification as the one above
-            System.setProperty("rankdirbug", String.valueOf(args.remove("-rankdirbug")));
-            
-            // and yet another one (Allow Html In Comments - encode them unless otherwise specified)
-            System.setProperty("encodeComments", String.valueOf(!args.remove("-ahic")));
-            
-            // ugh, some more...
-            System.setProperty("commentsInitiallyDisplayed", String.valueOf(args.remove("-cid")));
-            System.setProperty("displayTableComments", String.valueOf(!args.remove("-notablecomments")));
-            System.setProperty("displayNumRows", String.valueOf(!args.remove("-norows")));
-            System.setProperty("isMetered", String.valueOf(args.remove("-meter")));
-            
-
-            Pattern exclusions;
-            String exclude = getParam(args, "-x");
-            if (exclude != null) {
-                exclusions = Pattern.compile(exclude);
-            } else {
-                exclusions = Pattern.compile("[^.]");   // match nothing
-            }
-            
-            Pattern inclusions;
-            String include = getParam(args, "-i");
-            if (include != null) {
-                inclusions = Pattern.compile(include);
-            } else {
-                inclusions = Pattern.compile(".*");     // match anything
-            }
-
-            ConnectionURLBuilder urlBuilder = null;
-            try {
-                urlBuilder = new ConnectionURLBuilder(dbType, args, properties);
-            } catch (IllegalArgumentException badParam) {
-                System.err.println(badParam.getMessage());
-                System.exit(1);
-            }
+            ConnectionURLBuilder urlBuilder = new ConnectionURLBuilder(config.getDatabaseType(), args, properties);
 
             String dbName = urlBuilder.getDbName();
 
-            boolean analyzeAll = args.remove("-all");
-            String schemaSpec = getParam(args, "-schemaSpec");
+            //TODO
+            //String schemaSpec = getParam(args, "-schemaSpec");
 
-            if (args.size() != 0) {
+            config.populate();   // force options to be evaluated
+            if (config.getRemainingParameters().size() != 0) {
                 System.out.print("Warning: Unrecognized option(s):");
-                for (Iterator iter = args.iterator(); iter.hasNext(); ) {
+                for (Iterator iter = config.getRemainingParameters().iterator(); iter.hasNext(); )
                     System.out.print(" " + iter.next());
-                }
                 System.out.println();
             }
 
             String driverClass = properties.getProperty("driver");
             String driverPath = properties.getProperty("driverPath");
-            if (classpath != null)
-                driverPath = classpath + File.pathSeparator + driverPath;
+            if (config.getClasspath() != null)
+                driverPath = config.getClasspath() + File.pathSeparator + driverPath;
 
-            Connection connection = getConnection(user, password, urlBuilder.getConnectionURL(), driverClass, driverPath, propertiesLoadedFrom.toString(), userProperties);
+            Connection connection = getConnection(config, urlBuilder.getConnectionURL(), driverClass, driverPath);
             DatabaseMetaData meta = connection.getMetaData();
 
-            if (analyzeAll) {
+            if (config.isEvaluateAllEnabled()) {
                 args = new ArrayList(Arrays.asList(argv));
-                getParam(args, "-o");   // param will be replaced by something appropriate
-                getParam(args, "-s");   // param will be replaced by something appropriate
+                yankParam(args, "-o");  // param will be replaced by something appropriate
+                yankParam(args, "-s");  // param will be replaced by something appropriate
                 args.remove("-all");    // param will be replaced by something appropriate
-                if (schemaSpec == null)
-                    schemaSpec = properties.getProperty("schemaSpec", ".*");
-                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, user, outputDir, getLoadedFromJar());
+                if (schema == null)
+                    schema = properties.getProperty("schemaSpec", ".*");
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schema, args, config.getUser(), outputDir, config.getLoadedFromJar());
                 System.exit(0);
             }
 
-            if (schema == null && meta.supportsSchemasInTableDefinitions()) {
-                schema = user;
-            }
+            if (schema == null && meta.supportsSchemasInTableDefinitions())
+                schema = config.getUser();
 
-            if (generateHtml) {
+            if (config.isHtmlGenerationEnabled()) {
                 new File(outputDir, "tables").mkdirs();
                 new File(outputDir, "graphs/summary").mkdirs();
-                StyleSheet.init(new BufferedReader(getStyleSheet(css)));
+                StyleSheet.init(new BufferedReader(getStyleSheet(config.getCss())));
 
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
                 System.out.println();
@@ -179,7 +94,7 @@ public class Main {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, description, properties, inclusions, maxDbThreads);
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getInclusions(), config.getMaxDbThreads());
             Database db = spy.getDatabase();
 
             LineWriter out;
@@ -187,7 +102,7 @@ public class Main {
             tables.addAll(db.getViews());
 
             if (tables.isEmpty()) {
-                dumpNoTablesMessage(schema, user, meta, include != null);
+                dumpNoTablesMessage(schema, config.getUser(), meta, config.getInclusions() != null);
                 System.exit(2);
             }
 
@@ -201,7 +116,7 @@ public class Main {
                 DOMUtil.appendAttribute(rootNode, "schema", schema);
             DOMUtil.appendAttribute(rootNode, "type", db.getDatabaseProduct());
 
-            if (generateHtml) {
+            if (config.isHtmlGenerationEnabled()) {
                 startSummarizing = System.currentTimeMillis();
                 System.out.println("(" + (startSummarizing - start) / 1000 + "sec)");
                 System.out.print("Writing/graphing summary");
@@ -209,12 +124,12 @@ public class Main {
                 ImageWriter.getInstance().writeImages(outputDir);
                 System.out.print(".");
 
-                boolean showDetailedTables = tables.size() <= maxDetailedTables;
+                boolean showDetailedTables = tables.size() <= config.getMaxDetailedTables();
 
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
-                WriteStats stats = new WriteStats(exclusions, includeImpliedConstraints);
+                WriteStats stats = new WriteStats(config.getExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeRealRelationships(tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 stats = new WriteStats(stats);
@@ -243,7 +158,7 @@ public class Main {
 
                 File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(new FileOutputStream(impliedDotFile));
-                stats = new WriteStats(exclusions, includeImpliedConstraints);
+                stats = new WriteStats(config.getExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeAllRelationships(tables, true, showDetailedTables, stats, out);
                 boolean hasImplied = stats.wroteImplied();
                 Set excludedColumns = stats.getExcludedColumns();
@@ -382,43 +297,20 @@ public class Main {
             }
             */
 
-            if (generateHtml) {
+            if (config.isHtmlGenerationEnabled()) {
                 long end = System.currentTimeMillis();
                 System.out.println("(" + (end - startGraphingDetails) / 1000 + "sec)");
-                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + new File(outputDirName) + "' in " + (end - start) / 1000 + " seconds.");
-                System.out.println("Start with " + new File(outputDirName, "index.html"));
+                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
+                System.out.println("Start with " + new File(config.getOutputDir(), "index.html"));
             }
+        } catch (Config.MissingRequiredParameterException missingParam) {
+            config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());
+            System.exit(1);
         } catch (Exception exc) {
             System.err.println();
             exc.printStackTrace();
+            System.exit(1);
         }
-    }
-
-    /**
-     * getMaxDbThreads
-     *
-     * @param args List
-     * @param properties Properties
-     * @return int
-     */
-    private static int getMaxDbThreads(List args, Properties properties) {
-        int maxThreads = Integer.MAX_VALUE;
-        String threads = properties.getProperty("dbThreads");
-        if (threads == null)
-            threads = properties.getProperty("dbthreads");
-        if (threads != null)
-            maxThreads = Integer.parseInt(threads);
-        threads = getParam(args, "-dbThreads");
-        if (threads == null)
-            threads = getParam(args, "-dbthreads");
-        if (threads != null)
-            maxThreads = Integer.parseInt(threads);
-        if (maxThreads < 0)
-            maxThreads = Integer.MAX_VALUE;
-        else if (maxThreads == 0)
-            maxThreads = 1;
-
-        return maxThreads;
     }
 
     /**
@@ -465,10 +357,10 @@ public class Main {
         }
     }
 
-    private static Connection getConnection(String user, String password, String connectionURL,
-                      String driverClass, String driverPath, String propertiesLoadedFrom, Properties userProperties) throws MalformedURLException {
+    private static Connection getConnection(Config config, String connectionURL,
+                      String driverClass, String driverPath) throws FileNotFoundException, IOException {
         System.out.println("Using database properties:");
-        System.out.println("    " + propertiesLoadedFrom);
+        System.out.println("    " + config.getDbPropertiesLoadedFrom());
 
         List classpath = new ArrayList();
 		List invalidClasspathEntries = new ArrayList();
@@ -506,16 +398,16 @@ public class Main {
             System.err.println();
             System.err.println("For many people it's easiest to use the -cp option to directly specify");
             System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
-			System.err.println("Note that the -cp option must be specified after " + getLoadedFromJar());
+			System.err.println("Note that the -cp option must be specified AFTER " + config.getLoadedFromJar());
             System.err.println();
             System.exit(1);
         }
 
         Properties connectionProperties = new Properties();
-        connectionProperties.put("user", user);
-        if (password != null)
-            connectionProperties.put("password", password);
-        connectionProperties.putAll(userProperties);
+        connectionProperties.put("user", config.getUser());
+        if (config.getPassword() != null)
+            connectionProperties.put("password", config.getPassword());
+        connectionProperties.putAll(config.getConnectionProperties());
 
         Connection connection = null;
         try {
@@ -528,7 +420,7 @@ public class Main {
                 System.err.println("  " + driverClass);
                 System.err.println();
                 System.err.println("Additional connection information may be available in ");
-                System.err.println("  " + propertiesLoadedFrom);
+                System.err.println("  " + config.getDbPropertiesLoadedFrom());
                 System.exit(1);
             }
         } catch (UnsatisfiedLinkError badPath) {
@@ -616,218 +508,12 @@ public class Main {
     }
     */
 
-    private static void dumpUsage(String errorMessage, boolean detailed, boolean detailedDb) {
-        if (errorMessage != null) {
-            System.err.println("*** " + errorMessage + " ***");
-        }
-
-        if (detailed) {
-            System.out.println("SchemaSpy generates an HTML representation of a database's relationships.");
-            System.out.println();
-        }
-
-        if (!detailedDb) {
-            System.out.println("Usage:");
-            System.out.println(" java -jar " + getLoadedFromJar() + " [options]");
-            System.out.println("   -t databaseType       type of database - defaults to ora");
-            System.out.println("                           use -dbhelp for a list of built-in types");
-            System.out.println("   -u user               connect to the database with this user id");
-            System.out.println("   -s schema             defaults to the specified user");
-            System.out.println("   -p password           defaults to no password");
-            System.out.println("   -o outputDirectory    directory to place the generated output in");
-            System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
-            System.out.println("                           in driverPath in [databaseType].properties.");
-			System.out.println("                           must be specified after " + getLoadedFromJar());
-            System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description"); 
-            System.out.println(" of additional parameters.");
-            System.out.println();
-        }
-
-        if (!detailed) {
-            System.out.println(" java -jar " + getLoadedFromJar() + " -help to display more detailed help");
-            System.out.println();
-        }
-
-        if (detailedDb) {
-            System.out.println("Built-in database types and their required connection parameters:");
-            Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
-            class DbPropLoader {
-                Properties load(String dbType) {
-                    ResourceBundle bundle = ResourceBundle.getBundle(dbType);
-                    Properties properties;
-                    try {
-                        String baseDbType = bundle.getString("extends");
-                        int lastSlash = dbType.lastIndexOf('/');
-                        if (lastSlash != -1)
-                            baseDbType = dbType.substring(0, dbType.lastIndexOf("/") + 1) + baseDbType;
-                        properties = load(baseDbType);
-                    } catch (MissingResourceException doesntExtend) {
-                        properties = new Properties();
-                    }
-
-                    return add(properties, bundle);
-                }
-            }
-
-            for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
-                String dbType = iter.next().toString();
-                new ConnectionURLBuilder(dbType, null, new DbPropLoader().load(dbType)).dumpUsage();
-            }
-            System.out.println();
-        }
-
-        if (detailed || detailedDb) {
-            System.out.println("You can use your own database types by specifying the filespec of a .properties file with -t.");
-            System.out.println("Grab one out of " + getLoadedFromJar() + " and modify it to suit your needs.");
-            System.out.println();
-        }
-
-        if (detailed) {
-            System.out.println("Sample usage using the default database type (implied -t ora):");
-            System.out.println(" java -jar schemaSpy.jar -db epdb -s sonedba -u devuser -p devuser -o output");
-            System.out.println();
-        }
-    }
-
-    public static String getLoadedFromJar() {
-        String classpath = System.getProperty("java.class.path");
-        return new StringTokenizer(classpath, File.pathSeparator).nextToken();
-    }
-
-    private static String getParam(List args, String paramId) {
-        return getParam(args, paramId, false, false);
-    }
-
-    private static String getRequiredParam(List args, String paramId) {
-        return getParam(args, paramId, true, false);
-    }
-
-    private static String getParam(List args, String paramId, boolean required, boolean dbTypeSpecific) {
+    private static void yankParam(List args, String paramId) {
         int paramIndex = args.indexOf(paramId);
-        if (paramIndex < 0) {
-            if (required) {
-                dumpUsage("Parameter '" + paramId + "' missing." + (dbTypeSpecific ? "  It is required for this database type." : ""), !dbTypeSpecific, dbTypeSpecific);
-                System.exit(1);
-            } else {
-                return null;
-            }
+        if (paramIndex >= 0) {
+            args.remove(paramIndex);
+            args.remove(paramIndex);
         }
-        args.remove(paramIndex);
-        String param = args.get(paramIndex).toString();
-        args.remove(paramIndex);
-        return param;
-    }
-    
-    /**
-     * Allow an equal sign in args...like "-db=dbName"
-     *
-     * @param args List
-     * @return List
-     */
-    private static List fixupArgs(List args) {
-        List expandedArgs = new ArrayList();
-
-        Iterator iter = args.iterator();
-        while (iter.hasNext()) {
-            String arg = iter.next().toString();
-            int indexOfEquals = arg.indexOf('=');
-            if (indexOfEquals != -1 && arg.indexOf('\\') == indexOfEquals - 1) { // "\=" (escaped)
-                expandedArgs.add(arg.substring(0, indexOfEquals - 1) + arg.substring(indexOfEquals));
-            } else if (indexOfEquals != -1) {
-                expandedArgs.add(arg.substring(0, indexOfEquals));
-                expandedArgs.add(arg.substring(indexOfEquals + 1));
-            } else {
-                expandedArgs.add(arg);
-            }
-        }
-
-        return expandedArgs;
-    }
-
-    private static Properties getDbProperties(String dbType, StringBuffer loadedFrom) throws IOException {
-        ResourceBundle bundle = null;
-
-        try {
-            File propertiesFile = new File(dbType);
-            bundle = new PropertyResourceBundle(new FileInputStream(propertiesFile));
-            loadedFrom.append(propertiesFile.getAbsolutePath());
-        } catch (FileNotFoundException notFoundOnFilesystemWithoutExtension) {
-            try {
-                File propertiesFile = new File(dbType + ".properties");
-                bundle = new PropertyResourceBundle(new FileInputStream(propertiesFile));
-                loadedFrom.append(propertiesFile.getAbsolutePath());
-            } catch (FileNotFoundException notFoundOnFilesystemWithExtensionTackedOn) {
-                try {
-                    bundle = ResourceBundle.getBundle(dbType);
-                    loadedFrom.append("[" + getLoadedFromJar() + "]" + File.separator + dbType + ".properties");
-                } catch (Exception notInJarWithoutPath) {
-                    try {
-                        String path = SchemaSpy.class.getPackage().getName() + ".dbTypes." + dbType;
-                        path = path.replace('.', '/');
-                        bundle = ResourceBundle.getBundle(path);
-                        loadedFrom.append("[" + getLoadedFromJar() + "]/" + path + ".properties");
-                    } catch (Exception notInJar) {
-                        notInJar.printStackTrace();
-                        notFoundOnFilesystemWithExtensionTackedOn.printStackTrace();
-                        throw notFoundOnFilesystemWithoutExtension;
-                    }
-                }
-            }
-        }
-
-        Properties properties;
-
-        try {
-            String baseDbType = bundle.getString("extends").trim();
-            properties = getDbProperties(baseDbType, new StringBuffer());
-        } catch (MissingResourceException doesntExtend) {
-            properties = new Properties();
-        }
-
-        return add(properties, bundle);
-    }
-
-    /**
-     * Add the contents of <code>bundle</code> to the specified <code>properties</code>.
-     *
-     * @param properties Properties
-     * @param bundle ResourceBundle
-     * @return Properties
-     */
-    private static Properties add(Properties properties, ResourceBundle bundle) {
-        Enumeration iter = bundle.getKeys();
-        while (iter.hasMoreElements()) {
-            Object key = iter.nextElement();
-            properties.put(key, bundle.getObject(key.toString()));
-        }
-
-        return properties;
-    }
-
-    public static Set getBuiltInDatabaseTypes(String loadedFromJar) {
-        Set databaseTypes = new TreeSet();
-        JarInputStream jar = null;
-
-        try {
-            jar = new JarInputStream(new FileInputStream(loadedFromJar));
-            JarEntry entry;
-
-            while ((entry = jar.getNextJarEntry()) != null) {
-                String entryName = entry.getName();
-                int dotPropsIndex = entryName.indexOf(".properties");
-                if (dotPropsIndex != -1)
-                    databaseTypes.add(entryName.substring(0, dotPropsIndex));
-            }
-        } catch (IOException exc) {
-        } finally {
-            if (jar != null) {
-                try {
-                    jar.close();
-                } catch (IOException ignore) {}
-            }
-        }
-
-        return databaseTypes;
     }
 
     private static Reader getStyleSheet(String cssName) throws IOException {
