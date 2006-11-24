@@ -1,7 +1,11 @@
 package net.sourceforge.schemaspy.util;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import net.sourceforge.schemaspy.Config;
 
 public class ConnectionURLBuilder {
     private final String type;
@@ -74,11 +78,9 @@ public class ConnectionURLBuilder {
         descriptions.add(description);
 
         if (args != null) {
-            if (paramIndex < 0) {
-                if (description != null)
-                    description = "(" + description + ") ";
-                throw new IllegalArgumentException("Parameter '-" + paramName + "' " + (description != null ? description : "") + "missing.\nIt is required for the specified database type.");
-            }
+            if (paramIndex < 0)
+                throw new Config.MissingRequiredParameterException(paramName, description, true);
+            
             args.remove(paramIndex);
             param = args.get(paramIndex).toString();
             args.remove(paramIndex);
