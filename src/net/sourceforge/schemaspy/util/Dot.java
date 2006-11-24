@@ -1,7 +1,7 @@
 package net.sourceforge.schemaspy.util;
 
 import java.io.*;
-import java.util.*;
+import java.util.regex.*;
 
 public class Dot {
     private static Dot instance = new Dot();
@@ -10,7 +10,7 @@ public class Dot {
     private final Version badVersion = new Version("2.4");
 
     private Dot() {
-        String found = null;
+        String versionText = null;
         try {
             // dot -V should return something similar to:
             //  dot version 2.8 (Fri Feb  3 22:38:53 UTC 2006)
@@ -20,16 +20,11 @@ public class Dot {
             Process process = Runtime.getRuntime().exec(dotCommand);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String versionLine = reader.readLine();
-            StringTokenizer tokenizer = new StringTokenizer(versionLine);
-            if (tokenizer.nextToken().equals("dot")) {  // skip 'dot'
-                // search for numeric portion of dot's output
-                while (found == null) {
-                    // Jean-François Veillette provides this logic:
-                    String token = tokenizer.nextToken(); // skip 'version'
-                    if (token.matches("[0-9.]*")) {
-                        found = token; // found numeric portion
-                    }
-                }
+            
+            // look for a number followed numbers or dots
+            Matcher matcher = Pattern.compile("[0-9][0-9.]+").matcher(versionLine);
+            if (matcher.find()) {
+        	versionText = matcher.group();
             } else {
                 System.err.println();
                 System.err.println("Invalid dot configuration detected.  '" + dotCommand + "' returned:");
@@ -38,7 +33,7 @@ public class Dot {
         } catch (Exception validDotDoesntExist) {
         }
 
-        version = new Version(found);
+        version = new Version(versionText);
     }
 
     public static Dot getInstance() {
