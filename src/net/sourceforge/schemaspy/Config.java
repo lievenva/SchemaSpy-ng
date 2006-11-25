@@ -1,52 +1,42 @@
 package net.sourceforge.schemaspy;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.MissingResourceException;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-import java.util.regex.Pattern;
-import net.sourceforge.schemaspy.util.ConnectionURLBuilder;
+import java.io.*;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.jar.*;
+import java.util.regex.*;
+import net.sourceforge.schemaspy.util.*;
 
 /**
- * Configuration of an SchemaSpy run
+ * Configuration of a SchemaSpy run
  * 
  * @author John Currier
  */
 public class Config
 {
+    private static final long serialVersionUID = 1L;
     private List options;
-    private Pattern exclusions;
+    private Map dbSpecificOptions;
+    private HashMap originalDbSpecificOptions;
     private boolean helpRequired;
     private boolean dbHelpRequired;
-    private Boolean generateHtml;
-    private Boolean includeImpliedConstraints;
     private File outputDir;
+    private Pattern inclusions;
+    private Pattern exclusions;
     private String dbType;
+    private String schema;
     private String user;
     private String password;
-    private String schema;
-    private Integer maxDetailedTables;
+    private String userConnectionPropertiesFile;
     private Properties userConnectionProperties;
+    private Integer maxDbThreads;
+    private Integer maxDetailedTables;
     private String classpath;
     private String css;
     private String description;
-    private Integer maxDbThreads;
+    private String dbPropertiesLoadedFrom;
+    private Boolean generateHtml;
+    private Boolean includeImpliedConstraints;
     private Boolean logoEnabled;
     private Boolean rankDirBugEnabled;
     private Boolean encodeCommentsEnabled;
@@ -54,9 +44,7 @@ public class Config
     private Boolean tableCommentsEnabled;
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
-    private Pattern inclusions;
     private Boolean evaluteAll;
-    private String dbPropertiesLoadedFrom;
 
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -75,18 +63,8 @@ public class Config
      */
     public Config(String[] argv)
     {
-        this(Arrays.asList(argv));
-    }
-
-    /**
-     * Construct a configuration from a list of options (e.g. from a command
-     * line interface).
-     * 
-     * @param options
-     */
-    public Config(List options)
-    {
-        this.options = fixupArgs(options);
+        options = fixupArgs(Arrays.asList(argv));
+        
         helpRequired =  options.remove("-?") || 
                         options.remove("/?") || 
                         options.remove("?") || 
@@ -126,8 +104,7 @@ public class Config
         outputDir = new File(outputDirName).getCanonicalFile();
         if (!outputDir.isDirectory()) {
             if (!outputDir.mkdirs()) {
-                System.err.println("Failed to create directory '" + outputDir + "'");
-                System.exit(2);
+                throw new IOException("Failed to create directory '" + outputDir + "'");
             }
         }
     }
@@ -141,11 +118,11 @@ public class Config
         return outputDir;
     }
     
-    public void setDatabaseType(String dbType) {
+    public void setDbType(String dbType) {
         this.dbType = dbType;
     }
     
-    public String getDatabaseType() {
+    public String getDbType() {
         if (dbType == null) {
             dbType = pullParam("-t");
             if (dbType == null)
@@ -204,18 +181,23 @@ public class Config
         return maxDetailedTables.intValue();
     }
     
+    public String getConnectionPropertiesFile() {
+        return userConnectionPropertiesFile;
+    }
+    
     public void setConnectionPropertiesFile(String propertiesFilename) throws FileNotFoundException, IOException {
         if (userConnectionProperties == null)
             userConnectionProperties = new Properties();
         userConnectionProperties.load(new FileInputStream(propertiesFilename));
+        userConnectionPropertiesFile = propertiesFilename;
     }
     
     public Properties getConnectionProperties() throws FileNotFoundException, IOException {
         if (userConnectionProperties == null) {
             userConnectionProperties = new Properties();
-            String propertiesFilename = pullParam("-connprops");
-            if (propertiesFilename != null)
-                setConnectionPropertiesFile(propertiesFilename);
+            userConnectionPropertiesFile = pullParam("-connprops");
+            if (userConnectionPropertiesFile != null)
+                setConnectionPropertiesFile(userConnectionPropertiesFile);
         }
         
         return userConnectionProperties;
@@ -260,7 +242,7 @@ public class Config
     
     public int getMaxDbThreads() throws IOException {
         if (maxDbThreads == null) {
-            Properties properties = getDbProperties(getDatabaseType());
+            Properties properties = getDbProperties(getDbType());
             
             int max = Integer.MAX_VALUE;
             String threads = properties.getProperty("dbThreads");
@@ -499,8 +481,24 @@ public class Config
     
     protected String getDbPropertiesLoadedFrom() throws IOException {
         if (dbPropertiesLoadedFrom == null)
-            getDbProperties(getDatabaseType());
+            getDbProperties(getDbType());
         return dbPropertiesLoadedFrom;
+    }
+
+    public List getRemainingParameters()
+    {
+        return options;
+    }
+    
+    public void setDbSpecificOptions(Map dbSpecificOptions) {
+        this.dbSpecificOptions = dbSpecificOptions;
+        this.originalDbSpecificOptions = new HashMap(dbSpecificOptions);
+    }
+    
+    public Map getDbSpecificOptions() {
+        if (dbSpecificOptions ==  null)
+            dbSpecificOptions = new HashMap();
+        return dbSpecificOptions;
     }
 
     /**
@@ -510,7 +508,7 @@ public class Config
      * @param bundle ResourceBundle
      * @return Properties
      */
-    protected static Properties add(Properties properties, ResourceBundle bundle) {
+    public static Properties add(Properties properties, ResourceBundle bundle) {
         Enumeration iter = bundle.getKeys();
         while (iter.hasMoreElements()) {
             Object key = iter.nextElement();
@@ -518,11 +516,6 @@ public class Config
         }
 
         return properties;
-    }
-
-    public List getRemainingParameters()
-    {
-        return options;
     }
 
     /**
@@ -554,6 +547,7 @@ public class Config
     }
     
     static public class MissingRequiredParameterException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         private boolean dbTypeSpecific;
 
         public MissingRequiredParameterException(String paramId, boolean dbTypeSpecific) {
@@ -663,7 +657,7 @@ public class Config
             System.out.println("   -s schema             defaults to the specified user");
             System.out.println("   -p password           defaults to no password");
             System.out.println("   -o outputDirectory    directory to place the generated output in");
-            System.out.println("   -cp pathToDrivers     optional - looks for drivers here before looking");
+            System.out.println("   -cp pathToDrivers     optional - looks for JDBC drivers here before looking");
             System.out.println("                           in driverPath in [databaseType].properties.");
             System.out.println("                           must be specified after " + getLoadedFromJar());
             System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description"); 
@@ -674,27 +668,9 @@ public class Config
         if (detailedDb) {
             System.out.println("Built-in database types and their required connection parameters:");
             Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
-            class DbPropLoader {
-                Properties load(String dbType) {
-                    ResourceBundle bundle = ResourceBundle.getBundle(dbType);
-                    Properties properties;
-                    try {
-                        String baseDbType = bundle.getString("extends");
-                        int lastSlash = dbType.lastIndexOf('/');
-                        if (lastSlash != -1)
-                            baseDbType = dbType.substring(0, dbType.lastIndexOf("/") + 1) + baseDbType;
-                        properties = load(baseDbType);
-                    } catch (MissingResourceException doesntExtend) {
-                        properties = new Properties();
-                    }
-
-                    return add(properties, bundle);
-                }
-            }
-
             for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
                 String dbType = iter.next().toString();
-                new ConnectionURLBuilder(dbType, null, new DbPropLoader().load(dbType)).dumpUsage();
+                new ConnectionURLBuilder(dbType).dumpUsage();
             }
             System.out.println();
         }
@@ -708,5 +684,91 @@ public class Config
         System.out.println("Sample usage using the default database type (implied -t ora):");
         System.out.println(" java -jar schemaSpy.jar -db mydb -s myschema -u devuser -p password -o output");
         System.out.println();
+    }
+    
+    public List asList() throws IOException {
+        List list = new ArrayList();
+        
+        if (originalDbSpecificOptions != null) {
+            Iterator iter = originalDbSpecificOptions.keySet().iterator();
+            while (iter.hasNext()) {
+                String key = iter.next().toString();
+                String value = originalDbSpecificOptions.get(key).toString();
+                if (!key.startsWith("-"))
+                    key = "-" + key;
+                list.add(key);
+                list.add(value);
+            }
+        }
+        if (isDisplayCommentsIntiallyEnabled())
+            list.add("-cid");
+        if (isEncodeCommentsEnabled())
+            list.add("-ahic");
+        if (isEvaluateAllEnabled())
+            list.add("-all");
+        if (!isHtmlGenerationEnabled())
+            list.add("-nohtml");
+        if (!isImpliedConstraintsEnabled())
+            list.add("-noimplied");
+        if (!isLogoEnabled())
+            list.add("-nologo");
+        if (isMeterEnabled())
+            list.add("-meter");
+        if (!isNumRowsEnabled())
+            list.add("-norows");
+        if (isRankDirBugEnabled())
+            list.add("-rankdirbug");
+        if (!isTableCommentsEnabled())
+            list.add("-notablecomments");
+        
+        String value = getClasspath();
+        if (value != null) {
+            list.add("-cp");
+            list.add(value);
+        }
+        value = getCss();
+        if (value != null) {
+            list.add("-css");
+            list.add(value);
+        }
+        value = getDbType();
+        if (value != null) {
+            list.add("-t");
+            list.add(value);
+        }
+        value = getDescription();
+        if (value != null) {
+            list.add("-desc");
+            list.add(value);
+        }
+        value = getPassword();
+        if (value != null) {
+            list.add("-p");
+            list.add(value);
+        }
+        value = getSchema();
+        if (value != null) {
+            list.add("-s");
+            list.add(value);
+        }
+        list.add("-u");
+        list.add(getUser());
+        value = getConnectionPropertiesFile();
+        if (value != null) {
+            list.add("-connprops");
+            list.add(value);
+        }
+        list.add("-i");
+        list.add(getInclusions());
+        list.add("-x");
+        list.add(getExclusions());
+        list.add("-dbthreads");
+        list.add(String.valueOf(getMaxDbThreads()));
+        list.add("-maxdet");
+        list.add(String.valueOf(getMaxDetailedTables()));
+        list.add("-o");
+        list.add(getOutputDir());
+        
+        return list;
     }
 }

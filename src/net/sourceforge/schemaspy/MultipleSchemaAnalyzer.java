@@ -7,6 +7,9 @@ import java.util.regex.*;
 import net.sourceforge.schemaspy.util.*;
 import net.sourceforge.schemaspy.view.*;
 
+/**
+ * @author John Currier
+ */
 public class MultipleSchemaAnalyzer {
     private static MultipleSchemaAnalyzer instance = new MultipleSchemaAnalyzer();
 
@@ -17,7 +20,7 @@ public class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public void analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List args, String user, File outputDir, String loadedFrom) throws SQLException, IOException {
+    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List args, String user, File outputDir, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
         List genericCommand = new ArrayList();
         genericCommand.add("java");
@@ -61,7 +64,7 @@ public class MultipleSchemaAnalyzer {
                     while (iter.hasNext())
                         System.err.print(" " + iter.next());
                     System.err.println();
-                    System.exit(1);
+                    return rc;
                 }
             } catch (InterruptedException exc) {
             }
@@ -71,6 +74,7 @@ public class MultipleSchemaAnalyzer {
         System.out.println();
         System.out.println("Wrote relationship details of " + populatedSchemas.size() + " schema" + (populatedSchemas.size() == 1 ? "" : "s") + " in " + (end - start) / 1000 + " seconds.");
         System.out.println("Start with " + new File(outputDir, "index.html"));
+        return 0;
     }
 
     private void writeIndexPage(String dbName, List populatedSchemas, DatabaseMetaData meta, File outputDir) throws IOException {
