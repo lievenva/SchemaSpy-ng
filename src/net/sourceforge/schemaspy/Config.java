@@ -165,7 +165,7 @@ public class Config
     }
     
     public void setMaxDetailedTabled(int maxDetailedTables) {
-        this.maxDetailedTables = Integer.valueOf(maxDetailedTables);
+        this.maxDetailedTables = new Integer(maxDetailedTables);
     }
     
     public int getMaxDetailedTables() {
@@ -175,7 +175,7 @@ public class Config
                 max = Integer.parseInt(pullParam("-maxdet"));
             } catch (Exception notSpecified) {}
             
-            maxDetailedTables = Integer.valueOf(max);
+            maxDetailedTables = new Integer(max);
         }
         
         return maxDetailedTables.intValue();
@@ -237,7 +237,7 @@ public class Config
     }
     
     public void setMaxDbThreads(int maxDbThreads) {
-        this.maxDbThreads = Integer.valueOf(maxDbThreads);
+        this.maxDbThreads = new Integer(maxDbThreads);
     }
     
     public int getMaxDbThreads() throws IOException {
@@ -260,7 +260,7 @@ public class Config
             else if (max == 0)
                 max = 1;
     
-            maxDbThreads = Integer.valueOf(max);
+            maxDbThreads = new Integer(max);
         }
         
         return maxDbThreads.intValue();
