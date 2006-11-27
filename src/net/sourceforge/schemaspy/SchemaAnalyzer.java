@@ -7,6 +7,7 @@ import java.util.*;
 import javax.xml.parsers.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
+import net.sourceforge.schemaspy.util.ConnectionURLBuilder.*;
 import net.sourceforge.schemaspy.view.*;
 import org.w3c.dom.*;
 
@@ -61,6 +62,13 @@ public class SchemaAnalyzer {
 
             if (config.isEvaluateAllEnabled()) {
                 List args = config.asList();
+                Iterator iter = urlBuilder.getOptions().iterator();
+                while (iter.hasNext()) {
+                    DbOption option = (DbOption)iter.next();
+                    args.add("-" + option.name);
+                    args.add(option.value);
+                }
+                    
                 yankParam(args, "-o");  // param will be replaced by something appropriate
                 yankParam(args, "-s");  // param will be replaced by something appropriate
                 args.remove("-all");    // param will be replaced by something appropriate

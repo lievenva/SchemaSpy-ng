@@ -684,6 +684,7 @@ public class Config
         System.out.println("Sample usage using the default database type (implied -t ora):");
         System.out.println(" java -jar schemaSpy.jar -db mydb -s myschema -u devuser -p password -o output");
         System.out.println();
+        System.out.flush();
     }
     
     public List asList() throws IOException {
@@ -759,9 +760,9 @@ public class Config
             list.add(value);
         }
         list.add("-i");
-        list.add(getInclusions());
+        list.add(getInclusions().toString());
         list.add("-x");
-        list.add(getExclusions());
+        list.add(getExclusions().toString());
         list.add("-dbthreads");
         list.add(String.valueOf(getMaxDbThreads()));
         list.add("-maxdet");

@@ -33,7 +33,9 @@ public class MultipleSchemaAnalyzer {
             genericCommand.add("-jar");
             genericCommand.add(loadedFrom);
         }
-        genericCommand.addAll(args);
+        
+        for (Iterator iter = args.iterator(); iter.hasNext(); )
+            genericCommand.add("\"" + iter.next() + "\"");
 
         System.out.println("Analyzing schemas that match regular expression '" + schemaSpec + "':");
         System.out.println("(use -schemaSpec on command line or in .properties to exclude other schemas)");
@@ -52,6 +54,7 @@ public class MultipleSchemaAnalyzer {
             command.add("-o");
             command.add(new File(outputDir, schema).toString());
             System.out.println("Analyzing " + schema);
+            System.out.flush();
             Process java = Runtime.getRuntime().exec((String[])command.toArray(new String[]{}));
             new ProcessOutputReader(java.getInputStream(), System.out).start();
             new ProcessOutputReader(java.getErrorStream(), System.err).start();

@@ -12,8 +12,18 @@ public class ConnectionURLBuilder {
     private final String description;
     private final String connectionURL;
     private String dbName = null;
-    private final List params = new ArrayList();
-    private final List descriptions = new ArrayList();
+    private final List options = new ArrayList();
+    public class DbOption {
+        public final String name;
+        public final String value;
+        public final String description;
+        
+        public DbOption(String name, String value, String description) {
+            this.name = name;
+            this.value = value;
+            this.description = description;
+        }
+    }
 
     /**
      * @param config
@@ -24,16 +34,16 @@ public class ConnectionURLBuilder {
     public ConnectionURLBuilder(Config config, Properties properties) throws IOException {
         this.type = config.getDbType();
 
-        List options = new ArrayList();
+        List opts = new ArrayList();
         Iterator iter = config.getDbSpecificOptions().keySet().iterator();
         while (iter.hasNext()) {
             String key = iter.next().toString();
-            options.add((key.startsWith("-") ? "" : "-") + key);
-            options.add(config.getDbSpecificOptions().get(key));
+            opts.add((key.startsWith("-") ? "" : "-") + key);
+            opts.add(config.getDbSpecificOptions().get(key));
         }
-        options.addAll(config.getRemainingParameters());
+        opts.addAll(config.getRemainingParameters());
         
-        connectionURL = parseParameters(options, properties);
+        connectionURL = parseParameters(opts, properties);
 
         if (dbName == null) {
             dbName = connectionURL;
@@ -42,10 +52,10 @@ public class ConnectionURLBuilder {
         description = properties.getProperty("description");
         
         List remaining = config.getRemainingParameters();
-        iter = params.iterator();
+        iter = options.iterator();
         while (iter.hasNext()) {
-            String param = iter.next().toString();
-            int idx = remaining.indexOf(param);
+            DbOption option = (DbOption)iter.next();
+            int idx = remaining.indexOf("-" + option.name);
             if (idx >= 0) {
                 remaining.remove(idx);  // -paramKey
                 remaining.remove(idx);  // paramValue
@@ -114,21 +124,14 @@ public class ConnectionURLBuilder {
         return dbName;
     }
 
-    public List getParams() {
-        return params;
-    }
-
-    public List getParamDescriptions() {
-        return descriptions;
+    public List getOptions() {
+        return options;
     }
 
     private String getParam(List args, String paramName, Properties properties) {
         String param = null;
         int paramIndex = args != null ? args.indexOf("-" + paramName) : -1;
         String description = properties.getProperty(paramName);
-
-        params.add("-" + paramName);
-        descriptions.add(description);
 
         if (args != null) {
             if (paramIndex < 0)
@@ -138,6 +141,8 @@ public class ConnectionURLBuilder {
             param = args.get(paramIndex).toString();
             args.remove(paramIndex);
         }
+        
+        options.add(new DbOption(paramName, param, description));
 
         return param;
     }
@@ -145,13 +150,11 @@ public class ConnectionURLBuilder {
     public void dumpUsage() {
         System.out.println(" " + new File(type).getName() + ":");
         System.out.println("   " + description);
-        List params = getParams();
-        List paramDescriptions = getParamDescriptions();
+        Iterator iter = getOptions().iterator();
 
-        for (int i = 0; i < params.size(); ++i) {
-            String param = params.get(i).toString();
-            String paramDescription = (String)paramDescriptions.get(i);
-            System.out.println("   " + param + " " + (paramDescription != null ? "  \t" + paramDescription : ""));
+        while (iter.hasNext()) {
+            DbOption option = (DbOption)iter.next();
+            System.out.println("   -" + option.name + " " + (option.description != null ? "  \t" + option.description : ""));
         }
     }
 }
