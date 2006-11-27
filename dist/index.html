@@ -286,12 +286,12 @@ extremely limited schema so it doesn't show the full power of the tool.<br>
         </tbody>
       </table>
       <br>
-      <p>A DB2 example: </p>
+      <p>A MySQL example:</p>
       <table>
         <tbody>
           <tr>
             <td>&nbsp;
-            <code>java -jar schemaSpy.jar -t mysql -o library -host localhost -db library -u user</code>
+            <code>java -jar schemaSpy.jar -t mysql -o library -host localhost -db library -u user -p password -notablecomments</code>
             </td>
           </tr>
         </tbody>
@@ -299,12 +299,12 @@ extremely limited schema so it doesn't show the full power of the tool.<br>
       <p/>will create a series of files in the <code>library</code>
       directory that give the details of the schema in the database <code>library</code>.
       This is what I used to generate the <a href="http://schemaspy.sourceforge.net/sample">sample output</a>.
-      <p>An MS SQL Server example: </p>
+      <p>An MS SQL Server example:</p>
       <table>
         <tbody>
           <tr>
             <td>&nbsp;
-            <code>java -jar schemaSpy.jar -t mssql -db library -host localhost -port 1433 -u sa -p pwd -o library</code>
+            <code>java -jar schemaSpy.jar -t mssql -db library -host localhost -port 1433 -u user -p password -o library</code>
             </td>
           </tr>
         </tbody>
