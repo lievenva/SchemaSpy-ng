@@ -9,7 +9,7 @@ import net.sourceforge.schemaspy.*;
  */
 public class ConnectionURLBuilder {
     private final String type;
-    private final String description;
+    private String description;
     private final String connectionURL;
     private String dbName = null;
     private final List options = new ArrayList();
@@ -45,9 +45,8 @@ public class ConnectionURLBuilder {
         
         connectionURL = parseParameters(opts, properties);
 
-        if (dbName == null) {
+        if (dbName == null)
             dbName = connectionURL;
-        }
 
         description = properties.getProperty("description");
         
@@ -71,7 +70,9 @@ public class ConnectionURLBuilder {
         type = dbType;
         class DbPropLoader {
             Properties load(String dbType) {
-                ResourceBundle bundle = ResourceBundle.getBundle(type);
+                ResourceBundle bundle = ResourceBundle.getBundle(dbType);
+                if (description == null) // if first time through recursion 
+                    description = bundle.getString("description");
                 Properties properties;
                 try {
                     String baseDbType = bundle.getString("extends");
@@ -88,7 +89,7 @@ public class ConnectionURLBuilder {
         }
 
         parseParameters(null, new DbPropLoader().load(type));
-        connectionURL = description = null;
+        connectionURL = null;
     }
 
     private String parseParameters(List args, Properties properties) {

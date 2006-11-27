@@ -687,6 +687,13 @@ public class Config
         System.out.flush();
     }
     
+    /**
+     * Return all of the configuration options as a List of Strings, with
+     * each parameter and its value as a separate element.
+     * 
+     * @return
+     * @throws IOException
+     */
     public List asList() throws IOException {
         List list = new ArrayList();
         
