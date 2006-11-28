@@ -59,7 +59,6 @@ public class MultipleSchemaAnalyzer {
             command.add("-o");
             command.add(new File(outputDir, schema).toString());
             System.out.println("Analyzing " + schema);
-            System.out.println(command);
             System.out.flush();
             Process java = Runtime.getRuntime().exec((String[])command.toArray(new String[]{}));
             new ProcessOutputReader(java.getInputStream(), System.out).start();
@@ -129,6 +128,7 @@ public class MultipleSchemaAnalyzer {
                 int ch;
                 while ((ch = processReader.read()) != -1) {
                     out.print((char)ch);
+                    out.flush();
                 }
             } catch (IOException ioException) {
                 ioException.printStackTrace();

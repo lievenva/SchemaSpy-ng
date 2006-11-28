@@ -490,6 +490,12 @@ public class Config
         return options;
     }
     
+    /**
+     * Options that are specific to a type of database.  E.g. things like <code>host</code>,
+     * <code>port</code> or <code>db</code>.
+     *  
+     * @param dbSpecificOptions
+     */
     public void setDbSpecificOptions(Map dbSpecificOptions) {
         this.dbSpecificOptions = dbSpecificOptions;
         this.originalDbSpecificOptions = new HashMap(dbSpecificOptions);
@@ -572,27 +578,33 @@ public class Config
      *            List
      * @return List
      */
-    protected List fixupArgs(List args)
-    {
+    protected List fixupArgs(List args) {
         List expandedArgs = new ArrayList();
 
-        Iterator iter = args.iterator();
-        while (iter.hasNext())
-        {
+        for (Iterator iter = args.iterator(); iter.hasNext(); ) {
             String arg = iter.next().toString();
             int indexOfEquals = arg.indexOf('=');
-            if (indexOfEquals != -1)
-            {
+            if (indexOfEquals != -1) {
                 expandedArgs.add(arg.substring(0, indexOfEquals));
                 expandedArgs.add(arg.substring(indexOfEquals + 1));
-            }
-            else
-            {
+            } else {
                 expandedArgs.add(arg);
             }
         }
 
-        return expandedArgs;
+        // some OSes/JVMs do filename expansion with runtime.exec() and some don't,
+        // so MultipleSchemaAnalyzer has to surround params with double quotes...
+        // strip them here for the OSes/JVMs that don't do anything with the params  
+        List unquotedArgs = new ArrayList();
+        
+        for (Iterator iter = expandedArgs.iterator(); iter.hasNext(); ) {
+            String arg = iter.next().toString();
+            if (arg.startsWith("\"") && arg.endsWith("\""))  // ".*" becomes .*
+                arg = arg.substring(1, arg.length() - 1);
+            unquotedArgs.add(arg);
+        }
+
+        return unquotedArgs;
     }
     
     /**
@@ -767,9 +779,9 @@ public class Config
             list.add(value);
         }
         list.add("-i");
-        list.add(getInclusions().toString());
+        list.add(getInclusions().pattern());
         list.add("-x");
-        list.add(getExclusions().toString());
+        list.add(getExclusions().pattern());
         list.add("-dbthreads");
         list.add(String.valueOf(getMaxDbThreads()));
         list.add("-maxdet");
