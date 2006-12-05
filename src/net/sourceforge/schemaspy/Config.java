@@ -15,7 +15,7 @@ import net.sourceforge.schemaspy.util.*;
  */
 public class Config
 {
-    private static final long serialVersionUID = 1L;
+    private static Config instance;
     private List options;
     private Map dbSpecificOptions;
     private Map originalDbSpecificOptions;
@@ -38,6 +38,9 @@ public class Config
     private Integer maxDetailedTables;
     private String classpath;
     private String css;
+    private String charset;
+    private String font;
+    private Integer fontSize;
     private String description;
     private String dbPropertiesLoadedFrom;
     private Boolean generateHtml;
@@ -58,6 +61,7 @@ public class Config
      */
     public Config()
     {
+        instance = this;
         options = new ArrayList();
     }
 
@@ -69,6 +73,7 @@ public class Config
      */
     public Config(String[] argv)
     {
+        instance = this;
         options = fixupArgs(Arrays.asList(argv));
         
         helpRequired =  options.remove("-?") || 
@@ -78,6 +83,10 @@ public class Config
                         options.remove("-help") || 
                         options.remove("--help");
         dbHelpRequired =  options.remove("-dbHelp") || options.remove("-dbhelp");
+    }
+    
+    public static Config getInstance() {
+        return instance;
     }
 
     public void setHtmlGenerationEnabled(boolean generateHtml) {
@@ -260,7 +269,17 @@ public class Config
             classpath = pullParam("-cp");
         return classpath;
     }
-    
+
+    /**
+     * The filename of the cascading style sheet to use.  
+     * Note that this file is parsed and used to determine characteristics
+     * of the generated graphs, so it must contain specific settings that
+     * are documented within schemaSpy.css.<p>
+     * 
+     * Defaults to <code>"schemaSpy.css"</code>.
+     *  
+     * @param css
+     */
     public void setCss(String css) {
         this.css = css;
     }
@@ -274,20 +293,109 @@ public class Config
         return css;
     }
     
+    /**
+     * The font to use within graphs.  Modify the .css to specify HTML fonts.
+     * 
+     * @param font
+     */
+    public void setFont(String font) {
+        this.font = font;
+    }
+
+    /**
+     * @see #setFont(String)
+     */
+    public String getFont() {
+        if (font == null) {
+            font = pullParam("-font");
+            if (font == null)
+                font = "Helvetica";
+        }
+        return font;
+    }
+
+    /**
+     * The font size to use within graphs.  This is the size of the font used for
+     * 'large' (e.g. not 'compact') graphs.<p>
+     *   
+     * Modify the .css to specify HTML font sizes.<p>
+     * 
+     * Defaults to 11.
+     * 
+     * @param fontSize
+     */
+    public void setFontSize(int fontSize) {
+        this.fontSize = new Integer(fontSize);
+    }
+    
+    /**
+     * @see #setFontSize(int)
+     * @return
+     */
+    public int getFontSize() {
+        if (fontSize == null) {
+            int size = 11; // default
+            try {
+                size = Integer.parseInt(pullParam("-fontsize"));
+            } catch (Exception notSpecified) {}
+            
+            fontSize = new Integer(size);
+        }
+        
+        return fontSize.intValue();
+    }
+
+    /**
+     * The character set to use within HTML pages (defaults to <code>"ISO-8859-1"</code>).
+     * 
+     * @param charset
+     */
+    public void setCharset(String charset) {
+        this.charset = charset;
+    }
+
+    /**
+     * @see #setCharset(String)
+     */
+    public String getCharset() {
+        if (charset == null) {
+            charset = pullParam("-charset");
+            if (charset == null)
+                charset = "ISO-8859-1";
+        }
+        return charset;
+    }
+    
+    /**
+     * Description of schema that gets display on main pages.
+     * 
+     * @param description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
     
+    /**
+     * @see #setDescription(String)
+     */
     public String getDescription() {
         if (description == null)
             description = pullParam("-desc");
         return description;
     }
     
+    /**
+     * Maximum number of threads to use when querying database metadata information.
+     * 
+     * @param maxDbThreads
+     */
     public void setMaxDbThreads(int maxDbThreads) {
         this.maxDbThreads = new Integer(maxDbThreads);
     }
     
+    /**
+     * @see #setMaxDbThreads(int)
+     */
     public int getMaxDbThreads() throws IOException {
         if (maxDbThreads == null) {
             Properties properties = getDbProperties(getDbType());
@@ -314,73 +422,84 @@ public class Config
         return maxDbThreads.intValue();
     }
     
-    public void setLogoEnabled(boolean enabled) {
-        this.logoEnabled = Boolean.valueOf(enabled);
-    }
-    
     public boolean isLogoEnabled() {
         if (logoEnabled == null)
             logoEnabled = Boolean.valueOf(!options.remove("-nologo"));
         
-        // nasty hack, but passing this info everywhere churns my stomach
-        System.setProperty("sourceforgelogo", String.valueOf(logoEnabled));
-        
         return logoEnabled.booleanValue();
     }
     
+    /**
+     * Don't use this unless absolutely necessary as it screws up the layout
+     * 
+     * @param enabled
+     */
     public void setRankDirBugEnabled(boolean enabled) {
         this.rankDirBugEnabled = Boolean.valueOf(enabled);
     }
-    
+
+    /**
+     * @see #setRankDirBugEnabled(boolean)
+     */
     public boolean isRankDirBugEnabled() {
         if (rankDirBugEnabled == null)
             rankDirBugEnabled = Boolean.valueOf(options.remove("-rankdirbug"));
         
-        // another nasty hack with the same justification as the one above
-        System.setProperty("rankdirbug", String.valueOf(rankDirBugEnabled));
-        
         return rankDirBugEnabled.booleanValue();
-    }
-    
-    public void setEncodeCommentsEnabled(boolean enabled) {
-        this.encodeCommentsEnabled = Boolean.valueOf(enabled);
     }
     
     /**
      * Allow Html In Comments - encode them unless otherwise specified
-     * @return
+     */
+    public void setEncodeCommentsEnabled(boolean enabled) {
+        this.encodeCommentsEnabled = Boolean.valueOf(enabled);
+    }
+
+    /**
+     * @see #setEncodeCommentsEnabled(boolean)
      */
     public boolean isEncodeCommentsEnabled() {
         if (encodeCommentsEnabled == null)
             encodeCommentsEnabled = Boolean.valueOf(!options.remove("-ahic"));
         
-        System.setProperty("encodeComments", String.valueOf(encodeCommentsEnabled));
-        
         return encodeCommentsEnabled.booleanValue();
     }
 
+    /**
+     * Specifies whether comments are initially displayed or initially hidden (default).
+     * @param enabled
+     */
     public void setDisplayCommentsIntiallyEnabled(boolean enabled) {
         this.displayCommentsInitiallyEnabled = Boolean.valueOf(enabled);
     }
     
+    /**
+     * @see #setDisplayCommentsIntiallyEnabled(boolean)
+     */
     public boolean isDisplayCommentsIntiallyEnabled() {
         if (displayCommentsInitiallyEnabled == null)
             displayCommentsInitiallyEnabled = Boolean.valueOf(options.remove("-cid"));
         
-        System.setProperty("commentsInitiallyDisplayed", String.valueOf(displayCommentsInitiallyEnabled));
-        
         return displayCommentsInitiallyEnabled.booleanValue();
     }
 
+    /**
+     * Some database types (e.g. MySQL) stuff inappropriate things in the
+     * table comments.  
+     * This setting allows you to disable those table comments.
+     * 
+     * @param enabled
+     */
     public void setTableCommentsEnabled(boolean enabled) {
         this.tableCommentsEnabled = Boolean.valueOf(enabled);
     }
-    
+
+    /**
+     * @see #setTableCommentsEnabled(boolean)
+     */
     public boolean isTableCommentsEnabled() {
         if (tableCommentsEnabled == null)
             tableCommentsEnabled = Boolean.valueOf(!options.remove("-notablecomments"));
-        
-        System.setProperty("displayTableComments", String.valueOf(tableCommentsEnabled));
         
         return tableCommentsEnabled.booleanValue();
     }
@@ -393,26 +512,14 @@ public class Config
         if (numRowsEnabled == null)
             numRowsEnabled = Boolean.valueOf(!options.remove("-norows"));
         
-        System.setProperty("displayNumRows", String.valueOf(numRowsEnabled));
-        
         return numRowsEnabled.booleanValue();
     }
 
-    public void setMeterEnabled(boolean enabled) {
-        this.meterEnabled = Boolean.valueOf(enabled);
-    }
-    
     public boolean isMeterEnabled() {
         if (meterEnabled == null)
             meterEnabled = Boolean.valueOf(options.remove("-meter"));
         
-        System.setProperty("isMetered", String.valueOf(meterEnabled));
-        
         return meterEnabled.booleanValue();
-    }
-
-    public void setExclusions(Pattern exclusions) {
-        this.exclusions = exclusions;
     }
 
     public void setExclusions(String exclusions) {
@@ -429,10 +536,6 @@ public class Config
         }
 
         return exclusions;
-    }
-
-    public void setInclusions(Pattern exclusions) {
-        this.inclusions = exclusions;
     }
 
     public void setInclusions(String exclusions) {
@@ -552,6 +655,10 @@ public class Config
 
     public List getRemainingParameters()
     {
+        try {
+            populate();
+        } catch (Exception exc) {}
+        
         return options;
     }
     
@@ -617,7 +724,7 @@ public class Config
         return param;
     }
     
-    static public class MissingRequiredParameterException extends RuntimeException {
+    public static class MissingRequiredParameterException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         private boolean dbTypeSpecific;
 
@@ -680,7 +787,7 @@ public class Config
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      */
-    protected void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    private void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         Method[] methods = getClass().getMethods();
         for (int i = 0; i < methods.length; ++i) {
             Method method = methods[i];
@@ -836,16 +943,16 @@ public class Config
             list.add("-cp");
             list.add(value);
         }
-        value = getCss();
-        if (value != null) {
-            list.add("-css");
-            list.add(value);
-        }
-        value = getDbType();
-        if (value != null) {
-            list.add("-t");
-            list.add(value);
-        }
+        list.add("-css");
+        list.add(getCss());
+        list.add("-charset");
+        list.add(getCharset());
+        list.add("-font");
+        list.add(getFont());
+        list.add("-fontsize");
+        list.add(String.valueOf(getFontSize()));
+        list.add("-t");
+        list.add(getDbType());
         value = getDescription();
         if (value != null) {
             list.add("-desc");
