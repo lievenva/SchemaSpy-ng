@@ -139,10 +139,34 @@ public class DotNode {
         buf.append("</TD></TR>" + lineSeparator);
 
         buf.append("    </TABLE>>" + lineSeparator);
-        buf.append("    URL=\"" + path + tableName + ".html" + (path.length() == 0 && !isDetailed ? "#graph" : "#") + "\"" + lineSeparator);
-        buf.append("    tooltip=\"" + tableName + "\"" + lineSeparator);
+        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + (path.length() == 0 && !isDetailed ? "#graph" : "#") + "\"" + lineSeparator);
+        buf.append("    tooltip=\"" + toNCR(tableName) + "\"" + lineSeparator);
         buf.append("  ];");
 
         return buf.toString();
+    }
+    
+    /**
+     * Translates specified string to Numeric Character Reference (NCR).
+     * This (hopefully) allows Unicode languages to be displayed correctly.<p>
+     * The basis for this code was found 
+     * <a href='http://d.hatena.ne.jp/etherealmaro/20060806#1154886500'>here</a>.
+     * 
+     * @param str
+     * @return
+     */
+    private static String toNCR(String str) {
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < str.length(); ++i) {
+            char ch = str.charAt(i);
+            if (ch <= 127) {    // don't confuse things unless necessary
+                result.append(ch);
+            } else {
+                result.append("&#");
+                result.append(Integer.parseInt(Integer.toHexString(ch), 16));
+                result.append(";");
+            }
+        }
+        return result.toString();
     }
 }
