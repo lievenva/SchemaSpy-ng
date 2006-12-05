@@ -3,16 +3,17 @@ package net.sourceforge.schemaspy.view;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
-    protected final boolean encodeComments       = Boolean.getBoolean("encodeComments");
-    protected final boolean displayTableComments = Boolean.getBoolean("displayTableComments");;
-    protected final boolean displayNumRows       = Boolean.getBoolean("displayNumRows");
-    private   final boolean isMetered            = Boolean.getBoolean("isMetered");
+    protected final boolean encodeComments       = Config.getInstance().isEncodeCommentsEnabled();
+    protected final boolean displayTableComments = Config.getInstance().isTableCommentsEnabled();
+    protected final boolean displayNumRows       = Config.getInstance().isNumRowsEnabled();
+    private   final boolean isMetered            = Config.getInstance().isMeterEnabled();
 
     protected HtmlFormatter() {
     }
@@ -28,7 +29,7 @@ public class HtmlFormatter {
         if (table != null)
             out.write("../");
         out.writeln("schemaSpy.css' type='text/css'>");
-        out.writeln("  <meta HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=ISO-8859-1'>");
+        out.writeln("  <meta HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=" + Config.getInstance().getCharset() + "'>");
         out.writeln("  <SCRIPT LANGUAGE='JavaScript' TYPE='text/javascript' SRC='" + (table == null ? "" : "../") + "schemaSpy.js'></SCRIPT>");
         out.writeln("</head>");
         out.writeln("<body onload='syncOptions()'>");
@@ -127,8 +128,7 @@ public class HtmlFormatter {
     }
 
     protected boolean sourceForgeLogoEnabled() {
-        // I hate this hack, but I don't want to have to pass this boolean everywhere...
-        return Boolean.getBoolean("sourceforgelogo") | true;
+        return Config.getInstance().isLogoEnabled();
     }
 
     protected void writeLegend(boolean tableDetails, LineWriter out) throws IOException {

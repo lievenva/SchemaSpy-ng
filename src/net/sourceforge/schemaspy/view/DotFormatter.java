@@ -3,6 +3,7 @@ package net.sourceforge.schemaspy.view;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import net.sourceforge.schemaspy.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 
@@ -13,8 +14,8 @@ import net.sourceforge.schemaspy.util.*;
  */
 public class DotFormatter {
     private static DotFormatter instance = new DotFormatter();
-    private final int CompactGraphFontSize = 9;
-    private final int LargeGraphFontSize = 11;
+    private final int LargeGraphFontSize = Config.getInstance().getFontSize();
+    private final int CompactGraphFontSize = LargeGraphFontSize - 2;
     private final String CompactNodeSeparator = "0.05";
     private final String CompactRankSeparator = "0.2";
 
@@ -242,7 +243,7 @@ public class DotFormatter {
         dot.writeln("// dot " + Dot.getInstance().getVersion() + " on " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
         dot.writeln("digraph \"" + graphName + "\" {");
         dot.writeln("  graph [");
-        boolean rankdirbug = Boolean.getBoolean("rankdirbug");  // another nasty hack
+        boolean rankdirbug = Config.getInstance().isRankDirBugEnabled();
         if (!rankdirbug)
             dot.writeln("    rankdir=\"RL\"");
         dot.writeln("    bgcolor=\"" + StyleSheet.getInstance().getBodyBackground() + "\"");
@@ -259,7 +260,7 @@ public class DotFormatter {
         }
         dot.writeln("  ];");
         dot.writeln("  node [");
-        dot.writeln("    fontname=\"Helvetica\"");
+        dot.writeln("    fontname=\"" + Config.getInstance().getFont() + "\"");
         dot.writeln("    fontsize=\"" + (compact ? CompactGraphFontSize : LargeGraphFontSize) + "\"");
         dot.writeln("    shape=\"plaintext\"");
         dot.writeln("  ];");
