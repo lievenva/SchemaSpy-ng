@@ -30,8 +30,8 @@ public class Config
     private String host;
     private Integer port;
     private String server;
-    private Pattern inclusions;
-    private Pattern exclusions;
+    private Pattern tableInclusions;
+    private Pattern columnExclusions;
     private String userConnectionPropertiesFile;
     private Properties userConnectionProperties;
     private Integer maxDbThreads;
@@ -163,7 +163,7 @@ public class Config
     
     public String getSchema() {
         if (schema == null)
-            schema = pullParam("-s", false, true);
+            schema = pullParam("-s");
         return schema;
     }
     
@@ -522,36 +522,36 @@ public class Config
         return meterEnabled.booleanValue();
     }
 
-    public void setExclusions(String exclusions) {
-        this.exclusions = Pattern.compile(exclusions);
+    public void setColumnExclusions(String columnExclusions) {
+        this.columnExclusions = Pattern.compile(columnExclusions);
     }
 
-    public Pattern getExclusions() {
-        if (exclusions == null) {
+    public Pattern getColumnExclusions() {
+        if (columnExclusions == null) {
             String strExclusions = pullParam("-x");
             if (strExclusions == null)
                 strExclusions = "[^.]";   // match nothing
 
-            exclusions = Pattern.compile(strExclusions);
+            columnExclusions = Pattern.compile(strExclusions);
         }
 
-        return exclusions;
+        return columnExclusions;
     }
 
-    public void setInclusions(String exclusions) {
-        this.inclusions = Pattern.compile(exclusions);
+    public void setTableInclusions(String tableInclusions) {
+        this.tableInclusions = Pattern.compile(tableInclusions);
     }
 
-    public Pattern getInclusions() {
-        if (inclusions == null) {
+    public Pattern getTableInclusions() {
+        if (tableInclusions == null) {
             String strInclusions = pullParam("-i");
             if (strInclusions == null)
                 strInclusions = ".*";     // match anything
 
-            inclusions = Pattern.compile(strInclusions);
+            tableInclusions = Pattern.compile(strInclusions);
         }
 
-        return inclusions;
+        return tableInclusions;
     }
     
     public void setEvaluateAllEnabled(boolean enabled) {
@@ -995,9 +995,9 @@ public class Config
             list.add(value);
         }
         list.add("-i");
-        list.add(getInclusions().pattern());
+        list.add(getTableInclusions().pattern());
         list.add("-x");
-        list.add(getExclusions().pattern());
+        list.add(getColumnExclusions().pattern());
         list.add("-dbthreads");
         list.add(String.valueOf(getMaxDbThreads()));
         list.add("-maxdet");
