@@ -37,7 +37,6 @@ public class SchemaAnalyzer {
             if (config.getDb() == null)
                 config.setDb(urlBuilder.getConnectionURL());
 
-            config.populate();   // force options to be evaluated
             if (config.getRemainingParameters().size() != 0) {
                 System.out.print("Warning: Unrecognized option(s):");
                 for (Iterator iter = config.getRemainingParameters().iterator(); iter.hasNext(); )
