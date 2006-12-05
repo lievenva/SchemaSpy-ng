@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.model;
 
 import java.sql.*;
 import java.util.*;
+import net.sourceforge.schemaspy.*;
 
 public class Table implements Comparable {
     private final String schema;
@@ -24,7 +25,7 @@ public class Table implements Comparable {
         initColumns(meta);
         initIndexes(db, meta, properties);
         initPrimaryKeys(meta);
-        numRows = Boolean.getBoolean("displayNumRows") ? fetchNumRows(db) : -1;
+        numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db) : -1;
     }
 
     public void connectForeignKeys(Map tables, DatabaseMetaData meta) throws SQLException {
