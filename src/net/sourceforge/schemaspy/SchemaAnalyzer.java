@@ -15,7 +15,7 @@ import org.w3c.dom.*;
  * @author John Currier
  */
 public class SchemaAnalyzer {
-	public int analyze(Config config, String[] argv) throws Exception {
+	public int analyze(Config config) throws Exception {
 		try {
             if (config.isHelpRequired()) {
                 config.dumpUsage(null, false);
@@ -34,9 +34,8 @@ public class SchemaAnalyzer {
             Properties properties = config.getDbProperties(config.getDbType());
 
             ConnectionURLBuilder urlBuilder = new ConnectionURLBuilder(config, properties);
-
-            //TODO
-            //String schemaSpec = getParam(args, "-schemaSpec");
+            if (config.getDb() == null)
+                config.setDb(urlBuilder.getConnectionURL());
 
             config.populate();   // force options to be evaluated
             if (config.getRemainingParameters().size() != 0) {
@@ -56,7 +55,7 @@ public class SchemaAnalyzer {
             	return 3;
             
             DatabaseMetaData meta = connection.getMetaData();
-            String dbName = urlBuilder.getDbName();
+            String dbName = config.getDb();
             String schema = config.getSchema();
             File outputDir = config.getOutputDir();
 
@@ -65,16 +64,20 @@ public class SchemaAnalyzer {
                 Iterator iter = urlBuilder.getOptions().iterator();
                 while (iter.hasNext()) {
                     DbOption option = (DbOption)iter.next();
-                    args.add("-" + option.name);
-                    args.add(option.value);
+                    if (!args.contains("-" + option.name)) {
+                        args.add("-" + option.name);
+                        args.add(option.value);
+                    }
                 }
                     
                 yankParam(args, "-o");  // param will be replaced by something appropriate
                 yankParam(args, "-s");  // param will be replaced by something appropriate
                 args.remove("-all");    // param will be replaced by something appropriate
-                if (schema == null)
-                    schema = properties.getProperty("schemaSpec", ".*");
-                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schema, args, config.getUser(), outputDir, config.getLoadedFromJar());
+                
+                String schemaSpec = config.getSchemaSpec();
+                if (schemaSpec == null)
+                    schemaSpec = properties.getProperty("schemaSpec", ".*");
+                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, config.getUser(), outputDir, config.getLoadedFromJar());
             }
 
             if (schema == null && meta.supportsSchemasInTableDefinitions())

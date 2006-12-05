@@ -1,5 +1,6 @@
 package net.sourceforge.schemaspy;
 
+import java.beans.*;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
@@ -17,16 +18,20 @@ public class Config
     private static final long serialVersionUID = 1L;
     private List options;
     private Map dbSpecificOptions;
-    private HashMap originalDbSpecificOptions;
+    private Map originalDbSpecificOptions;
     private boolean helpRequired;
     private boolean dbHelpRequired;
     private File outputDir;
-    private Pattern inclusions;
-    private Pattern exclusions;
     private String dbType;
     private String schema;
     private String user;
     private String password;
+    private String db;
+    private String host;
+    private Integer port;
+    private String server;
+    private Pattern inclusions;
+    private Pattern exclusions;
     private String userConnectionPropertiesFile;
     private Properties userConnectionProperties;
     private Integer maxDbThreads;
@@ -45,6 +50,7 @@ public class Config
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
     private Boolean evaluteAll;
+    private String schemaSpec;  // used in conjunction with evaluateAll
 
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -132,16 +138,58 @@ public class Config
         return dbType;
     }
     
+    public void setDb(String db) {
+        this.db = db;
+    }
+    
+    public String getDb() {
+        if (db == null)
+            db = pullParam("-db");
+        return db;
+    }
+    
     public void setSchema(String schema) {
         this.schema = schema;
     }
     
     public String getSchema() {
-        if (schema == null) {
+        if (schema == null)
             schema = pullParam("-s", false, true);
+        return schema;
+    }
+    
+    public void setHost(String host) {
+        this.host = host;
+    }
+    
+    public String getHost() {
+        if (host == null)
+            host = pullParam("-host");
+        return host;
+    }
+    
+    public void setPort(int port) {
+        this.port = new Integer(port);
+    }
+    
+    public Integer getPort() {
+        if (port == null)
+            try {
+                port = Integer.valueOf(pullParam("-port"));
+            } catch (Exception notSpecified) {}
+        return port;
+    }
+    
+    public void setServer(String server) {
+        this.server = server;
+    }
+    
+    public String getServer() {
+        if (server == null) {
+            server = pullParam("-server");
         }
         
-        return schema;
+        return server;
     }
     
     public void setUser(String user) {
@@ -414,6 +462,23 @@ public class Config
     }
     
     /**
+     * When -all (evaluateAll) is specified then this is the regular
+     * expression that determines which schemas to evaluate.
+     * 
+     * @param schemaSpec
+     */
+    public void setSchemaSpec(String schemaSpec) {
+        this.schemaSpec = schemaSpec;
+    }
+    
+    public String getSchemaSpec() {
+        if (schemaSpec == null)
+            schemaSpec = pullParam("-schemaSpec");
+        
+        return schemaSpec;
+    }
+    
+    /**
      * Returns <code>true</code> if the options indicate that the user wants
      * to see some help information.
      * 
@@ -492,7 +557,7 @@ public class Config
     
     /**
      * Options that are specific to a type of database.  E.g. things like <code>host</code>,
-     * <code>port</code> or <code>db</code>.
+     * <code>port</code> or <code>db</code>, but <b>don't</b> have a setter in this class.
      *  
      * @param dbSpecificOptions
      */
@@ -584,7 +649,7 @@ public class Config
         for (Iterator iter = args.iterator(); iter.hasNext(); ) {
             String arg = iter.next().toString();
             int indexOfEquals = arg.indexOf('=');
-            if (indexOfEquals != -1) {
+            if (indexOfEquals != -1 && indexOfEquals -1 != arg.indexOf("\\=")) {
                 expandedArgs.add(arg.substring(0, indexOfEquals));
                 expandedArgs.add(arg.substring(indexOfEquals + 1));
             } else {
@@ -700,6 +765,31 @@ public class Config
     }
     
     /**
+     * Get the value of the specified parameter.  
+     * Used for properties that are common to most db's, but aren't required.
+     *  
+     * @param paramName
+     * @return
+     */
+    public String getParam(String paramName) {
+        try {
+            BeanInfo beanInfo = Introspector.getBeanInfo(Config.class);
+            PropertyDescriptor[] props = beanInfo.getPropertyDescriptors();
+            for (int i = 0; i < props.length; ++i) {
+                PropertyDescriptor prop = props[i];
+                if (prop.getName().equalsIgnoreCase(paramName)) {
+                    Object result = prop.getReadMethod().invoke(this, null);
+                    return result == null ? null : result.toString();
+                }
+            }
+        } catch (Exception failed) {
+            failed.printStackTrace();
+        }
+        
+        return null;
+    }
+    
+    /**
      * Return all of the configuration options as a List of Strings, with
      * each parameter and its value as a separate element.
      * 
@@ -776,6 +866,25 @@ public class Config
         value = getConnectionPropertiesFile();
         if (value != null) {
             list.add("-connprops");
+            list.add(value);
+        }
+        value = getDb();
+        if (value != null) {
+            list.add("-db");
+            list.add(value);
+        }
+        value = getHost();
+        if (value != null) {
+            list.add("-host");
+            list.add(value);
+        }
+        if (getPort() != null) {
+            list.add("-port");
+            list.add(getPort().toString());
+        }
+        value = getServer();
+        if (value != null) {
+            list.add("-server");
             list.add(value);
         }
         list.add("-i");

@@ -1,8 +1,8 @@
 package net.sourceforge.schemaspy.util;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
-import net.sourceforge.schemaspy.*;
+import net.sourceforge.schemaspy.Config;
 
 /**
  * @author John Currier
@@ -11,7 +11,6 @@ public class ConnectionURLBuilder {
     private final String type;
     private String description;
     private final String connectionURL;
-    private String dbName = null;
     private final List options = new ArrayList();
     public class DbOption {
         public final String name;
@@ -27,11 +26,9 @@ public class ConnectionURLBuilder {
 
     /**
      * @param config
-     * @param args
      * @param properties
-     * @throws IOException
      */
-    public ConnectionURLBuilder(Config config, Properties properties) throws IOException {
+    public ConnectionURLBuilder(Config config, Properties properties) {
         this.type = config.getDbType();
 
         List opts = new ArrayList();
@@ -43,11 +40,7 @@ public class ConnectionURLBuilder {
         }
         opts.addAll(config.getRemainingParameters());
         
-        connectionURL = parseParameters(opts, properties);
-
-        if (dbName == null)
-            dbName = connectionURL;
-
+        connectionURL = parseParameters(opts, properties, config);
         description = properties.getProperty("description");
         
         List remaining = config.getRemainingParameters();
@@ -88,11 +81,11 @@ public class ConnectionURLBuilder {
             }
         }
 
-        parseParameters(null, new DbPropLoader().load(type));
+        parseParameters(null, new DbPropLoader().load(type), null);
         connectionURL = null;
     }
 
-    private String parseParameters(List args, Properties properties) {
+    private String parseParameters(List args, Properties properties, Config config) {
         StringBuffer url = new StringBuffer();
         boolean inParam = false;
 
@@ -105,9 +98,7 @@ public class ConnectionURLBuilder {
                 inParam = false;
             } else {
                 if (inParam) {
-                    String paramValue = getParam(args, token, properties);
-                    if (token.equals("db") || token.equals("-db"))
-                        dbName = paramValue;
+                    String paramValue = getParam(args, token, properties, config);
                     url.append(paramValue);
                 } else
                     url.append(token);
@@ -121,26 +112,27 @@ public class ConnectionURLBuilder {
         return connectionURL;
     }
 
-    public String getDbName() {
-        return dbName;
-    }
-
     public List getOptions() {
         return options;
     }
 
-    private String getParam(List args, String paramName, Properties properties) {
+    private String getParam(List args, String paramName, Properties properties, Config config) {
         String param = null;
         int paramIndex = args != null ? args.indexOf("-" + paramName) : -1;
         String description = properties.getProperty(paramName);
 
         if (args != null) {
-            if (paramIndex < 0)
-                throw new Config.MissingRequiredParameterException(paramName, description, true);
-            
-            args.remove(paramIndex);
-            param = args.get(paramIndex).toString();
-            args.remove(paramIndex);
+            if (paramIndex < 0) {
+                if (config != null)
+                    param = config.getParam(paramName); // not in args...might be one of
+                                                        // the common db params
+                if (param == null)
+                    throw new Config.MissingRequiredParameterException(paramName, description, true);
+            } else {
+                args.remove(paramIndex);
+                param = args.get(paramIndex).toString();
+                args.remove(paramIndex);
+            }
         }
         
         options.add(new DbOption(paramName, param, description));
