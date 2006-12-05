@@ -4,14 +4,15 @@ import java.io.*;
 import java.sql.*;
 import java.text.*;
 import java.util.*;
+import net.sourceforge.schemaspy.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set keywords = null;
-    private final boolean encodeComments = Boolean.getBoolean("encodeComments");
-    private final boolean commentsInitiallyDisplayed = Boolean.getBoolean("commentsInitiallyDisplayed");
+    private final boolean encodeComments = Config.getInstance().isEncodeCommentsEnabled();
+    private final boolean commentsInitiallyDisplayed = Config.getInstance().isDisplayCommentsIntiallyEnabled();
 
     private Map defaultValueAliases = new HashMap();
     {

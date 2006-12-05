@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.view;
 
 import java.io.*;
 import java.util.*;
+import net.sourceforge.schemaspy.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
 
@@ -115,7 +116,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         html.writeln("<p/>");
         StyleSheet css = StyleSheet.getInstance();
-        String commentStatus = Boolean.getBoolean("commentsInitiallyDisplayed") ? "checked " : "";
+        String commentStatus = Config.getInstance().isDisplayCommentsIntiallyEnabled() ? "checked " : "";
         html.writeln("<form name='options' action=''>");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
