@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.view;
 
 import java.text.*;
 import java.util.*;
+import net.sourceforge.schemaspy.*;
 import net.sourceforge.schemaspy.model.*;
 
 public class DotNode {
@@ -12,7 +13,7 @@ public class DotNode {
     private final String path;
     private final Set excludedColumns = new HashSet();
     private final String lineSeparator = System.getProperty("line.separator");
-    private final boolean displayNumRows = Boolean.getBoolean("displayNumRows");
+    private final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
 
     /**
      * Create a DotNode that is a focal point of a graph
