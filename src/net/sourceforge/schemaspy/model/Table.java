@@ -44,7 +44,7 @@ public class Table implements Comparable {
         // if we're one of multples then also find all of the 'remote' tables in other
         // schemas that point to our primary keys (not necessary in the normal case
         // as we infer this from the opposite direction)
-        if (Config.getInstance().isOneOfMultipleSchemas()) {
+        if (getSchema() != null && Config.getInstance().isOneOfMultipleSchemas()) {
             try {
                 rs = db.getMetaData().getExportedKeys(null, getSchema(), getName());
 
@@ -166,7 +166,7 @@ public class Table implements Comparable {
             }
         }
 
-        if (!isView())
+        if (!isView() && !isRemote())
             initColumnAutoUpdate(meta);
     }
 
@@ -233,7 +233,7 @@ public class Table implements Comparable {
      * @throws SQLException
      */
     private void initIndexes(Database db, Properties properties) throws SQLException {
-        if (isView())
+        if (isView() || isRemote())
             return;
 
         // first try to initialize using the index query spec'd in the .properties
