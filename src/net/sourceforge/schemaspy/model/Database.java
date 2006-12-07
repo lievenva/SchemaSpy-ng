@@ -24,7 +24,7 @@ public class Database {
         this.description = description;
         initTables(schema, meta, properties, include, maxThreads);
         initViews(schema, meta, properties, include);
-        connectTables(meta);
+        connectTables();
     }
 
     public String getName() {
@@ -382,7 +382,7 @@ public class Database {
                 if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
                     System.out.print('.');
                     
-                    Table view = new View(this, rs, metadata, properties.getProperty("selectViewSql"));
+                    Table view = new View(this, rs, properties.getProperty("selectViewSql"));
                     if (include.matcher(view.getName()).matches())
                         views.put(view.getName().toUpperCase(), view);
                 }
@@ -393,11 +393,11 @@ public class Database {
         }
     }
 
-    private void connectTables(DatabaseMetaData metadata) throws SQLException {
+    private void connectTables() throws SQLException {
         Iterator iter = tables.values().iterator();
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
-            table.connectForeignKeys(tables, metadata);
+            table.connectForeignKeys(tables, this);
         }
     }
 
@@ -413,7 +413,7 @@ public class Database {
         }
 
         protected void createImpl(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, schemaName, tableName, remarks, meta, properties);
+            Table table = new Table(Database.this, schemaName, tableName, remarks, properties);
             tables.put(table.getName().toUpperCase(), table);
             System.out.print('.');
         }

@@ -5,8 +5,8 @@ import java.sql.*;
 public class View extends Table {
     private final String viewSql;
 
-    public View(Database db, ResultSet rs, DatabaseMetaData meta, String selectViewSql) throws SQLException {
-        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), meta, null);
+    public View(Database db, ResultSet rs, String selectViewSql) throws SQLException {
+        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), null);
         viewSql = getViewSql(db, selectViewSql);
     }
 

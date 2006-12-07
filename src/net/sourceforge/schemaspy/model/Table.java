@@ -7,7 +7,7 @@ import net.sourceforge.schemaspy.*;
 public class Table implements Comparable {
     private final String schema;
     private final String name;
-    private final Map columns = new HashMap();
+    protected final Map columns = new HashMap();
     private final List primaryKeys = new ArrayList();
     private final Map foreignKeys = new HashMap();
     private final Map indexes = new HashMap();
@@ -18,24 +18,24 @@ public class Table implements Comparable {
     private int maxChildren;
     private int maxParents;
 
-    public Table(Database db, String schema, String name, String comments, DatabaseMetaData meta, Properties properties) throws SQLException {
+    public Table(Database db, String schema, String name, String comments, Properties properties) throws SQLException {
         this.schema = schema;
         this.name = name;
         setComments(comments);
-        initColumns(meta);
-        initIndexes(db, meta, properties);
-        initPrimaryKeys(meta);
+        initColumns(db.getMetaData());
+        initIndexes(db, properties);
+        initPrimaryKeys(db.getMetaData());
         numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db) : -1;
     }
-
-    public void connectForeignKeys(Map tables, DatabaseMetaData meta) throws SQLException {
+    
+    public void connectForeignKeys(Map tables, Database db) throws SQLException {
         ResultSet rs = null;
 
         try {
-            rs = meta.getImportedKeys(null, getSchema(), getName());
+            rs = db.getMetaData().getImportedKeys(null, getSchema(), getName());
 
             while (rs.next())
-                addForeignKey(rs, tables);
+                addForeignKey(rs, tables, db);
         } finally {
             if (rs != null)
                 rs.close();
@@ -56,12 +56,12 @@ public class Table implements Comparable {
 
     /**
      *
-     * @param rs ResultSet from DatabaseMetaData.getImportedKeys()
+     * @param rs ResultSet from {@link DatabaseMetaData#getImportedKeys(String, String, String)}
      * @param tables Map
-     * @param meta DatabaseMetaData
+     * @param db 
      * @throws SQLException
      */
-    private void addForeignKey(ResultSet rs, Map tables) throws SQLException {
+    private void addForeignKey(ResultSet rs, Map tables, Database db) throws SQLException {
         String name = rs.getString("FK_NAME");
 
         if (name == null)
@@ -80,19 +80,23 @@ public class Table implements Comparable {
 
         Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME").toUpperCase());
 
-        if (parentTable != null) {
-            TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
+        if (parentTable == null) {
+            parentTable = new RemoteTable(db, rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"));
+        }
+        
+        TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
+        
+        //if (parentColumn == null) {
+        //    parentTable.addColumn(rs);
+        //}
 
-            if (parentColumn != null) {
-                foreignKey.addParentColumn(parentColumn);
+        if (parentColumn != null) {
+            foreignKey.addParentColumn(parentColumn);
 
-                childColumn.addParent(parentColumn, foreignKey);
-                parentColumn.addChild(childColumn, foreignKey);
-            } else {
-                System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
-            }
+            childColumn.addParent(parentColumn, foreignKey);
+            parentColumn.addChild(childColumn, foreignKey);
         } else {
-            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Table '" + rs.getString("PKTABLE_NAME") + "'");
+            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
         }
     }
 
@@ -187,7 +191,11 @@ public class Table implements Comparable {
         }
     }
 
-    private void addColumn(ResultSet rs) throws SQLException {
+    /**
+     * @param rs - from {@link DatabaseMetaData#getColumns(String, String, String, String)}
+     * @throws SQLException
+     */
+    protected void addColumn(ResultSet rs) throws SQLException {
         String columnName = rs.getString("COLUMN_NAME");
 
         if (columnName == null)
@@ -205,7 +213,7 @@ public class Table implements Comparable {
      *
      * @throws SQLException
      */
-    private void initIndexes(Database db, DatabaseMetaData meta, Properties properties) throws SQLException {
+    private void initIndexes(Database db, Properties properties) throws SQLException {
         if (isView())
             return;
 
@@ -219,7 +227,7 @@ public class Table implements Comparable {
         ResultSet rs = null;
 
         try {
-            rs = meta.getIndexInfo(null, getSchema(), getName(), false, true);
+            rs = db.getMetaData().getIndexInfo(null, getSchema(), getName(), false, true);
 
             while (rs.next()) {
                 if (rs.getShort("TYPE") != DatabaseMetaData.tableIndexStatistic)
