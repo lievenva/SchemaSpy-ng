@@ -79,17 +79,11 @@ public class Table implements Comparable {
         foreignKey.addChildColumn(childColumn);
 
         Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME").toUpperCase());
-
         if (parentTable == null) {
             parentTable = new RemoteTable(db, rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"));
         }
         
         TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
-        
-        //if (parentColumn == null) {
-        //    parentTable.addColumn(rs);
-        //}
-
         if (parentColumn != null) {
             foreignKey.addParentColumn(parentColumn);
 
