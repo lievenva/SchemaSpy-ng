@@ -793,23 +793,22 @@ public class Config
     
     /**
      * Call all the getters to populate all the lazy initialized stuff.
-     * After this call the remaining options can be evaluated.
      * 
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
+     * @throws InvocationTargetException 
+     * @throws IllegalAccessException 
+     * @throws IllegalArgumentException 
+     * @throws IntrospectionException 
      */
-    private void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    private void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, IntrospectionException {
         if (!populating) { // prevent recursion
             populating = true;
             
-            Method[] methods = getClass().getMethods();
-            for (int i = 0; i < methods.length; ++i) {
-                Method method = methods[i];
-                if (method.getParameterTypes().length == 0 &&
-                    (method.getName().startsWith("is") || method.getName().startsWith("get"))) {
-                    method.invoke(this, null);
-                }
+            BeanInfo beanInfo = Introspector.getBeanInfo(Config.class);
+            PropertyDescriptor[] props = beanInfo.getPropertyDescriptors();
+            for (int i = 0; i < props.length; ++i) {
+                Method readMethod = props[i].getReadMethod();
+                if (readMethod != null)
+                    readMethod.invoke(this, null);
             }
             
             populating = false;
