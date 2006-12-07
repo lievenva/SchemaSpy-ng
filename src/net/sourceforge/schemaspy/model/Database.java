@@ -338,11 +338,12 @@ public class Database {
         return stmt;
     }
     
-    public Table addRemoteTable(String remoteSchema, String remoteTableName) throws SQLException {
+    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema) throws SQLException {
         String fullName = remoteSchema + "." + remoteTableName;
         Table remoteTable = (Table)remoteTables.get(fullName);
         if (remoteTable == null) {
-            remoteTable = new RemoteTable(this, remoteSchema, remoteTableName);
+            remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema);
+            remoteTable.connectForeignKeys(tables, this);
             remoteTables.put(fullName, remoteTable);
         }
         

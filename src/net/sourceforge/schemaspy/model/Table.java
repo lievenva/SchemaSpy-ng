@@ -51,7 +51,7 @@ public class Table implements Comparable {
                 while (rs.next()) {
                     String otherSchema = rs.getString("FKTABLE_SCHEM");
                     if (!getSchema().equals(otherSchema))
-                        db.addRemoteTable(otherSchema, rs.getString("FKTABLE_NAME"));
+                        db.addRemoteTable(otherSchema, rs.getString("FKTABLE_NAME"), getSchema());
                 }
             } finally {
                 if (rs != null)
@@ -79,7 +79,7 @@ public class Table implements Comparable {
      * @param db 
      * @throws SQLException
      */
-    private void addForeignKey(ResultSet rs, Map tables, Database db) throws SQLException {
+    protected void addForeignKey(ResultSet rs, Map tables, Database db) throws SQLException {
         String name = rs.getString("FK_NAME");
 
         if (name == null)
@@ -100,7 +100,7 @@ public class Table implements Comparable {
         if (parentTable == null) {
             String otherSchema = rs.getString("PKTABLE_SCHEM");
             if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
-                parentTable = db.addRemoteTable(otherSchema, rs.getString("PKTABLE_NAME"));
+                parentTable = db.addRemoteTable(otherSchema, rs.getString("PKTABLE_NAME"), getSchema());
             }
         }
         
