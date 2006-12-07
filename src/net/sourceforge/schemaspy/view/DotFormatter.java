@@ -258,6 +258,8 @@ public class DotFormatter {
             dot.writeln("    nodesep=\"" + CompactNodeSeparator + "\"");
             dot.writeln("    ranksep=\"" + CompactRankSeparator + "\"");
         }
+        dot.writeln("    fontname=\"" + Config.getInstance().getFont() + "\"");
+        dot.writeln("    fontsize=\"" + (compact ? CompactGraphFontSize : LargeGraphFontSize) + "\"");
         dot.writeln("  ];");
         dot.writeln("  node [");
         dot.writeln("    fontname=\"" + Config.getInstance().getFont() + "\"");
