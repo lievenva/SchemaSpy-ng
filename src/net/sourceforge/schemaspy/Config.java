@@ -54,6 +54,7 @@ public class Config
     private Boolean meterEnabled;
     private Boolean evaluteAll;
     private String schemaSpec;  // used in conjunction with evaluateAll
+    private boolean populating = false;
 
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -799,13 +800,19 @@ public class Config
      * @throws InvocationTargetException
      */
     private void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-        Method[] methods = getClass().getMethods();
-        for (int i = 0; i < methods.length; ++i) {
-            Method method = methods[i];
-            if (method.getParameterTypes().length == 0 &&
-                (method.getName().startsWith("is") || method.getName().startsWith("get"))) {
-                method.invoke(this, null);
+        if (!populating) { // prevent recursion
+            populating = true;
+            
+            Method[] methods = getClass().getMethods();
+            for (int i = 0; i < methods.length; ++i) {
+                Method method = methods[i];
+                if (method.getParameterTypes().length == 0 &&
+                    (method.getName().startsWith("is") || method.getName().startsWith("get"))) {
+                    method.invoke(this, null);
+                }
             }
+            
+            populating = false;
         }
     }
 
