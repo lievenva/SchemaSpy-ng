@@ -6,7 +6,10 @@ import java.sql.*;
  * @author John Currier
  */
 public class RemoteTable extends Table {
-    public RemoteTable(Database db, String schema, String name) throws SQLException {
+    private final String baseSchema; // the original (non-remote) schema
+    
+    public RemoteTable(Database db, String baseSchema, String schema, String name) throws SQLException {
         super(db, schema, name, null, null);
+        this.baseSchema = baseSchema;
     }
 }

@@ -80,7 +80,7 @@ public class Table implements Comparable {
 
         Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME").toUpperCase());
         if (parentTable == null) {
-            parentTable = new RemoteTable(db, rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"));
+            parentTable = new RemoteTable(db, getSchema(), rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"));
         }
         
         TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
