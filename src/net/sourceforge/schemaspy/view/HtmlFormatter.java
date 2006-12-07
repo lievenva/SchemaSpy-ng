@@ -75,7 +75,7 @@ public class HtmlFormatter {
         html.writeln("<table id='headerHolder' cellspacing='0' cellpadding='0'><tr><td>");
         html.writeln("<div id='header'>");
         html.writeln(" <ul>");
-        if (isOneOfMultipleSchemas())
+        if (Config.getInstance().isOneOfMultipleSchemas())
             html.writeln("  <li><a href='" + path + "../index.html' title='All Schemas Evaluated'>Schemas</a></li>");
         html.writeln("  <li" + (isMainIndex() ? " id='current'" : "") + "><a href='" + path + "index.html' title='All tables and views in the schema'>Tables</a></li>");
         html.writeln("  <li" + (isRelationshipsPage() ? " id='current'" : "") + "><a href='" + path + "relationships.html' title='Graphical view of table relationships'>Relationships</a></li>");
@@ -271,16 +271,5 @@ public class HtmlFormatter {
      */
     protected boolean isColumnsPage() {
         return false;
-    }
-
-    /**
-     * Nasty way of dealing with 'global' variables.
-     * Returns true if we're evaluating a bunch of schemas in one go and
-     * at this point we're evaluating a specific schema.
-     *
-     * @return boolean
-     */
-    protected boolean isOneOfMultipleSchemas() {
-        return Boolean.getBoolean("oneofmultipleschemas");
     }
 }

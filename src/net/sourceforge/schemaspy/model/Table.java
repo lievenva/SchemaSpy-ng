@@ -40,6 +40,24 @@ public class Table implements Comparable {
             if (rs != null)
                 rs.close();
         }
+        
+        // if we're one of multples then also find all of the 'remote' tables in other
+        // schemas that point to our primary keys (not necessary in the normal case
+        // as we infer this from the opposite direction)
+        if (Config.getInstance().isOneOfMultipleSchemas()) {
+            try {
+                rs = db.getMetaData().getExportedKeys(null, getSchema(), getName());
+
+                while (rs.next()) {
+                    String otherSchema = rs.getString("FKTABLE_SCHEM");
+                    if (!getSchema().equals(otherSchema))
+                        db.addRemoteTable(otherSchema, rs.getString("FKTABLE_NAME"));
+                }
+            } finally {
+                if (rs != null)
+                    rs.close();
+            }
+        }
     }
 
     public ForeignKeyConstraint getForeignKey(String keyName) {
@@ -80,17 +98,24 @@ public class Table implements Comparable {
 
         Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME").toUpperCase());
         if (parentTable == null) {
-            parentTable = new RemoteTable(db, getSchema(), rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"));
+            String otherSchema = rs.getString("PKTABLE_SCHEM");
+            if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
+                parentTable = db.addRemoteTable(otherSchema, rs.getString("PKTABLE_NAME"));
+            }
         }
         
-        TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
-        if (parentColumn != null) {
-            foreignKey.addParentColumn(parentColumn);
-
-            childColumn.addParent(parentColumn, foreignKey);
-            parentColumn.addChild(childColumn, foreignKey);
+        if (parentTable != null) {
+            TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
+            if (parentColumn != null) {
+                foreignKey.addParentColumn(parentColumn);
+    
+                childColumn.addParent(parentColumn, foreignKey);
+                parentColumn.addChild(childColumn, foreignKey);
+            } else {
+                System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
+            }
         } else {
-            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
+            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Table '" + rs.getString("PKTABLE_NAME") + "'");
         }
     }
 
@@ -518,7 +543,11 @@ public class Table implements Comparable {
     public boolean isView() {
         return false;
     }
-
+    
+    public boolean isRemote() {
+        return false;
+    }
+    
     public String getViewSql() {
         return null;
     }

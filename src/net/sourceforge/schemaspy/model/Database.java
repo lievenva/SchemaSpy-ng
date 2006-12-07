@@ -12,6 +12,7 @@ public class Database {
     private final String description;
     private final Map tables = new HashMap();
     private final Map views = new HashMap();
+    private final Map remoteTables = new HashMap(); // key: schema.tableName value: RemoteTable
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
@@ -49,7 +50,11 @@ public class Database {
     public Collection getViews() {
         return views.values();
     }
-
+    
+    public Collection getRemoteTables() {
+        return remoteTables.values();
+    }
+    
     public Connection getConnection() {
         return connection;
     }
@@ -331,6 +336,17 @@ public class Database {
         }
 
         return stmt;
+    }
+    
+    public Table addRemoteTable(String remoteSchema, String remoteTableName) throws SQLException {
+        String fullName = remoteSchema + "." + remoteTableName;
+        Table remoteTable = (Table)remoteTables.get(fullName);
+        if (remoteTable == null) {
+            remoteTable = new RemoteTable(this, remoteSchema, remoteTableName);
+            remoteTables.put(fullName, remoteTable);
+        }
+        
+        return remoteTable;
     }
 
     /**

@@ -563,6 +563,17 @@ public class Config
             evaluteAll = Boolean.valueOf(options.remove("-all"));
         return evaluteAll.booleanValue();
     }
+
+    /**
+     * Returns true if we're evaluating a bunch of schemas in one go and
+     * at this point we're evaluating a specific schema.
+     * 
+     * @return boolean
+     */
+    public boolean isOneOfMultipleSchemas() {
+        // set by MultipleSchemaAnalyzer
+        return Boolean.getBoolean("oneofmultipleschemas");
+    }
     
     /**
      * When -all (evaluateAll) is specified then this is the regular

@@ -69,7 +69,7 @@ public class DotNode {
         buf.append("    label=<" + lineSeparator);
         buf.append("    <TABLE BORDER=\"" + (isDetailed ? "2" : "0") + "\" CELLBORDER=\"1\" CELLSPACING=\"0\" BGCOLOR=\"" + css.getTableBackground() + "\">" + lineSeparator);
         buf.append("      <TR>");
-        buf.append("<TD PORT=\"" + tableName + ".heading\" COLSPAN=\"3\" BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + tableName + "</TD>");
+        buf.append("<TD PORT=\"" + tableName + ".heading\" COLSPAN=\"3\" BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + (table.isRemote() ? table.getSchema() + "." : "") + tableName + "</TD>");
         buf.append("</TR>" + lineSeparator);
 
         if (showColumns) {

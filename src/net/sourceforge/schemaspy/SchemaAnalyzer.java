@@ -134,7 +134,7 @@ public class SchemaAnalyzer {
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
                 WriteStats stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
-                DotFormatter.getInstance().writeRealRelationships(tables, true, showDetailedTables, stats, out);
+                DotFormatter.getInstance().writeRealRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 stats = new WriteStats(stats);
                 out.close();
@@ -142,7 +142,7 @@ public class SchemaAnalyzer {
                 if (hasRealRelationships) {
                     System.out.print(".");
                     out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
-                    DotFormatter.getInstance().writeRealRelationships(tables, false, showDetailedTables, stats, out);
+                    DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
                 }
@@ -163,7 +163,7 @@ public class SchemaAnalyzer {
                 File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(new FileOutputStream(impliedDotFile));
                 stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
-                DotFormatter.getInstance().writeAllRelationships(tables, true, showDetailedTables, stats, out);
+                DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasImplied = stats.wroteImplied();
                 Set excludedColumns = stats.getExcludedColumns();
                 stats = new WriteStats(stats);
@@ -171,7 +171,7 @@ public class SchemaAnalyzer {
                 if (hasImplied) {
                     impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
                     out = new LineWriter(new FileOutputStream(impliedDotFile));
-                    DotFormatter.getInstance().writeAllRelationships(tables, false, showDetailedTables, stats, out);
+                    DotFormatter.getInstance().writeAllRelationships(db, tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
                 } else {
@@ -305,7 +305,7 @@ public class SchemaAnalyzer {
                 long end = System.currentTimeMillis();
                 System.out.println("(" + (end - startGraphingDetails) / 1000 + "sec)");
                 System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
-                System.out.println("Start by opening " + new File(config.getOutputDir(), "index.html"));
+                System.out.println("View the results by opening " + new File(config.getOutputDir(), "index.html"));
             }
             
             return 0;

@@ -269,19 +269,19 @@ public class DotFormatter {
         dot.writeln("  ];");
 }
 
-    public void writeRealRelationships(Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
+    public void writeRealRelationships(Database db, Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
         boolean oldImplied = stats.setIncludeImplied(false);
-        writeRelationships(tables, compact, details, stats, dot);
+        writeRelationships(db, tables, compact, details, stats, dot);
         stats.setIncludeImplied(oldImplied);
     }
 
-    public void writeAllRelationships(Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
+    public void writeAllRelationships(Database db, Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
         boolean oldImplied = stats.setIncludeImplied(true);
-        writeRelationships(tables, compact, details, stats, dot);
+        writeRelationships(db, tables, compact, details, stats, dot);
         stats.setIncludeImplied(oldImplied);
     }
 
-    private void writeRelationships(Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
+    private void writeRelationships(Database db, Collection tables, boolean compact, boolean details, WriteStats stats, LineWriter dot) throws IOException {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         String graphName;
         if (stats.includeImplied()) {
@@ -306,12 +306,18 @@ public class DotFormatter {
                 nodes.put(table, new DotNode(table, details, "tables/"));
             }
         }
+        
+        iter = db.getRemoteTables().iterator();
+        while (iter.hasNext()) {
+            Table table = (Table)iter.next();
+            nodes.put(table, new DotNode(table, details, "../" + table.getSchema() + "/tables"));
+        }
 
         Set connectors = new TreeSet();
 
-        iter = tables.iterator();
+        iter = nodes.values().iterator();
         while (iter.hasNext())
-            connectors.addAll(finder.getRelatedConnectors((Table)iter.next(), stats));
+            connectors.addAll(finder.getRelatedConnectors(((DotNode)iter.next()).getTable(), stats));
 
         markExcludedColumns(nodes, stats.getExcludedColumns());
 
