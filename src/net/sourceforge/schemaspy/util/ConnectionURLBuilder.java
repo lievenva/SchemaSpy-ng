@@ -22,6 +22,10 @@ public class ConnectionURLBuilder {
             this.value = value;
             this.description = description;
         }
+        
+        public String toString() {
+            return description;
+        }
     }
 
     /**
@@ -112,6 +116,12 @@ public class ConnectionURLBuilder {
         return connectionURL;
     }
 
+    /**
+     * Returns a {@link List} of {@link DbOption}s that are applicable to the
+     * specified database type.
+     * 
+     * @return
+     */
     public List getOptions() {
         return options;
     }
@@ -149,5 +159,9 @@ public class ConnectionURLBuilder {
             DbOption option = (DbOption)iter.next();
             System.out.println("   -" + option.name + " " + (option.description != null ? "  \t" + option.description : ""));
         }
+    }
+    
+    public String toString() {
+        return description;
     }
 }

@@ -608,7 +608,7 @@ public class Config
     }
     
     
-    public String getLoadedFromJar() {
+    public static String getLoadedFromJar() {
         String classpath = System.getProperty("java.class.path");
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
     }

@@ -76,7 +76,7 @@ public class SchemaAnalyzer {
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
-                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, config.getUser(), outputDir, config.getLoadedFromJar());
+                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, config.getUser(), outputDir, Config.getLoadedFromJar());
             }
 
             if (schema == null && meta.supportsSchemasInTableDefinitions()) {
@@ -400,7 +400,7 @@ public class SchemaAnalyzer {
             System.err.println();
             System.err.println("For many people it's easiest to use the -cp option to directly specify");
             System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
-			System.err.println("Note that the -cp option must be specified AFTER " + config.getLoadedFromJar());
+			System.err.println("Note that the -cp option must be specified AFTER " + Config.getLoadedFromJar());
             System.err.println();
             return null;
         }
