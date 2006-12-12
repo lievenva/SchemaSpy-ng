@@ -99,7 +99,7 @@ public class MultipleSchemaAnalyzer {
         if (meta.supportsSchemasInTableDefinitions()) {
             Pattern schemaRegex = Pattern.compile(schemaSpec);
 
-            populatedSchemas = DBAnalyzer.getPopulatedSchemas(meta, schemaSpec);
+            populatedSchemas = DbAnalyzer.getPopulatedSchemas(meta, schemaSpec);
             Iterator iter = populatedSchemas.iterator();
             while (iter.hasNext()) {
                 String schema = iter.next().toString();

@@ -23,11 +23,11 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
     public void write(Database database, Collection tables, List impliedConstraints, boolean hasOrphans, LineWriter out) throws IOException {
         writeHeader(database, hasOrphans, out);
         writeImpliedConstraints(impliedConstraints, out);
-        writeTablesWithoutIndexes(DBAnalyzer.getTablesWithoutIndexes(new HashSet(tables)), out);
-        writeUniqueNullables(DBAnalyzer.getMustBeUniqueNullableColumns(new HashSet(tables)), out);
-        writeTablesWithOneColumn(DBAnalyzer.getTablesWithOneColumn(tables), out);
-        writeTablesWithIncrementingColumnNames(DBAnalyzer.getTablesWithIncrementingColumnNames(tables), out);
-        writeDefaultNullStrings(DBAnalyzer.getDefaultNullStringColumns(new HashSet(tables)), out);
+        writeTablesWithoutIndexes(DbAnalyzer.getTablesWithoutIndexes(new HashSet(tables)), out);
+        writeUniqueNullables(DbAnalyzer.getMustBeUniqueNullableColumns(new HashSet(tables)), out);
+        writeTablesWithOneColumn(DbAnalyzer.getTablesWithOneColumn(tables), out);
+        writeTablesWithIncrementingColumnNames(DbAnalyzer.getTablesWithIncrementingColumnNames(tables), out);
+        writeDefaultNullStrings(DbAnalyzer.getDefaultNullStringColumns(new HashSet(tables)), out);
         writeFooter(out);
     }
 

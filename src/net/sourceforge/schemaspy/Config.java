@@ -87,6 +87,9 @@ public class Config
     }
     
     public static Config getInstance() {
+        if (instance == null)
+            instance = new Config();
+        
         return instance;
     }
 
@@ -871,7 +874,7 @@ public class Config
             Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
             for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
                 String dbType = iter.next().toString();
-                new ConnectionURLBuilder(dbType).dumpUsage();
+                new DbSpecificConfig(dbType).dumpUsage();
             }
             System.out.println();
         }

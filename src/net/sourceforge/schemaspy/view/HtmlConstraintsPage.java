@@ -154,7 +154,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.writeln("</thead>");
         html.writeln("<tbody>");
 
-        List tablesByName = DBAnalyzer.sortTablesByName(new ArrayList(tables));
+        List tablesByName = DbAnalyzer.sortTablesByName(new ArrayList(tables));
 
         int constraintsWritten = 0;
 

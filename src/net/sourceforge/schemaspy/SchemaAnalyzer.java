@@ -7,7 +7,6 @@ import java.util.*;
 import javax.xml.parsers.*;
 import net.sourceforge.schemaspy.model.*;
 import net.sourceforge.schemaspy.util.*;
-import net.sourceforge.schemaspy.util.ConnectionURLBuilder.*;
 import net.sourceforge.schemaspy.view.*;
 import org.w3c.dom.*;
 
@@ -15,8 +14,8 @@ import org.w3c.dom.*;
  * @author John Currier
  */
 public class SchemaAnalyzer {
-	public int analyze(Config config) throws Exception {
-		try {
+    public int analyze(Config config) throws Exception {
+        try {
             if (config.isHelpRequired()) {
                 config.dumpUsage(null, false);
                 return 1;
@@ -51,7 +50,7 @@ public class SchemaAnalyzer {
 
             Connection connection = getConnection(config, urlBuilder.getConnectionURL(), driverClass, driverPath);
             if (connection == null)
-            	return 3;
+                return 3;
             
             DatabaseMetaData meta = connection.getMetaData();
             String dbName = config.getDb();
@@ -62,10 +61,10 @@ public class SchemaAnalyzer {
                 List args = config.asList();
                 Iterator iter = urlBuilder.getOptions().iterator();
                 while (iter.hasNext()) {
-                    DbOption option = (DbOption)iter.next();
-                    if (!args.contains("-" + option.name)) {
-                        args.add("-" + option.name);
-                        args.add(option.value);
+                    DbSpecificOption option = (DbSpecificOption)iter.next();
+                    if (!args.contains("-" + option.getName())) {
+                        args.add("-" + option.getName());
+                        args.add(option.getValue());
                     }
                 }
                     
@@ -151,11 +150,11 @@ public class SchemaAnalyzer {
                 // here unless they want that behavior
                 List impliedConstraints = null;
                 if (includeImpliedConstraints)
-                    impliedConstraints = DBAnalyzer.getImpliedConstraints(tables);
+                    impliedConstraints = DbAnalyzer.getImpliedConstraints(tables);
                 else
                     impliedConstraints = new ArrayList();
 
-                List orphans = DBAnalyzer.getOrphans(tables);
+                List orphans = DbAnalyzer.getOrphans(tables);
                 boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
 
                 System.out.print(".");
@@ -196,7 +195,7 @@ public class SchemaAnalyzer {
                 out.close();
 
                 System.out.print(".");
-                List constraints = DBAnalyzer.getForeignKeyConstraints(tables);
+                List constraints = DbAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
@@ -313,7 +312,7 @@ public class SchemaAnalyzer {
             config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());
             return 1;
         }
-	}
+    }
 
     /**
      * dumpNoDataMessage
@@ -326,7 +325,7 @@ public class SchemaAnalyzer {
         System.out.println();
         System.out.println();
         System.out.println("No tables or views were found in schema '" + schema + "'.");
-        List schemas = DBAnalyzer.getSchemas(meta);
+        List schemas = DbAnalyzer.getSchemas(meta);
         if (schema == null || schemas.contains(schema)) {
             System.out.println("The schema exists in the database, but the user you specified (" + user + ')');
             System.out.println("  might not have rights to read its contents.");
@@ -353,7 +352,7 @@ public class SchemaAnalyzer {
         System.out.println();
         System.out.println("These schemas contain tables/views that user '" + user + "' can see:");
         System.out.println();
-        iter = DBAnalyzer.getPopulatedSchemas(meta).iterator();
+        iter = DbAnalyzer.getPopulatedSchemas(meta).iterator();
         while (iter.hasNext()) {
             System.out.print(iter.next() + " ");
         }
@@ -365,14 +364,14 @@ public class SchemaAnalyzer {
         System.out.println("    " + config.getDbPropertiesLoadedFrom());
 
         List classpath = new ArrayList();
-		List invalidClasspathEntries = new ArrayList();
+        List invalidClasspathEntries = new ArrayList();
         StringTokenizer tokenizer = new StringTokenizer(driverPath, File.pathSeparator);
         while (tokenizer.hasMoreTokens()) {
             File pathElement = new File(tokenizer.nextToken());
             if (pathElement.exists())
                 classpath.add(pathElement.toURL());
             else
-				invalidClasspathEntries.add(pathElement);
+                invalidClasspathEntries.add(pathElement);
         }
 
         URLClassLoader loader = new URLClassLoader((URL[])classpath.toArray(new URL[0]));
@@ -386,13 +385,13 @@ public class SchemaAnalyzer {
             System.err.println(exc); // people don't want to see a stack trace...
             System.err.println();
             System.err.println("Failed to load driver '" + driverClass + "' from: " + classpath);
-			if (!invalidClasspathEntries.isEmpty()) {
-				if (invalidClasspathEntries.size() == 1)
-					System.err.print("This entry doesn't point to a valid file/directory: ");
-				else
-					System.err.print("These entries don't point to valid files/directories: ");
-				System.err.println(invalidClasspathEntries);
-			}
+            if (!invalidClasspathEntries.isEmpty()) {
+                if (invalidClasspathEntries.size() == 1)
+                    System.err.print("This entry doesn't point to a valid file/directory: ");
+                else
+                    System.err.print("These entries don't point to valid files/directories: ");
+                System.err.println(invalidClasspathEntries);
+            }
             System.err.println();
             System.err.println("Use -t [databaseType] to specify what drivers to use or modify");
             System.err.println("one of the .properties from the jar, put it on your file");
@@ -400,7 +399,7 @@ public class SchemaAnalyzer {
             System.err.println();
             System.err.println("For many people it's easiest to use the -cp option to directly specify");
             System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
-			System.err.println("Note that the -cp option must be specified AFTER " + Config.getLoadedFromJar());
+            System.err.println("Note that the -cp option must be specified AFTER " + Config.getLoadedFromJar());
             System.err.println();
             return null;
         }
