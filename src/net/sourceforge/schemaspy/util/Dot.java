@@ -24,7 +24,7 @@ public class Dot {
             // look for a number followed numbers or dots
             Matcher matcher = Pattern.compile("[0-9][0-9.]+").matcher(versionLine);
             if (matcher.find()) {
-        	versionText = matcher.group();
+                versionText = matcher.group();
             } else {
                 System.err.println();
                 System.err.println("Invalid dot configuration detected.  '" + dotCommand + "' returned:");
