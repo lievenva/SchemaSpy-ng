@@ -3,12 +3,6 @@ package net.sourceforge.schemaspy.ui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.awt.Dimension;
-import javax.swing.JPanel;
-import java.awt.GridBagLayout;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import javax.swing.JButton;
 
 /**
  * @author John Currier
@@ -19,6 +13,7 @@ public class MainFrame extends JFrame {
     private JPanel dbConfigPanel = null;
     private JPanel buttonBar = null;
     private JButton launchButton = null;
+    private JPanel header;
 
     /**
      * This is the default constructor
@@ -36,7 +31,7 @@ public class MainFrame extends JFrame {
     private void initialize() {
         this.setContentPane(getJContentPane());
         this.setTitle("SchemaSpy");
-        this.setSize(new Dimension(500, 281));
+        this.setSize(new Dimension(500, 312));
         this.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
@@ -59,9 +54,37 @@ public class MainFrame extends JFrame {
     private JPanel getJContentPane() {
         if (jContentPane == null) {
             jContentPane = new JPanel();
-            jContentPane.setLayout(new BorderLayout());
-            jContentPane.add(getDbConfigPanel(), BorderLayout.NORTH);
-            jContentPane.add(getButtonBar(), BorderLayout.SOUTH);
+            jContentPane.setLayout(new GridBagLayout());
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.gridx = 0;
+            constraints.gridy = GridBagConstraints.RELATIVE;
+            constraints.weightx = 1.0;
+
+            constraints.anchor = GridBagConstraints.CENTER;
+            constraints.insets = new Insets(4, 0, 4, 0);
+            jContentPane.add(getHeaderPanel(), constraints);
+            constraints.insets = new Insets(0, 0, 0, 0);
+            
+            constraints.fill = GridBagConstraints.BOTH;
+            constraints.anchor = GridBagConstraints.NORTHWEST;
+            constraints.weighty = 1.0;
+            JScrollPane scroller = new JScrollPane();
+            //scroller.setBorder(null);
+            scroller.setViewportView(getDbConfigPanel());
+            //scroller.setViewportBorder(new BevelBorder(BevelBorder.LOWERED));
+            jContentPane.add(scroller, constraints);
+
+//            constraints.fill = GridBagConstraints.VERTICAL;
+//            constraints.weighty = 0.0;
+//            JLabel filler = new JLabel();
+//            filler.setPreferredSize(new Dimension(0, 0));
+//            filler.setMinimumSize(new Dimension(0, 0));
+//            jContentPane.add(filler, constraints);
+            
+            constraints.anchor = GridBagConstraints.SOUTHEAST;
+            constraints.fill = GridBagConstraints.NONE;
+            constraints.weighty = 0.0;
+            jContentPane.add(getButtonBar(), constraints);
         }
         return jContentPane;
     }
@@ -78,6 +101,21 @@ public class MainFrame extends JFrame {
             buttonBar.add(getLaunchButton(), null);
         }
         return buttonBar;
+    }
+    
+    private JPanel getHeaderPanel() {
+        if (header == null) {
+            header = new JPanel();
+            header.setLayout(new GridBagLayout());
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.gridx = 0;
+            constraints.gridy = 0;
+            header.add(new JLabel("SchemaSpy - Graphical Database Metadata Browser"), constraints);
+            constraints.gridx = 0;
+            constraints.gridy++;
+            header.add(new JLabel("Select a database type and fill in the required fields"), constraints);
+        }
+        return header;
     }
 
     /**

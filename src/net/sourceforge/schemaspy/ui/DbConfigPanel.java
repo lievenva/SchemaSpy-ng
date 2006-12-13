@@ -183,8 +183,20 @@ public class DbConfigPanel extends JPanel {
             add(valueField, constraints);
         }
 
-        if (getParent() != null)
-            getParent().validate();
+        Container root = getRoot();
+        if (root != null)
+            root.validate();
+    }
+    
+    private Container getRoot() {
+        Container root = getParent();
+        while (root != null) {
+            Container parent = root.getParent();
+            if (parent == null)
+                return root;
+            root = parent;
+        }
+        return null;
     }
 
     /**
