@@ -219,7 +219,7 @@ public class TableColumn {
     }
 
     public boolean matches(Pattern regex) {
-        return regex.matcher(getTable().getName() + "." + getName()).matches();
+        return regex.matcher(getTable().getName() + '.' + getName()).matches();
     }
 
     public String toString() {

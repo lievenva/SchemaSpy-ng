@@ -80,7 +80,7 @@ public class Database {
         ResultSet rs = null;
 
         // "macro" to validate that a table is somewhat valid
-        class TableValidator {
+        final class TableValidator {
             boolean isValid(ResultSet rs) throws SQLException {
                 // some databases (MySQL) return more than we wanted
                 if (!rs.getString("TABLE_TYPE").equalsIgnoreCase("TABLE"))

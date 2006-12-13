@@ -10,7 +10,7 @@ import net.sourceforge.schemaspy.view.*;
 /**
  * @author John Currier
  */
-public class MultipleSchemaAnalyzer {
+public final class MultipleSchemaAnalyzer {
     private static MultipleSchemaAnalyzer instance = new MultipleSchemaAnalyzer();
 
     private MultipleSchemaAnalyzer() {

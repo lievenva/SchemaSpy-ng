@@ -374,7 +374,7 @@ public class SchemaAnalyzer {
                 invalidClasspathEntries.add(pathElement);
         }
 
-        URLClassLoader loader = new URLClassLoader((URL[])classpath.toArray(new URL[0]));
+        URLClassLoader loader = new URLClassLoader((URL[])classpath.toArray(new URL[classpath.size()]));
         Driver driver = null;
         try {
             driver = (Driver)Class.forName(driverClass, true, loader).newInstance();

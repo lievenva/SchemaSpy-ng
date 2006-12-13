@@ -19,10 +19,10 @@ public class SchemaSpy {
     /**
      * Returns a list of <code>Table</code>s ordered such that parents are listed first
      * and child tables are listed last.
-     *
+     * 
      * <code>recursiveConstraints</code> gets populated with <code>TableConstraint</code>s
      * that had to be removed to resolve the returned list.
-     *
+     * @param recursiveConstraints
      * @return
      */
     public List sortTablesByRI(Collection recursiveConstraints) {
@@ -159,7 +159,7 @@ public class SchemaSpy {
          *  <li>alpha name (ascending)
          * </ul>
          */
-        class TrimComparator implements Comparator {
+        final class TrimComparator implements Comparator {
             public int compare(Object object1, Object object2) {
                 Table table1 = (Table)object1;
                 Table table2 = (Table)object2;
@@ -174,7 +174,7 @@ public class SchemaSpy {
             }
         }
 
-        TreeSet sorter = new TreeSet(new TrimComparator());
+        Set sorter = new TreeSet(new TrimComparator());
         sorter.addAll(tables);
         return new ArrayList(sorter);
     }

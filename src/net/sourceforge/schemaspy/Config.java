@@ -70,20 +70,20 @@ public class Config
      * Construct a configuration from an array of options (e.g. from a command
      * line interface).
      * 
-     * @param options
+     * @param argv
      */
     public Config(String[] argv)
     {
         instance = this;
         options = fixupArgs(Arrays.asList(argv));
         
-        helpRequired =  options.remove("-?") || 
-                        options.remove("/?") || 
-                        options.remove("?") || 
-                        options.remove("-h") || 
-                        options.remove("-help") || 
-                        options.remove("--help");
-        dbHelpRequired =  options.remove("-dbHelp") || options.remove("-dbhelp");
+        helpRequired = options.remove("-?") || 
+                       options.remove("/?") || 
+                       options.remove("?") || 
+                       options.remove("-h") || 
+                       options.remove("-help") || 
+                       options.remove("--help");
+        dbHelpRequired = options.remove("-dbHelp") || options.remove("-dbhelp");
     }
     
     public static Config getInstance() {
@@ -123,7 +123,7 @@ public class Config
         outputDir = new File(outputDirName).getCanonicalFile();
         if (!outputDir.isDirectory()) {
             if (!outputDir.mkdirs()) {
-                throw new IOException("Failed to create directory '" + outputDir + "'");
+                throw new IOException("Failed to create directory '" + outputDir + '\'');
             }
         }
     }
@@ -246,14 +246,14 @@ public class Config
         return userConnectionPropertiesFile;
     }
     
-    public void setConnectionPropertiesFile(String propertiesFilename) throws FileNotFoundException, IOException {
+    public void setConnectionPropertiesFile(String propertiesFilename) throws IOException {
         if (userConnectionProperties == null)
             userConnectionProperties = new Properties();
         userConnectionProperties.load(new FileInputStream(propertiesFilename));
         userConnectionPropertiesFile = propertiesFilename;
     }
     
-    public Properties getConnectionProperties() throws FileNotFoundException, IOException {
+    public Properties getConnectionProperties() throws IOException {
         if (userConnectionProperties == null) {
             userConnectionProperties = new Properties();
             userConnectionPropertiesFile = pullParam("-connprops");
@@ -333,8 +333,8 @@ public class Config
     }
     
     /**
-     * @see #setFontSize(int)
      * @return
+     * @see #setFontSize(int)
      */
     public int getFontSize() {
         if (fontSize == null) {
@@ -611,11 +611,19 @@ public class Config
     }
     
     
+    /**
+     * @return
+     */
     public static String getLoadedFromJar() {
         String classpath = System.getProperty("java.class.path");
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
     }
 
+    /**
+     * @param dbType
+     * @return
+     * @throws java.io.IOException
+     */
     public Properties getDbProperties(String dbType) throws IOException {
         ResourceBundle bundle = null;
 
@@ -668,6 +676,9 @@ public class Config
         return dbPropertiesLoadedFrom;
     }
 
+    /**
+     * @return
+     */
     public List getRemainingParameters()
     {
         try {
@@ -689,7 +700,7 @@ public class Config
     }
     
     public Map getDbSpecificOptions() {
-        if (dbSpecificOptions ==  null)
+        if (dbSpecificOptions == null)
             dbSpecificOptions = new HashMap();
         return dbSpecificOptions;
     }
@@ -743,15 +754,27 @@ public class Config
         private static final long serialVersionUID = 1L;
         private boolean dbTypeSpecific;
 
+        /**
+         * @param paramId
+         * @param dbTypeSpecific
+         */
         public MissingRequiredParameterException(String paramId, boolean dbTypeSpecific) {
             this(paramId, null, dbTypeSpecific);
         }
         
+        /**
+         * @param paramId
+         * @param description
+         * @param dbTypeSpecific
+         */
         public MissingRequiredParameterException(String paramId, String description, boolean dbTypeSpecific) {
             super("Parameter '" + paramId + "' " + (description == null ? "" : "(" + description + ") ") + "missing." + (dbTypeSpecific ? "  It is required for this database type." : ""));
             this.dbTypeSpecific = dbTypeSpecific;
         }
         
+        /**
+         * @return
+         */
         public boolean isDbTypeSpecific() {
             return dbTypeSpecific;
         }
@@ -818,6 +841,10 @@ public class Config
         }
     }
 
+    /**
+     * @param loadedFromJar
+     * @return
+     */
     public static Set getBuiltInDatabaseTypes(String loadedFromJar) {
         Set databaseTypes = new TreeSet();
         JarInputStream jar = null;

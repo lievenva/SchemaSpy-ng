@@ -19,6 +19,8 @@ public class RemoteTable extends Table {
     
     /**
      * Connect to the PK's referenced by this table that live in the original schema
+     * @param db
+     * @param tables
      */
     public void connectForeignKeys(Map tables, Database db) throws SQLException {
         ResultSet rs = null;

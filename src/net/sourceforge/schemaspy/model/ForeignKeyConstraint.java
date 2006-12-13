@@ -58,6 +58,9 @@ public class ForeignKeyConstraint {
         return deleteRule;
     }
 
+    /**
+     * @return
+     */
     public boolean isOnDeleteCascade() {
         return deleteRule == 'C';
     }
@@ -66,16 +69,26 @@ public class ForeignKeyConstraint {
         return updateRule;
     }
 
+    /**
+     * @return
+     */
     public boolean isImplied() {
         return false;
     }
 
+    /**
+     * @param columns
+     * @return
+     */
     public static String toString(List columns) {
         if (columns.size() == 1)
             return columns.iterator().next().toString();
         return columns.toString();
     }
 
+    /**
+     * @return
+     */
     public String toString() {
         StringBuffer buf = new StringBuffer();
         buf.append(childTable.getName());
