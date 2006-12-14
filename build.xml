@@ -45,6 +45,7 @@
   <target name="compile" depends="init">
     <javac srcdir="${src}"
       includes="**/*.java"
+      excludes="test/**"
       destdir="${dest}"
       debug="on"
       debuglevel="source,lines"
