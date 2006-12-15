@@ -4,7 +4,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 public class Database {
     private final String databaseName;
@@ -16,6 +16,8 @@ public class Database {
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
+    private Set sqlKeywords;
+    private Pattern invalidIdentifierPattern;
 
     public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads) throws SQLException, MissingResourceException {
         this.connection = connection;
@@ -348,6 +350,128 @@ public class Database {
         }
         
         return remoteTable;
+    }
+    
+    /**
+     * Return an uppercased <code>Set</code> of all SQL keywords used by a database
+     * 
+     * @return
+     * @throws SQLException
+     */
+    public Set getSqlKeywords() throws SQLException {
+        if (sqlKeywords == null) {
+            // from http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt:
+            String[] sql92Keywords =            
+                ("ADA" +
+                "| C | CATALOG_NAME | CHARACTER_SET_CATALOG | CHARACTER_SET_NAME" +
+                "| CHARACTER_SET_SCHEMA | CLASS_ORIGIN | COBOL | COLLATION_CATALOG" +
+                "| COLLATION_NAME | COLLATION_SCHEMA | COLUMN_NAME | COMMAND_FUNCTION | COMMITTED" +
+                "| CONDITION_NUMBER | CONNECTION_NAME | CONSTRAINT_CATALOG | CONSTRAINT_NAME" +
+                "| CONSTRAINT_SCHEMA | CURSOR_NAME" +
+                "| DATA | DATETIME_INTERVAL_CODE | DATETIME_INTERVAL_PRECISION | DYNAMIC_FUNCTION" +
+                "| FORTRAN" +
+                "| LENGTH" +
+                "| MESSAGE_LENGTH | MESSAGE_OCTET_LENGTH | MESSAGE_TEXT | MORE | MUMPS" +
+                "| NAME | NULLABLE | NUMBER" +
+                "| PASCAL | PLI" +
+                "| REPEATABLE | RETURNED_LENGTH | RETURNED_OCTET_LENGTH | RETURNED_SQLSTATE" +
+                "| ROW_COUNT" +
+                "| SCALE | SCHEMA_NAME | SERIALIZABLE | SERVER_NAME | SUBCLASS_ORIGIN" +
+                "| TABLE_NAME | TYPE" +
+                "| UNCOMMITTED | UNNAMED" +
+                "| ABSOLUTE | ACTION | ADD | ALL | ALLOCATE | ALTER | AND" +
+                "| ANY | ARE | AS | ASC" +
+                "| ASSERTION | AT | AUTHORIZATION | AVG" +
+                "| BEGIN | BETWEEN | BIT | BIT_LENGTH | BOTH | BY" +
+                "| CASCADE | CASCADED | CASE | CAST | CATALOG | CHAR | CHARACTER | CHAR_LENGTH" +
+                "| CHARACTER_LENGTH | CHECK | CLOSE | COALESCE | COLLATE | COLLATION" +
+                "| COLUMN | COMMIT | CONNECT | CONNECTION | CONSTRAINT" +
+                "| CONSTRAINTS | CONTINUE" +
+                "| CONVERT | CORRESPONDING | COUNT | CREATE | CROSS | CURRENT" +
+                "| CURRENT_DATE | CURRENT_TIME | CURRENT_TIMESTAMP | CURRENT_USER | CURSOR" +
+                "| DATE | DAY | DEALLOCATE | DEC | DECIMAL | DECLARE | DEFAULT | DEFERRABLE" +
+                "| DEFERRED | DELETE | DESC | DESCRIBE | DESCRIPTOR | DIAGNOSTICS" +
+                "| DISCONNECT | DISTINCT | DOMAIN | DOUBLE | DROP" +
+                "| ELSE | END | END-EXEC | ESCAPE | EXCEPT | EXCEPTION" +
+                "| EXEC | EXECUTE | EXISTS" +
+                "| EXTERNAL | EXTRACT" +
+                "| FALSE | FETCH | FIRST | FLOAT | FOR | FOREIGN | FOUND | FROM | FULL" +
+                "| GET | GLOBAL | GO | GOTO | GRANT | GROUP" +
+                "| HAVING | HOUR" +
+                "| IDENTITY | IMMEDIATE | IN | INDICATOR | INITIALLY | INNER | INPUT" +
+                "| INSENSITIVE | INSERT | INT | INTEGER | INTERSECT | INTERVAL | INTO | IS" +
+                "| ISOLATION" +
+                "| JOIN" +
+                "| KEY" +
+                "| LANGUAGE | LAST | LEADING | LEFT | LEVEL | LIKE | LOCAL | LOWER" +
+                "| MATCH | MAX | MIN | MINUTE | MODULE | MONTH" +
+                "| NAMES | NATIONAL | NATURAL | NCHAR | NEXT | NO | NOT | NULL" +
+                "| NULLIF | NUMERIC" +
+                "| OCTET_LENGTH | OF | ON | ONLY | OPEN | OPTION | OR" +
+                "| ORDER | OUTER" +
+                "| OUTPUT | OVERLAPS" +
+                "| PAD | PARTIAL | POSITION | PRECISION | PREPARE | PRESERVE | PRIMARY" +
+                "| PRIOR | PRIVILEGES | PROCEDURE | PUBLIC" +
+                "| READ | REAL | REFERENCES | RELATIVE | RESTRICT | REVOKE | RIGHT" +
+                "| ROLLBACK | ROWS" +
+                "| SCHEMA | SCROLL | SECOND | SECTION | SELECT | SESSION | SESSION_USER | SET" +
+                "| SIZE | SMALLINT | SOME | SPACE | SQL | SQLCODE | SQLERROR | SQLSTATE" +
+                "| SUBSTRING | SUM | SYSTEM_USER" +
+                "| TABLE | TEMPORARY | THEN | TIME | TIMESTAMP | TIMEZONE_HOUR | TIMEZONE_MINUTE" +
+                "| TO | TRAILING | TRANSACTION | TRANSLATE | TRANSLATION | TRIM | TRUE" +
+                "| UNION | UNIQUE | UNKNOWN | UPDATE | UPPER | USAGE | USER | USING" +
+                "| VALUE | VALUES | VARCHAR | VARYING | VIEW" +
+                "| WHEN | WHENEVER | WHERE | WITH | WORK | WRITE" +
+                "| YEAR" +
+                "| ZONE").split("|,\\s*");
+
+            String[] nonSql92Keywords = getMetaData().getSQLKeywords().toUpperCase().split(",\\s*");
+
+            sqlKeywords = new HashSet();
+            sqlKeywords.addAll(Arrays.asList(sql92Keywords));
+            sqlKeywords.addAll(Arrays.asList(nonSql92Keywords));
+        }
+        
+        return sqlKeywords;
+    }
+    
+    public String getQuotedIdentifier(String id) throws SQLException {
+        // look for any character that isn't valid (then matcher.find() returns true)
+        Matcher matcher = getInvalidIdentifierPattern().matcher(id);
+        
+        boolean quotesRequired = matcher.find() || getSqlKeywords().contains(id.toUpperCase());
+        
+        if (quotesRequired) {
+            // name contains something that must be quoted
+            String quote = getMetaData().getIdentifierQuoteString().trim();
+            return quote + id + quote;
+        } else {
+            // no quoting necessary
+            return id;
+        }
+    }
+    
+    /**
+     * Return a <code>Pattern</code> whose matcher will return <code>true</code>
+     * when run against an identifier that contains a character that is not
+     * acceptable by the database without being quoted.
+     */
+    private Pattern getInvalidIdentifierPattern() throws SQLException {
+        if (invalidIdentifierPattern == null) {
+            String validChars = "a-zA-Z0-9_";
+            String reservedRegexChars = "-&^";
+            String extraValidChars = getMetaData().getExtraNameCharacters();
+            for (int i = 0; i < extraValidChars.length(); ++i) {
+                char ch = extraValidChars.charAt(i);
+                if (reservedRegexChars.indexOf(ch) >= 0)
+                    validChars += "\\";
+                validChars += ch;
+            }
+
+            invalidIdentifierPattern = Pattern.compile("[^" + validChars + "]");
+        }
+        
+        return invalidIdentifierPattern;
     }
 
     /**

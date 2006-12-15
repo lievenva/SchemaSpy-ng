@@ -2,7 +2,6 @@ package net.sourceforge.schemaspy.model;
 
 import java.sql.*;
 import java.util.*;
-import java.util.regex.*;
 import net.sourceforge.schemaspy.*;
 
 public class Table implements Comparable {
@@ -23,7 +22,7 @@ public class Table implements Comparable {
         this.schema = schema;
         this.name = name;
         setComments(comments);
-        initColumns(db.getMetaData());
+        initColumns(db);
         initIndexes(db, properties);
         initPrimaryKeys(db.getMetaData());
         numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db) : -1;
@@ -149,12 +148,12 @@ public class Table implements Comparable {
         primaryKeys.add(getColumn(columnName));
     }
 
-    private void initColumns(DatabaseMetaData meta) throws SQLException {
+    private void initColumns(Database db) throws SQLException {
         ResultSet rs = null;
 
         synchronized (Table.class) {
             try {
-                rs = meta.getColumns(null, getSchema(), getName(), "%");
+                rs = db.getMetaData().getColumns(null, getSchema(), getName(), "%");
 
                 while (rs.next())
                     addColumn(rs);
@@ -168,10 +167,10 @@ public class Table implements Comparable {
         }
 
         if (!isView() && !isRemote())
-            initColumnAutoUpdate(meta);
+            initColumnAutoUpdate(db);
     }
 
-    private void initColumnAutoUpdate(DatabaseMetaData meta) throws SQLException {
+    private void initColumnAutoUpdate(Database db) throws SQLException {
         ResultSet rs = null;
         PreparedStatement stmt = null;
 
@@ -184,11 +183,11 @@ public class Table implements Comparable {
             sql.append('.');
         }
         
-        sql.append(getQuotedName(meta));
+        sql.append(db.getQuotedIdentifier(getName()));
         sql.append(" where 0 = 1");
 
         try {
-            stmt = meta.getConnection().prepareStatement(sql.toString());
+            stmt = db.getMetaData().getConnection().prepareStatement(sql.toString());
             rs = stmt.executeQuery();
 
             ResultSetMetaData rsMeta = rs.getMetaData();
@@ -590,7 +589,7 @@ public class Table implements Comparable {
             sql.append('.');
         }
 
-        sql.append(getQuotedName(db.getMetaData()));
+        sql.append(db.getQuotedIdentifier(getName()));
 
         try {
             stmt = db.getConnection().prepareStatement(sql.toString());
@@ -607,28 +606,6 @@ public class Table implements Comparable {
         }
     }
     
-    private String getQuotedName(DatabaseMetaData meta) throws SQLException {
-        String validChars = "a-zA-Z0-9_";
-        String reservedRegexChars = "-&^";
-        String extraValidChars = meta.getExtraNameCharacters();
-        for (int i = 0; i < extraValidChars.length(); ++i) {
-            char ch = extraValidChars.charAt(i);
-            if (reservedRegexChars.indexOf(ch) >= 0)
-                validChars += "\\";
-            validChars += ch;
-        }
-        
-        Matcher matcher = Pattern.compile("[^" + validChars + "]").matcher(getName());
-        if (matcher.find()) {
-            // name contains something that must be quoted
-            String quote = meta.getIdentifierQuoteString().trim();
-            return quote + getName() + quote;
-        } else {
-            // no quoting necessary
-            return getName();
-        }
-    }
-
     public String toString() {
         return getName();
     }
