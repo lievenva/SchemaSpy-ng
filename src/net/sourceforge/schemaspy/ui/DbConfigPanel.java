@@ -2,11 +2,11 @@ package net.sourceforge.schemaspy.ui;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.io.*;
 import javax.swing.*;
-import net.sourceforge.schemaspy.*;
+import javax.swing.event.*;
+import javax.swing.table.*;
 import net.sourceforge.schemaspy.util.*;
-
 
 /**
  * @author John Currier
@@ -14,11 +14,8 @@ import net.sourceforge.schemaspy.util.*;
 public class DbConfigPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private JComboBox databaseTypeSelector;
-    private JTextField user;
-    private JTextField password;
-    private JTextField outputDirectory;
-    private JButton outputDirectoryButton;
-    private JFileChooser outputDirectoryChooser;
+    private DbConfigTableModel model = new DbConfigTableModel();
+    private JTable table;
 
     public DbConfigPanel() {
         super();
@@ -31,220 +28,95 @@ public class DbConfigPanel extends JPanel {
      * @return void
      */
     private void initialize() {
-        setLayout(new GridBagLayout());
-        int y = 0;
+        setLayout(new BorderLayout());
+        add(getDatabaseTypeSelector(), BorderLayout.NORTH);
         
-        GridBagConstraints constraints = getDefaultConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = y;
-        constraints.anchor = GridBagConstraints.EAST;
-        add(new JLabel("Database type:"), constraints);
-        
-        constraints = getDefaultConstraints();
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridx = 1;
-        constraints.gridy = y;
-        constraints.weightx = 1.0;
-        constraints.anchor = GridBagConstraints.WEST;
-        add(getDatabaseTypeSelector(), constraints);
+        table = new JTable(model) {
+            private static final long serialVersionUID = 1L;
+            
+            {
+                setDefaultRenderer(Boolean.TYPE, getDefaultRenderer(Boolean.class));
+                setDefaultEditor(Boolean.TYPE, getDefaultEditor(Boolean.class));
+                setDefaultRenderer(Number.class, getDefaultRenderer(String.class));
+                setDefaultEditor(Number.class, getDefaultEditor(String.class));
 
-        
-        constraints = getDefaultConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = ++y;
-        constraints.anchor = GridBagConstraints.EAST;
-        add(new JLabel("User:"), constraints);
-        
-        constraints = getDefaultConstraints();
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridx = 1;
-        constraints.gridy = y;
-        constraints.weightx = 1.0;
-        constraints.anchor = GridBagConstraints.WEST;
-        add(getUser(), constraints);
+                DirectoryCellEditor fileEditor = new DirectoryCellEditor(model, new File("/"));
+                setDefaultRenderer(File.class, fileEditor);
+                setDefaultEditor(File.class, fileEditor);
+            }
 
-        
-        constraints = getDefaultConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = ++y;
-        constraints.anchor = GridBagConstraints.EAST;
-        add(new JLabel("Password:"), constraints);
-        
-        constraints = getDefaultConstraints();
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridx = 1;
-        constraints.gridy = y;
-        constraints.weightx = 1.0;
-        constraints.anchor = GridBagConstraints.WEST;
-        add(getPassword(), constraints);
+            public TableCellRenderer getCellRenderer(int row, int column) {
+                TableCellRenderer renderer;
+                
+                if (column == 0)
+                    renderer = super.getCellRenderer(row, column);
+                else 
+                    renderer = getDefaultRenderer(model.getClass(row));
+                if (renderer instanceof JComponent)
+                    ((JComponent)renderer).setToolTipText(model.getDescription(row));
+                return renderer;
+            }
 
+            public TableCellEditor getCellEditor(int row, int column) {
+                return getDefaultEditor(model.getClass(row));
+            }
+        };
         
-        constraints = getDefaultConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = ++y;
-        constraints.anchor = GridBagConstraints.EAST;
-        add(new JLabel("Output dir:"), constraints);
+        JScrollPane scroller = new JScrollPane(table);
+        scroller.setViewportBorder(null);
+        add(scroller, BorderLayout.CENTER);
         
-        constraints = getDefaultConstraints();
-        constraints.gridx = 1;
-        constraints.gridy = y;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        add(getDirectoryHolder(), constraints);
+        model.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                TableColumn paramColumn = table.getColumnModel().getColumn(0);
+                paramColumn.setMinWidth(getPreferredWidthForColumn(paramColumn) + 4);
+                paramColumn.setMaxWidth(paramColumn.getMinWidth());
+                table.sizeColumnsToFit(0);
+            }
+            
+            private int getPreferredWidthForColumn(TableColumn col) {
+                return Math.max(columnHeaderWidth(col), widestCellInColumn(col));
+            }
+            
+            private int columnHeaderWidth(TableColumn col) {
+                TableCellRenderer renderer = col.getHeaderRenderer();
+                if (renderer == null)
+                    return 0;
+                Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
+                return comp.getPreferredSize().width;
+            }
+            
+            private int widestCellInColumn(TableColumn col) {
+                int c = col.getModelIndex();
+                int max = 0;
+                
+                for (int row = 0; row < table.getRowCount(); ++row) {
+                    TableCellRenderer renderer = table.getCellRenderer(row, c);
+                    Component comp = renderer.getTableCellRendererComponent(table, table.getValueAt(row, c), false, false, row, c);
+                    max = Math.max(comp.getPreferredSize().width, max);
+                }
+                
+                return max;
+            }
+        });
+        
+        model.setDbSpecificConfig(new DbSpecificConfig("ora"));
     }
 
-    private JPanel getDirectoryHolder() {
-        GridBagConstraints constraints;
-        JPanel directoryHolder = new JPanel();
-        directoryHolder.setLayout(new GridBagLayout());
-        
-        constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.weightx = 1.0;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        directoryHolder.add(getOutputDirectory(), constraints);
-        
-        constraints = new GridBagConstraints();
-        constraints.gridx = 1;
-        constraints.gridy = 0;
-        directoryHolder.add(getOutputDirectoryButton(), constraints);
-        return directoryHolder;
-    }
-
-    private JTextField getOutputDirectory() {
-        if (outputDirectory == null) {
-            outputDirectory = new JTextField();
-            outputDirectory.setText("/");
-        }
-        return outputDirectory;
-    }
-    
     /**
      * This method initializes databaseTypeSelector 
      *  
-     * @return javax.swing.JComboBox    
+     * @return javax.swing.JComboBox
      */
     private JComboBox getDatabaseTypeSelector() {
         if (databaseTypeSelector == null) {
-            databaseTypeSelector = new JComboBox();
+            databaseTypeSelector = new JComboBox(new DbTypeSelectorModel());
             databaseTypeSelector.addItemListener(new ItemListener() {
                 public void itemStateChanged(ItemEvent e) {
-                    setDbSpecificConfig((DbSpecificConfig)e.getItem());
+                    model.setDbSpecificConfig((DbSpecificConfig)e.getItem());
                 }
             });
-            Set datatypes = Config.getBuiltInDatabaseTypes(Config.getLoadedFromJar());
-            for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
-                String dbType = iter.next().toString();
-                databaseTypeSelector.addItem(new DbSpecificConfig(dbType));
-            }
         }
         return databaseTypeSelector;
-    }
-    
-    private GridBagConstraints getDefaultConstraints() {
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.insets = new Insets(4, 4, 4, 4);
-        return constraints;
-    }
-    
-    private void setDbSpecificConfig(DbSpecificConfig dbConfig) {
-        Component[] components = getComponents();
-        GridBagLayout layout = (GridBagLayout)getLayout();
-
-        for (int i = 0; i < components.length; ++i) {
-            Component component = components[i];
-            GridBagConstraints c = layout.getConstraints(component);
-            if (c.gridy >= 20) {
-                remove(component);
-            }
-        }
-        
-        GridBagConstraints constraints = getDefaultConstraints();;
-        constraints.insets = new Insets(4, 4, 4, 4);
-        constraints.gridy = 20;
-        
-        for (Iterator iter = dbConfig.getOptions().iterator(); iter.hasNext(); ) {
-            DbSpecificOption option = (DbSpecificOption)iter.next();
-            constraints.gridy++;
-
-            constraints.gridx = 0;
-            constraints.anchor = GridBagConstraints.EAST;
-            constraints.fill = GridBagConstraints.HORIZONTAL;
-            JLabel nameLabel = new JLabel(option.getName() + ":");
-            nameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-            add(nameLabel, constraints);
-            
-            constraints.gridx = 1;
-            constraints.anchor = GridBagConstraints.WEST;
-            constraints.fill = GridBagConstraints.HORIZONTAL;
-            JTextField valueField = new JTextField(option.getValue());
-            if (option.getDescription() != null)
-                valueField.setToolTipText(option.getDescription());
-            add(valueField, constraints);
-        }
-
-        Container root = getRoot();
-        if (root != null)
-            root.validate();
-    }
-    
-    private Container getRoot() {
-        Container root = getParent();
-        while (root != null) {
-            Container parent = root.getParent();
-            if (parent == null)
-                return root;
-            root = parent;
-        }
-        return null;
-    }
-
-    /**
-     * This method initializes outputDirectoryButton    
-     *  
-     * @return javax.swing.JButton  
-     */
-    private JButton getOutputDirectoryButton() {
-        if (outputDirectoryButton == null) {
-            outputDirectoryButton = new JButton() {
-                private static final long serialVersionUID = 1L;
-
-                public Dimension getPreferredSize() {
-                    int dim = getOutputDirectory().getPreferredSize().height;
-                    return new Dimension(((dim * 7 / 8 + 1) / 2) * 2, dim);
-                }
-            };
-            outputDirectoryButton.setText("...");
-            outputDirectoryButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    if (getOutputDirectoryChooser().showOpenDialog(DbConfigPanel.this.getParent()) == JFileChooser.APPROVE_OPTION) {
-                        outputDirectory.setText(getOutputDirectoryChooser().getSelectedFile().getPath());
-                    }
-                }
-            });
-        }
-        return outputDirectoryButton;
-    }
-    
-    private JFileChooser getOutputDirectoryChooser() {
-        if (outputDirectoryChooser == null) {
-            outputDirectoryChooser = new JFileChooser();
-            outputDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        }
-        return outputDirectoryChooser;
-    }
-
-    private JTextField getUser() {
-        if (user == null) {
-            user = new JTextField();
-        }
-        return user;
-    }
-    
-    private JTextField getPassword() {
-        if (password == null) {
-            password = new JPasswordField();
-        }
-        return password;
     }
 }

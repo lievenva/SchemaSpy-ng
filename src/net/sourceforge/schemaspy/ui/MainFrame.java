@@ -68,11 +68,12 @@ public class MainFrame extends JFrame {
             constraints.fill = GridBagConstraints.BOTH;
             constraints.anchor = GridBagConstraints.NORTHWEST;
             constraints.weighty = 1.0;
-            JScrollPane scroller = new JScrollPane();
+            //JScrollPane scroller = new JScrollPane();
             //scroller.setBorder(null);
-            scroller.setViewportView(getDbConfigPanel());
+            //scroller.setViewportView(getDbConfigPanel());
             //scroller.setViewportBorder(new BevelBorder(BevelBorder.LOWERED));
-            jContentPane.add(scroller, constraints);
+            //jContentPane.add(scroller, constraints);
+            jContentPane.add(getDbConfigPanel(), constraints);
 
 //            constraints.fill = GridBagConstraints.VERTICAL;
 //            constraints.weighty = 0.0;

@@ -49,7 +49,7 @@ public class ConnectionURLBuilder {
             option.setValue(getParam(args, option, config));
             
             // replace e.g. <host> with <myDbHost>
-            connectionSpec = connectionSpec.replaceAll("\\<" + option.getName() + "\\>", option.getValue()); 
+            connectionSpec = connectionSpec.replaceAll("\\<" + option.getName() + "\\>", option.getValue().toString()); 
         }
         
         return connectionSpec;

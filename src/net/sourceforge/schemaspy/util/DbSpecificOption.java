@@ -2,7 +2,7 @@ package net.sourceforge.schemaspy.util;
 
 public class DbSpecificOption {
     private final String name;
-    private       String value;
+    private       Object value;
     private final String description;
     
     public DbSpecificOption(String name, String value, String description) {
@@ -19,11 +19,11 @@ public class DbSpecificOption {
         return name;
     }
     
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
     
-    public void setValue(String value) {
+    public void setValue(Object value) {
         this.value = value;
     }
     

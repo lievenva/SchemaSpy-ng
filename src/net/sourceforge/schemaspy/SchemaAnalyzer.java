@@ -56,6 +56,11 @@ public class SchemaAnalyzer {
             String dbName = config.getDb();
             String schema = config.getSchema();
             File outputDir = config.getOutputDir();
+            if (!outputDir.isDirectory()) {
+                if (!outputDir.mkdirs()) {
+                    throw new IOException("Failed to create directory '" + outputDir + "'");
+                }
+            }
 
             if (config.isEvaluateAllEnabled()) {
                 List args = config.asList();
