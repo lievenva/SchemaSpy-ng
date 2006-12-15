@@ -11,6 +11,7 @@ public class DbSpecificConfig {
     private final String type;
     private       String description;
     private final List options = new ArrayList();
+    private final Config config = new Config();
     
     public DbSpecificConfig(final String dbType) {
         type = dbType;
@@ -37,7 +38,7 @@ public class DbSpecificConfig {
 
         Properties props;
         try {
-            props = Config.getInstance().getDbProperties(dbType);
+            props = config.getDbProperties(dbType);
             description = props.getProperty("description");
             loadOptions(props);
         } catch (IOException exc) {
@@ -72,6 +73,15 @@ public class DbSpecificConfig {
      */
     public List getOptions() {
         return options;
+    }
+    
+    /**
+     * Return the generic configuration associated with this DbSpecificCofig
+     * 
+     * @return
+     */
+    public Config getConfig() {
+        return config;
     }
 
     public void dumpUsage() {

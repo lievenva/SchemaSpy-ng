@@ -62,7 +62,7 @@ public class Config
      */
     public Config()
     {
-        instance = this;
+        setInstance(this);
         options = new ArrayList();
     }
 
@@ -74,7 +74,7 @@ public class Config
      */
     public Config(String[] argv)
     {
-        instance = this;
+        setInstance(this);
         options = fixupArgs(Arrays.asList(argv));
         
         helpRequired =  options.remove("-?") || 
@@ -91,6 +91,17 @@ public class Config
             instance = new Config();
         
         return instance;
+    }
+    
+    /**
+     * Sets the global instance.
+     *
+     * Useful for things like selecting a specific configuration in a UI.
+     * 
+     * @param config
+     */
+    public static void setInstance(Config config) {
+        instance = config;
     }
 
     public void setHtmlGenerationEnabled(boolean generateHtml) {

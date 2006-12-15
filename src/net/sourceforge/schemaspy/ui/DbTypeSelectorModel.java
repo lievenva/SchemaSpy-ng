@@ -1,6 +1,7 @@
 package net.sourceforge.schemaspy.ui;
 
 import java.util.*;
+import java.util.regex.*;
 import javax.swing.*;
 import net.sourceforge.schemaspy.*;
 import net.sourceforge.schemaspy.util.*;
@@ -13,14 +14,21 @@ public class DbTypeSelectorModel extends AbstractListModel implements ComboBoxMo
     private List dbConfigs = new ArrayList();
     private Object selected;
     
-    public DbTypeSelectorModel() {
+    public DbTypeSelectorModel(String defaultType) {
+        Pattern pattern = Pattern.compile(".*/" + defaultType);
         Set dbTypes = new TreeSet(Config.getBuiltInDatabaseTypes(Config.getLoadedFromJar()));
         for (Iterator iter = dbTypes.iterator(); iter.hasNext(); ) {
             String dbType = iter.next().toString();
-            dbConfigs.add(new DbSpecificConfig(dbType));
+            DbSpecificConfig config = new DbSpecificConfig(dbType);
+            dbConfigs.add(config);
+            
+            if (pattern.matcher(dbType).matches()) {
+                setSelectedItem(config);
+            }
         }
-        
-        selected = dbConfigs.size() > 0 ? dbConfigs.get(0) : null;
+
+        if (getSelectedItem() == null && dbConfigs.size() > 0)
+            setSelectedItem(dbConfigs.get(0));
     }
 
     /* (non-Javadoc)

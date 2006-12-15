@@ -14,6 +14,7 @@ import net.sourceforge.schemaspy.util.*;
 public class DbConfigTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private final List options = new ArrayList();
+    private Config config = Config.getInstance(); // the config associated with DbSpecificConfig
     
     public DbConfigTableModel() {
         PropertyDescriptor[] props = getConfigProps();
@@ -23,6 +24,23 @@ public class DbConfigTableModel extends AbstractTableModel {
         options.add(getDescriptor("user", "User ID to connect with", props));
         options.add(getDescriptor("password", "Password associated with user id", props));
         options.add(getDescriptor("impliedConstraintsEnabled", "XXXX", props));
+    }
+    
+    public void setDbSpecificConfig(DbSpecificConfig dbConfig) {
+        config  = dbConfig.getConfig();
+        Config.setInstance(config);
+        PropertyDescriptor[] props = getConfigProps();
+        removeDbSpecificOptions();
+        
+        Iterator iter = dbConfig.getOptions().iterator();
+        while (iter.hasNext()) {
+            DbSpecificOption option = (DbSpecificOption)iter.next();
+            PropertyDescriptor descriptor = getDescriptor(option.getName(), option.getDescription(), props);
+            descriptor.setValue("dbSpecific", Boolean.TRUE);
+            options.add(descriptor);
+        }
+        
+        fireTableDataChanged();
     }
     
     public String getColumnName(int column) {
@@ -66,21 +84,6 @@ public class DbConfigTableModel extends AbstractTableModel {
         return beanInfo.getPropertyDescriptors();
     }
 
-    public void setDbSpecificConfig(DbSpecificConfig dbConfig) {
-        PropertyDescriptor[] props = getConfigProps();
-        removeDbSpecificOptions();
-        
-        Iterator iter = dbConfig.getOptions().iterator();
-        while (iter.hasNext()) {
-            DbSpecificOption option = (DbSpecificOption)iter.next();
-            PropertyDescriptor descriptor = getDescriptor(option.getName(), option.getDescription(), props);
-            descriptor.setValue("dbSpecific", Boolean.TRUE);
-            options.add(descriptor);
-        }
-        
-        fireTableDataChanged();
-    }
-    
     private void removeDbSpecificOptions() {
         Iterator iter = options.iterator();
         while (iter.hasNext()) {
@@ -121,7 +124,9 @@ public class DbConfigTableModel extends AbstractTableModel {
                 return descriptor.getName();
             case 1:
                 try {
-                    return descriptor.getReadMethod().invoke(Config.getInstance(), null); 
+                    Object value = descriptor.getReadMethod().invoke(config, null); 
+                    //System.out.println(descriptor.getReadMethod().getName() + ":'" + value + "' " + (value != null ? value.getClass().toString() : ""));
+                    return value; 
                 } catch (InvocationTargetException exc) {
                     if (exc.getCause() instanceof MissingRequiredParameterException)
                         return null;
@@ -139,7 +144,7 @@ public class DbConfigTableModel extends AbstractTableModel {
         if (oldValue != value && (value == null || oldValue == null || !value.equals(oldValue))) {
             PropertyDescriptor descriptor = (PropertyDescriptor)options.get(row);
             try {
-                //System.out.println("setValue:'" + value + "' " + (value != null ? value.getClass().toString() : "") + " -> " + descriptor.getPropertyType());
+                //System.out.println(descriptor.getWriteMethod().getName() + ":'" + value + "' " + (value != null ? value.getClass().toString() : ""));
                 if (value instanceof String && descriptor.getPropertyType().isAssignableFrom(Integer.class)) {
                     try {
                         value = Integer.valueOf((String)value);
@@ -148,7 +153,7 @@ public class DbConfigTableModel extends AbstractTableModel {
                     }
                 }
                 
-                descriptor.getWriteMethod().invoke(Config.getInstance(), new Object[] {value});
+                descriptor.getWriteMethod().invoke(config, new Object[] {value});
             } catch (Exception exc) {
                 throw new RuntimeException(exc);
             }

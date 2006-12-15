@@ -28,9 +28,6 @@ public class DbConfigPanel extends JPanel {
      * @return void
      */
     private void initialize() {
-        setLayout(new BorderLayout());
-        add(getDatabaseTypeSelector(), BorderLayout.NORTH);
-        
         table = new JTable(model) {
             private static final long serialVersionUID = 1L;
             
@@ -62,45 +59,21 @@ public class DbConfigPanel extends JPanel {
             }
         };
         
+        model.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                TableColumn paramColumn = table.getColumnModel().getColumn(0);
+                paramColumn.setPreferredWidth(UiUtils.getPreferredColumnWidth(table, paramColumn) + 4);
+                paramColumn.setMaxWidth(paramColumn.getPreferredWidth());
+                table.sizeColumnsToFit(0);
+            }
+        });
+        
+        setLayout(new BorderLayout());
         JScrollPane scroller = new JScrollPane(table);
         scroller.setViewportBorder(null);
         add(scroller, BorderLayout.CENTER);
         
-        model.addTableModelListener(new TableModelListener() {
-            public void tableChanged(TableModelEvent e) {
-                TableColumn paramColumn = table.getColumnModel().getColumn(0);
-                paramColumn.setMinWidth(getPreferredWidthForColumn(paramColumn) + 4);
-                paramColumn.setMaxWidth(paramColumn.getMinWidth());
-                table.sizeColumnsToFit(0);
-            }
-            
-            private int getPreferredWidthForColumn(TableColumn col) {
-                return Math.max(columnHeaderWidth(col), widestCellInColumn(col));
-            }
-            
-            private int columnHeaderWidth(TableColumn col) {
-                TableCellRenderer renderer = col.getHeaderRenderer();
-                if (renderer == null)
-                    return 0;
-                Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
-                return comp.getPreferredSize().width;
-            }
-            
-            private int widestCellInColumn(TableColumn col) {
-                int c = col.getModelIndex();
-                int max = 0;
-                
-                for (int row = 0; row < table.getRowCount(); ++row) {
-                    TableCellRenderer renderer = table.getCellRenderer(row, c);
-                    Component comp = renderer.getTableCellRendererComponent(table, table.getValueAt(row, c), false, false, row, c);
-                    max = Math.max(comp.getPreferredSize().width, max);
-                }
-                
-                return max;
-            }
-        });
-        
-        model.setDbSpecificConfig(new DbSpecificConfig("ora"));
+        add(getDatabaseTypeSelector(), BorderLayout.NORTH);
     }
 
     /**
@@ -110,12 +83,18 @@ public class DbConfigPanel extends JPanel {
      */
     private JComboBox getDatabaseTypeSelector() {
         if (databaseTypeSelector == null) {
-            databaseTypeSelector = new JComboBox(new DbTypeSelectorModel());
+            DbTypeSelectorModel selectorModel = new DbTypeSelectorModel("ora");
+            databaseTypeSelector = new JComboBox(selectorModel);
             databaseTypeSelector.addItemListener(new ItemListener() {
-                public void itemStateChanged(ItemEvent e) {
-                    model.setDbSpecificConfig((DbSpecificConfig)e.getItem());
+                public void itemStateChanged(ItemEvent evt) {
+                    if (evt.getStateChange() == ItemEvent.SELECTED)
+                        model.setDbSpecificConfig((DbSpecificConfig)evt.getItem());
                 }
             });
+            
+            DbSpecificConfig selected = (DbSpecificConfig)selectorModel.getSelectedItem();
+            if (selected != null)
+                model.setDbSpecificConfig(selected);
         }
         return databaseTypeSelector;
     }
