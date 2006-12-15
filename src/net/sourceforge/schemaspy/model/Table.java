@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.model;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.*;
 import net.sourceforge.schemaspy.*;
 
 public class Table implements Comparable {
@@ -183,10 +184,7 @@ public class Table implements Comparable {
             sql.append('.');
         }
         
-        String escape = meta.getIdentifierQuoteString();
-        sql.append(escape);
-        sql.append(getName());
-        sql.append(escape);
+        sql.append(getQuotedName(meta));
         sql.append(" where 0 = 1");
 
         try {
@@ -592,10 +590,7 @@ public class Table implements Comparable {
             sql.append('.');
         }
 
-        String escape = db.getMetaData().getIdentifierQuoteString();
-        sql.append(escape);
-        sql.append(getName());
-        sql.append(escape);
+        sql.append(getQuotedName(db.getMetaData()));
 
         try {
             stmt = db.getConnection().prepareStatement(sql.toString());
@@ -609,6 +604,28 @@ public class Table implements Comparable {
                 rs.close();
             if (stmt != null)
                 stmt.close();
+        }
+    }
+    
+    private String getQuotedName(DatabaseMetaData meta) throws SQLException {
+        String validChars = "a-zA-Z0-9_";
+        String reservedRegexChars = "-&^";
+        String extraValidChars = meta.getExtraNameCharacters();
+        for (int i = 0; i < extraValidChars.length(); ++i) {
+            char ch = extraValidChars.charAt(i);
+            if (reservedRegexChars.indexOf(ch) >= 0)
+                validChars += "\\";
+            validChars += ch;
+        }
+        
+        Matcher matcher = Pattern.compile("[^" + validChars + "]").matcher(getName());
+        if (matcher.find()) {
+            // name contains something that must be quoted
+            String quote = meta.getIdentifierQuoteString().trim();
+            return quote + getName() + quote;
+        } else {
+            // no quoting necessary
+            return getName();
         }
     }
 
