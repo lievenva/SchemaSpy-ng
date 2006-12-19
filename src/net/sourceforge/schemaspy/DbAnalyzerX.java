@@ -1,1 +1,0 @@
-package net.sourceforge.schemaspy;
