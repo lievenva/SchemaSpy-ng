@@ -445,10 +445,10 @@ public class Database {
             // name contains something that must be quoted
             String quote = getMetaData().getIdentifierQuoteString().trim();
             return quote + id + quote;
-        } else {
-            // no quoting necessary
-            return id;
         }
+        
+        // no quoting necessary
+        return id;
     }
     
     /**
