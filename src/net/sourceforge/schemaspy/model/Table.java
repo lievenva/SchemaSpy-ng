@@ -183,9 +183,10 @@ public class Table implements Comparable {
             sql.append('.');
         }
         
-        if (forceQuotes)
-            sql.append("\"" + getName() + "\"");
-        else
+        if (forceQuotes) {
+            String quote = db.getMetaData().getIdentifierQuoteString().trim();
+            sql.append(quote + getName() + quote);
+        } else
             sql.append(db.getQuotedIdentifier(getName()));
         
         sql.append(" where 0 = 1");
@@ -597,9 +598,10 @@ public class Table implements Comparable {
             sql.append('.');
         }
 
-        if (forceQuotes)
-            sql.append("\"" + getName() + "\"");
-        else
+        if (forceQuotes) {
+            String quote = db.getMetaData().getIdentifierQuoteString().trim();
+            sql.append(quote + getName() + quote);
+        } else
             sql.append(db.getQuotedIdentifier(getName()));
 
         try {
