@@ -167,10 +167,10 @@ public class Table implements Comparable {
         }
 
         if (!isView() && !isRemote())
-            initColumnAutoUpdate(db);
+            initColumnAutoUpdate(db, false);
     }
 
-    private void initColumnAutoUpdate(Database db) throws SQLException {
+    private void initColumnAutoUpdate(Database db, boolean forceQuotes) throws SQLException {
         ResultSet rs = null;
         PreparedStatement stmt = null;
 
@@ -183,7 +183,11 @@ public class Table implements Comparable {
             sql.append('.');
         }
         
-        sql.append(db.getQuotedIdentifier(getName()));
+        if (forceQuotes)
+            sql.append("\"" + getName() + "\"");
+        else
+            sql.append(db.getQuotedIdentifier(getName()));
+        
         sql.append(" where 0 = 1");
 
         try {
@@ -196,9 +200,13 @@ public class Table implements Comparable {
                 column.setIsAutoUpdated(rsMeta.isAutoIncrement(i));
             }
         } catch (SQLException exc) {
-            // don't completely choke just because we couldn't do this....
-            System.err.println("Failed to determine auto increment status: " + exc);
-            System.err.println("SQL: " + sql.toString());
+            if (forceQuotes) {
+                // don't completely choke just because we couldn't do this....
+                System.err.println("Failed to determine auto increment status: " + exc);
+                System.err.println("SQL: " + sql.toString());
+            } else {
+                initColumnAutoUpdate(db, true);
+            }
         } finally {
             if (rs != null)
                 rs.close();
@@ -565,11 +573,11 @@ public class Table implements Comparable {
     protected int fetchNumRows(Database db) {
         try {
             // '*' should work best for the majority of cases
-            return fetchNumRows(db, "count(*)");
+            return fetchNumRows(db, "count(*)", false);
         } catch (SQLException exc) {
             try {
                 // except nested tables...try using '1' instead
-                return fetchNumRows(db, "count(1)");
+                return fetchNumRows(db, "count(1)", false);
             } catch (SQLException try2Exception) {
                 System.err.println(try2Exception);
                 System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
@@ -578,7 +586,7 @@ public class Table implements Comparable {
         }
     }
 
-    protected int fetchNumRows(Database db, String clause) throws SQLException {
+    protected int fetchNumRows(Database db, String clause, boolean forceQuotes) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         StringBuffer sql = new StringBuffer("select ");
@@ -589,7 +597,10 @@ public class Table implements Comparable {
             sql.append('.');
         }
 
-        sql.append(db.getQuotedIdentifier(getName()));
+        if (forceQuotes)
+            sql.append("\"" + getName() + "\"");
+        else
+            sql.append(db.getQuotedIdentifier(getName()));
 
         try {
             stmt = db.getConnection().prepareStatement(sql.toString());
@@ -598,6 +609,11 @@ public class Table implements Comparable {
                 return rs.getInt(1);
             }
             return -1;
+        } catch (SQLException exc) {
+            if (forceQuotes) // we tried with and w/o quotes...fail this attempt
+                throw exc;
+            
+            return fetchNumRows(db, clause, true);
         } finally {
             if (rs != null)
                 rs.close();
