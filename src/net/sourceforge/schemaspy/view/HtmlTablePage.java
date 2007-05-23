@@ -49,14 +49,7 @@ public class HtmlTablePage extends HtmlFormatter {
         out.writeln("</td></tr></table>");
         writeCheckConstraints(table, out);
         writeIndexes(table, out);
-        Set tableNames = new HashSet();
-        for (Iterator iter = db.getTables().iterator(); iter.hasNext(); ) {
-            tableNames.add(((Table)iter.next()).getName());
-        }
-        for (Iterator iter = db.getViews().iterator(); iter.hasNext(); ) {
-            tableNames.add(((Table)iter.next()).getName());
-        }
-        writeView(table, db.getMetaData(), tableNames, out);
+        writeView(table, db, out);
         writeGraph(table, stats, graphDir, out);
         writeFooter(onCascadeDelete, out);
 
@@ -376,9 +369,19 @@ public class HtmlTablePage extends HtmlFormatter {
         }
     }
 
-    private void writeView(Table table, DatabaseMetaData meta, Set tableNames, LineWriter out) throws IOException {
+    private void writeView(Table table, Database db, LineWriter out) throws IOException {
         String sql;
         if (table.isView() && (sql = table.getViewSql()) != null) {
+            Map tables = new HashMap();
+            for (Iterator iter = db.getTables().iterator(); iter.hasNext(); ) {
+                Table t = (Table)iter.next();
+                tables.put(t.getName().toUpperCase(), t);
+            }
+            for (Iterator iter = db.getViews().iterator(); iter.hasNext(); ) {
+                Table t = (Table)iter.next();
+                tables.put(t.getName().toUpperCase(), t);
+            }
+            
             out.writeln("<div class='indent'>");
             out.writeln("View SQL:");
             out.writeln("<table class='dataTable' border='1' width='100%'>");
@@ -386,22 +389,25 @@ public class HtmlTablePage extends HtmlFormatter {
             out.writeln(" <tr>");
             out.write("  <td class='detail'>");
 
-            Set keywords = getKeywords(meta);
-            StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.", true);
+            Set keywords = getKeywords(db.getMetaData());
+            StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.,", true);
             while (tokenizer.hasMoreTokens()) {
                 String nextToken = tokenizer.nextToken();
                 if (keywords.contains(nextToken.toUpperCase())) {
                     out.write("<b>");
                     out.write(nextToken);
                     out.write("</b>");
-                } else if (tableNames.contains(nextToken)) {
-                    out.write("<a href='");
-                    out.write(nextToken);
-                    out.write(".html'>");
-                    out.write(nextToken);
-                    out.write("</a>");
                 } else {
-                    out.write(HtmlEncoder.encode(nextToken));
+                    Table t = (Table)tables.get(nextToken.toUpperCase());
+                    if (t != null) {
+                        out.write("<a href='");
+                        out.write(t.getName());
+                        out.write(".html'>");
+                        out.write(t.getName());
+                        out.write("</a>");
+                    } else {
+                        out.write(HtmlEncoder.encode(nextToken));
+                    }
                 }
             }
 
