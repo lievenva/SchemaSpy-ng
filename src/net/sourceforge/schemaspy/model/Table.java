@@ -158,8 +158,16 @@ public class Table implements Comparable {
                 while (rs.next())
                     addColumn(rs);
             } catch (SQLException exc) {
-                System.err.println("Failed to collect column details for table '" + getName() + "' in schema '" + getSchema() + "'");
-                throw exc;
+                class ColumnInitializationFailure extends SQLException {
+                    private static final long serialVersionUID = 1L;
+
+                    public ColumnInitializationFailure(SQLException failure) {
+                        super("Failed to collect column details for " + (isView() ? "view" : "table") + " '" + getName() + "' in schema '" + getSchema() + "'");
+                        initCause(failure);
+                    }
+                }
+                
+                throw new ColumnInitializationFailure(exc);
             } finally {
                 if (rs != null)
                     rs.close();

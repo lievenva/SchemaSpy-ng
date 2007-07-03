@@ -523,9 +523,18 @@ public class Database {
                 if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
                     System.out.print('.');
                     
-                    Table view = new View(this, rs, properties.getProperty("selectViewSql"));
-                    if (include.matcher(view.getName()).matches())
-                        views.put(view.getName().toUpperCase(), view);
+                    try {
+                        Table view = new View(this, rs, properties.getProperty("selectViewSql"));
+                        
+                        if (include.matcher(view.getName()).matches())
+                            views.put(view.getName().toUpperCase(), view);
+                    } catch (SQLException exc) {
+                        System.out.flush();
+                        System.err.println();
+                        System.err.println("Ignoring view due to exception:");
+                        exc.printStackTrace();
+                        System.err.println("Continuing analysis.");
+                    }
                 }
             }
         } finally {
