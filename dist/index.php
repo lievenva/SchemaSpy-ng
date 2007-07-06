@@ -99,12 +99,9 @@ Lesser GNU Public License</a>.
 Your <a href="http://sourceforge.net/donate/index.php?group_id=137197">donations</a>
 are, however, <span style="font-weight: bold;">greatly </span>appreciated.<br>
       <p>
-If you like SchemaSpy then please: 
- nominate it: <a href="https://sourceforge.net/awards/cca/nomination.php?group_id=137197"> 
-		SourceForge.net 2007 Community Choice awards</a>, 
- vote for it: <a href="http://freshmeat.net/projects/schemaspy">freshmeat</a>,
+If you like SchemaSpy then please <a href="http://freshmeat.net/projects/schemaspy">vote for it on freshmeat</a>,
  <a href="http://digg.com/programming/SchemaSpy_-_opensource_graphical_DB_schema_generator">digg it</a>,
- and tag it: <a href="http://del.icio.us/post?url=http%3A%2F%2Fschemaspy.sourceforge.net%2F&title=SchemaSpy&copyuser=tag&copytags=database%2Bjava%2Bschema%2Btools%2Bvisualization&jump=no&partner=del">del.icio.us</a>.
+ and <a href="http://del.icio.us/post?url=http%3A%2F%2Fschemaspy.sourceforge.net%2F&title=SchemaSpy&copyuser=tag&copytags=database%2Bjava%2Bschema%2Btools%2Bvisualization&jump=no&partner=del">tag it on del.icio.us</a>.
 
       <p>
 SchemaSpy uses the <span style="font-style: italic;">dot</span>
