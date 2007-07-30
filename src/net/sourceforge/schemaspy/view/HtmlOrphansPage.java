@@ -33,6 +33,8 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
 
         html.writeln("<a name='graph'>");
         try {
+            LineWriter maps = new LineWriter(new StringWriter(64 * 1024));
+            
             iter = orphanTables.iterator();
             while (iter.hasNext()) {
                 Table table = (Table)iter.next();
@@ -45,7 +47,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
                 DotFormatter.getInstance().writeOrphan(table, dotOut);
                 dotOut.close();
                 try {
-                    dot.generateGraph(dotFile, graphFile);
+                    dot.generateGraph(dotFile, graphFile, maps);
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println(dotFailure);
                     return false;
@@ -57,14 +59,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
                 html.writeln(">");
             }
 
-            iter = orphanTables.iterator();
-            while (iter.hasNext()) {
-                Table table = (Table)iter.next();
-                String dotBaseFilespec = table.getName();
-
-                File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");
-                dot.writeMap(dotFile, html);
-            }
+            html.write(maps.toString());
 
             return true;
         } finally {

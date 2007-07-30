@@ -47,18 +47,14 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             if (hasRealRelationships) {
                 System.out.print(".");
-                dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile);
-                System.out.print(".");
-                dot.writeMap(compactRelationshipsDotFile, html);
+                dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile, html);
                 System.out.print(".");
                 
                 // we've run into instances where the first graphs get generated, but then
                 // dot fails on the second one...try to recover from that scenario 'somewhat'
                 // gracefully
                 try {
-                    dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile);
-                    System.out.print(".");
-                    dot.writeMap(largeRelationshipsDotFile, html);
+                    dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile, html);
                     System.out.print(".");
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println("dot failed to generate all of the relationships graphs:");
@@ -69,14 +65,10 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             try {
                 if (hasImpliedRelationships) {
-                    dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile);
-                    System.out.print(".");
-                    dot.writeMap(compactImpliedDotFile, html);
+                    dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile, html);
                     System.out.print(".");
     
-                    dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile);
-                    System.out.print(".");
-                    dot.writeMap(largeImpliedDotFile, html);
+                    dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile, html);
                     System.out.print(".");
                 }
             } catch (Dot.DotFailure dotFailure) {

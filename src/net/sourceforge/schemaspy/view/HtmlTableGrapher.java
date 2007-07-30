@@ -2,6 +2,7 @@ package net.sourceforge.schemaspy.view;
 
 import net.sourceforge.schemaspy.model.Table;
 import java.io.File;
+import java.io.StringWriter;
 import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.util.Dot;
 import java.io.IOException;
@@ -29,7 +30,9 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
             if (dot == null)
                 return false;
 
-            dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile);
+            LineWriter map = new LineWriter(new StringWriter(64 * 1024));
+            
+            dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile, map);
 
             html.write("<br/><form action='get'><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
@@ -52,17 +55,17 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
                 html.write(":</b></form>");
             }
             html.writeln("  <a name='graph'><img src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='#oneDegreeRelationshipsGraph' id='relationships' border='0' alt='' align='left'></a>");
-            dot.writeMap(oneDegreeDotFile, html);
+            html.write(map.toString());
+            map = null;
+            
             if (stats.wroteImplied()) {
-                dot.generateGraph(impliedDotFile, impliedGraphFile);
-                dot.writeMap(impliedDotFile, html);
+                dot.generateGraph(impliedDotFile, impliedGraphFile, html);
             } else {
                 impliedDotFile.delete();
                 impliedGraphFile.delete();
             }
             if (stats.wroteTwoDegrees()) {
-                dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile);
-                dot.writeMap(twoDegreesDotFile, html);
+                dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile, html);
             } else {
                 twoDegreesDotFile.delete();
                 twoDegreesGraphFile.delete();

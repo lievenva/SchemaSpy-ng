@@ -60,38 +60,15 @@ public class Dot {
         return getVersion().compareTo(new Version("2.6")) >= 0;
     }
 
-    public void generateGraph(File dotFile, File graphFile) throws DotFailure {
-        // this one is for executing.  it can (hopefully) deal with funky things in filenames.
-        String[] dotParams = new String[] {"dot", "-Tpng", dotFile.toString(), "-o" + graphFile};
-        // this one is for display purposes ONLY.
-        String commandLine = getDisplayableCommand(dotParams);
-        try {
-            Process process = Runtime.getRuntime().exec(dotParams);
-            new ProcessOutputReader(commandLine, process.getErrorStream()).start();
-            new ProcessOutputReader(commandLine, process.getInputStream()).start();
-            int rc = process.waitFor();
-            if (rc != 0)
-                throw new DotFailure("'" + commandLine + "' failed with return code " + rc);
-            if (!graphFile.exists())
-                throw new DotFailure("'" + commandLine + "' failed to create output file");
-        } catch (InterruptedException interrupted) {
-            interrupted.printStackTrace();
-        } catch (DotFailure failed) {
-            graphFile.delete();
-            throw failed;
-        } catch (IOException failed) {
-            graphFile.delete();
-            throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
-        }
-    }
-
     /**
-     * Create html image maps from the specified .dot file
+     * Using the specified .dot file generates a .png and writes an image map to <code>mapOut</code>.
      */
-    public void writeMap(File dotFile, LineWriter out) throws DotFailure {
+    public void generateGraph(File dotFile, File graphFile, LineWriter mapOut) throws DotFailure {
+        LineWriter mapBuffer = new LineWriter(new StringWriter(1024));
+        
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
-        String[] dotParams = new String[] {"dot", "-Tcmapx", dotFile.toString()};
+        String[] dotParams = new String[] {"dot", "-Tpng", dotFile.toString(), "-o" + graphFile, "-Tcmapx"};
         // this one is for display purposes ONLY.
         String commandLine = getDisplayableCommand(dotParams);
 
@@ -101,15 +78,23 @@ public class Dot {
             mapReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = mapReader.readLine()) != null)
-                out.writeln(line);
+                mapBuffer.writeln(line);
             int rc = process.waitFor();
             if (rc != 0)
                 throw new DotFailure("'" + commandLine + "' failed with return code " + rc);
+            if (!graphFile.exists())
+                throw new DotFailure("'" + commandLine + "' failed to create output file");
+
+            // don't write map output until we're sure everything worked...otherwise
+            // we risk trashing the resulting html page
+            mapOut.write(mapBuffer.toString());
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
         } catch (DotFailure failed) {
+            graphFile.delete();
             throw failed;
         } catch (IOException failed) {
+            graphFile.delete();
             throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
         } finally {
             if (mapReader != null) {
