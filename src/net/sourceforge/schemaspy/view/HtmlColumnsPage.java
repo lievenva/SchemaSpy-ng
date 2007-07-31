@@ -143,7 +143,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
     public void writeMainTableHeader(boolean hasTableIds, ColumnInfo selectedColumn, LineWriter out) throws IOException {
         boolean showTableName = selectedColumn != null;
-        out.writeln("<a name='columns'/>");
+        out.writeln("<a name='columns'></a>");
         out.writeln("<table class='dataTable' border='1' rules='groups'>");
         int span = 6;
         if (hasTableIds || showTableName)

@@ -37,7 +37,7 @@ public class HtmlFormatter {
         out.writeln("<div class='content' style='clear:both;'>");
         out.writeln("<table width='100%' border='0' cellpadding='0'>");
         out.writeln(" <tr>");
-        out.write("  <td class='heading' valign='center'>");
+        out.write("  <td class='heading' valign='middle'>");
         out.write("<span class='header'>");
         if (table == null)
             out.write("SchemaSpy Analysis of ");

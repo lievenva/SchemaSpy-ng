@@ -87,7 +87,8 @@ public class Dot {
 
             // don't write map output until we're sure everything worked...otherwise
             // we risk trashing the resulting html page
-            mapOut.write(mapBuffer.toString());
+            String html401Compatible = mapBuffer.toString().replace("/>", ">"); 
+            mapOut.write(html401Compatible);
         } catch (InterruptedException interrupted) {
             interrupted.printStackTrace();
         } catch (DotFailure failed) {
