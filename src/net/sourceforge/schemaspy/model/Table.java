@@ -410,7 +410,7 @@ public class Table implements Comparable {
     public boolean isRoot() {
         for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
             TableColumn column = (TableColumn)iter.next();
-            if (!column.getParents().isEmpty()) {
+            if (column.isForeignKey()) {
                 return false;
             }
         }

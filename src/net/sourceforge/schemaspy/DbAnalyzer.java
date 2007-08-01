@@ -36,7 +36,7 @@ public class DbAnalyzer {
 
             for (Iterator columnIter = table.getColumns().iterator(); columnIter.hasNext(); ) {
                 TableColumn column = (TableColumn)columnIter.next();
-                if (column.getParents().isEmpty())
+                if (!column.isForeignKey())
                     columnsWithoutParents.add(column);
             }
         }

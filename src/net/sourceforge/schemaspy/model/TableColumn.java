@@ -105,6 +105,14 @@ public class TableColumn {
     public boolean isPrimary() {
         return table.getPrimaryColumns().contains(this);
     }
+    
+    /**
+     * Returns <code>true</code> if this column points to another table's primary key.
+     * @return
+     */
+    public boolean isForeignKey() {
+        return !parents.isEmpty();
+    }
 
     public Object getDefaultValue() {
         return defaultValue;
