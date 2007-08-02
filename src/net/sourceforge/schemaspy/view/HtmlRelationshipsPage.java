@@ -47,14 +47,14 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             if (hasRealRelationships) {
                 System.out.print(".");
-                dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile, html);
+                html.write(dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile));
                 System.out.print(".");
                 
                 // we've run into instances where the first graphs get generated, but then
                 // dot fails on the second one...try to recover from that scenario 'somewhat'
                 // gracefully
                 try {
-                    dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile, html);
+                    html.write(dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile));
                     System.out.print(".");
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println("dot failed to generate all of the relationships graphs:");
@@ -65,10 +65,10 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             try {
                 if (hasImpliedRelationships) {
-                    dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile, html);
+                    html.write(dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile));
                     System.out.print(".");
     
-                    dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile, html);
+                    html.write(dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile));
                     System.out.print(".");
                 }
             } catch (Dot.DotFailure dotFailure) {
@@ -112,24 +112,26 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         // this is some UGLY code!
         html.writeln("<form name='options' action=''>");
         if (hasRealRelationships && hasImpliedRelationships) {
-            html.write("  <input type='checkbox' id='implied' onclick=\"");
+            html.write("  <span title=\"Show relationships implied by column name and type matching another table's primary key\">");
+            html.write("<input type='checkbox' id='implied' onclick=\"");
             html.write("if (this.checked) {");
-            html.write(" if (document.options.compact.checked)");
+            html.write(" if (!document.options.showNonKeys.checked)");
             html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph');");
             html.write(" else ");
             html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
             html.write("} else {");
-            html.write(" if (document.options.compact.checked)");
+            html.write(" if (!document.options.showNonKeys.checked)");
             html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
             html.write(" else ");
             html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
             html.write("}\">");
-            html.writeln("Include implied relationships");
+            html.writeln("Implied relationships</span>");
         }
         // more butt-ugly 'code' follows
         if (hasRealRelationships || hasImpliedRelationships) {
-            html.write("  <input type='checkbox' id='compact' checked onclick=\"");
-            html.write("if (this.checked) {");
+            html.write("  <span title=\"By default only columns that are primary keys, foreign keys or indexes are shown\">");
+            html.write("<input type='checkbox' id='showNonKeys' onclick=\"");
+            html.write("if (!this.checked) {");
             if (hasImpliedRelationships) {
                 if (hasRealRelationships)
                     html.write(" if (document.options.implied.checked)");
@@ -150,7 +152,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
             if (hasRealRelationships)
                 html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
             html.write("}\">");
-            html.writeln("Compact");
+            html.writeln("All columns</span>");
         }
         html.writeln("</form>");
 

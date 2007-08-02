@@ -61,11 +61,13 @@ public class DotConnector implements Comparable {
     }
 
     public void connectToParentTitle() {
-        parentPort = parentColumn.getTable().getName() + ".heading";
+        //parentPort = parentColumn.getTable().getName() + ".heading";
+        parentPort = "elipses";
     }
 
     public void connectToChildTitle() {
-        childPort = childColumn.getTable().getName() + ".heading";
+        //childPort = childColumn.getTable().getName() + ".heading";
+        childPort = "elipses";
     }
 
     public String toString() {

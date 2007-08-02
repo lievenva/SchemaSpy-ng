@@ -2,7 +2,6 @@ package net.sourceforge.schemaspy.view;
 
 import net.sourceforge.schemaspy.model.Table;
 import java.io.File;
-import java.io.StringWriter;
 import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.util.Dot;
 import java.io.IOException;
@@ -30,13 +29,11 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
             if (dot == null)
                 return false;
 
-            LineWriter map = new LineWriter(new StringWriter(64 * 1024));
-            
-            dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile, map);
+            String map = dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile);
 
             html.write("<br/><form action='get'><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
-                html.writeln("</b><span class='degrees' id='degrees'>");
+                html.writeln("</b><span class='degrees' id='degrees' title='Detail diminishes with increased separation from " + table.getName() + "'>");
                 html.write("&nbsp;within <input type='radio' name='degrees' id='oneDegree' onclick=\"");
                 html.write("if (!this.checked)");
                 html.write(" selectGraph('../graphs/" + twoDegreesGraphFile.getName() + "', '#twoDegreesRelationshipsGraph');");
@@ -55,17 +52,16 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
                 html.write(":</b></form>");
             }
             html.writeln("  <a name='graph'><img src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='#oneDegreeRelationshipsGraph' id='relationships' border='0' alt='' align='left'></a>");
-            html.write(map.toString());
-            map = null;
+            html.write(map);
             
             if (stats.wroteImplied()) {
-                dot.generateGraph(impliedDotFile, impliedGraphFile, html);
+                html.write(dot.generateGraph(impliedDotFile, impliedGraphFile));
             } else {
                 impliedDotFile.delete();
                 impliedGraphFile.delete();
             }
             if (stats.wroteTwoDegrees()) {
-                dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile, html);
+                html.write(dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile));
             } else {
                 twoDegreesDotFile.delete();
                 twoDegreesGraphFile.delete();

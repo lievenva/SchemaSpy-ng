@@ -33,7 +33,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
 
         html.writeln("<a name='graph'>");
         try {
-            LineWriter maps = new LineWriter(new StringWriter(64 * 1024));
+            StringBuffer maps = new StringBuffer(64 * 1024);
             
             iter = orphanTables.iterator();
             while (iter.hasNext()) {
@@ -47,7 +47,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
                 DotFormatter.getInstance().writeOrphan(table, dotOut);
                 dotOut.close();
                 try {
-                    dot.generateGraph(dotFile, graphFile, maps);
+                    maps.append(dot.generateGraph(dotFile, graphFile));
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println(dotFailure);
                     return false;

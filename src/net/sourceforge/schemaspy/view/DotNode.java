@@ -7,50 +7,46 @@ import net.sourceforge.schemaspy.model.*;
 
 public class DotNode {
     private final Table table;
-    private final boolean isDetailed;
-    private final boolean showColumns;
-    private boolean showImplied;
+    private final DotNodeConfig config;
     private final String path;
     private final Set excludedColumns = new HashSet();
     private final String lineSeparator = System.getProperty("line.separator");
     private final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
 
     /**
-     * Create a DotNode that is a focal point of a graph
+     * Create a DotNode that is a focal point of a graph.
+     * That is, all of its columns are displayed in addition to the details
+     * of those columns.
      *
      * @param table Table
      * @param path String
      */
     public DotNode(Table table, String path) {
-        this(table, true, true, path);
+        this(table, path, new DotNodeConfig(true, true));
+    }
+    
+    public DotNode(Table table, String path, DotNodeConfig config) {
+        this.table = table;
+        this.path = path;
+        this.config = config;
     }
 
     /**
      * Create a DotNode and specify whether it displays its columns.
+     * The details of the optional columns (e.g. type, size) are not displayed.
      *
      * @param table Table
      * @param showColumns boolean
      * @param path String
      */
     public DotNode(Table table, boolean showColumns, String path) {
-        this(table, false, showColumns, path);
-    }
-
-    private DotNode(Table table, boolean isDetailed, boolean showColumns, String path) {
-        this.table = table;
-        this.isDetailed = isDetailed;
-        this.showColumns = showColumns;
-        this.path = path;
-    }
-
-    public boolean isDetailed() {
-        return isDetailed;
+        this(table, path, showColumns ? new DotNodeConfig(false, false) : new DotNodeConfig());
     }
 
     public void setShowImplied(boolean showImplied) {
-        this.showImplied = showImplied;
+        config.showImpliedRelationships = showImplied;
     }
-
+    
     public Table getTable() {
         return table;
     }
@@ -63,16 +59,18 @@ public class DotNode {
         StyleSheet css = StyleSheet.getInstance();
         StringBuffer buf = new StringBuffer();
         String tableName = table.getName();
-        String colspan = isDetailed ? "COLSPAN=\"2\" " : "COLSPAN=\"3\" ";
+        String colspan = config.showColumnDetails ? "COLSPAN=\"2\" " : "COLSPAN=\"3\" ";
 
         buf.append("  \"" + tableName + "\" [" + lineSeparator);
         buf.append("    label=<" + lineSeparator);
-        buf.append("    <TABLE BORDER=\"" + (isDetailed ? "2" : "0") + "\" CELLBORDER=\"1\" CELLSPACING=\"0\" BGCOLOR=\"" + css.getTableBackground() + "\">" + lineSeparator);
+        buf.append("    <TABLE BORDER=\"" + (config.showColumnDetails ? "2" : "0") + "\" CELLBORDER=\"1\" CELLSPACING=\"0\" BGCOLOR=\"" + css.getTableBackground() + "\">" + lineSeparator);
         buf.append("      <TR>");
-        buf.append("<TD PORT=\"" + tableName + ".heading\" COLSPAN=\"3\" BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + (table.isRemote() ? table.getSchema() + "." : "") + tableName + "</TD>");
+        buf.append("<TD COLSPAN=\"3\" BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + (table.isRemote() ? table.getSchema() + "." : "") + tableName + "</TD>");
         buf.append("</TR>" + lineSeparator);
 
-        if (showColumns) {
+        boolean skippedTrivial = false;
+
+        if (config.showColumns) {
             List primaryColumns = table.getPrimaryColumns();
             Set indexColumns = new HashSet();
             Iterator iter = table.getIndexes().iterator();
@@ -81,37 +79,45 @@ public class DotNode {
                 indexColumns.addAll(index.getColumns());
             }
             indexColumns.removeAll(primaryColumns);
-
+            
             for (iter = table.getColumns().iterator(); iter.hasNext(); ) {
                 TableColumn column = (TableColumn)iter.next();
-                buf.append("      <TR>");
-                buf.append("<TD PORT=\"" + column.getName() + "\" " + colspan);
-                if (excludedColumns.contains(column))
-                    buf.append("BGCOLOR=\"" + css.getExcludedColumnBackgroundColor() + "\" ");
-                else if (primaryColumns.contains(column))
-                    buf.append("BGCOLOR=\"" + css.getPrimaryKeyBackground() + "\" ");
-                else if (indexColumns.contains(column))
-                    buf.append("BGCOLOR=\"" + css.getIndexedColumnBackground() + "\" ");
-                buf.append("ALIGN=\"LEFT\">");
-                buf.append(column.getName());
-                buf.append("</TD>");
-                if (isDetailed) {
-                    buf.append("<TD PORT=\"");
+                if (config.showTrivialColumns || config.showColumnDetails || column.isPrimary() || column.isForeignKey() || indexColumns.contains(column)) {
+                    buf.append("      <TR>");
+                    buf.append("<TD PORT=\"" + column.getName() + "\" " + colspan);
+                    if (excludedColumns.contains(column))
+                        buf.append("BGCOLOR=\"" + css.getExcludedColumnBackgroundColor() + "\" ");
+                    else if (primaryColumns.contains(column))
+                        buf.append("BGCOLOR=\"" + css.getPrimaryKeyBackground() + "\" ");
+                    else if (indexColumns.contains(column))
+                        buf.append("BGCOLOR=\"" + css.getIndexedColumnBackground() + "\" ");
+                    buf.append("ALIGN=\"LEFT\">");
                     buf.append(column.getName());
-                    buf.append(".type\" ALIGN=\"LEFT\">");
-                    buf.append(column.getType().toLowerCase());
-                    buf.append("[");
-                    buf.append(column.getDetailedSize());
-                    buf.append("]</TD>");
+                    buf.append("</TD>");
+                    if (config.showColumnDetails) {
+                        buf.append("<TD PORT=\"");
+                        buf.append(column.getName());
+                        buf.append(".type\" ALIGN=\"LEFT\">");
+                        buf.append(column.getType().toLowerCase());
+                        buf.append("[");
+                        buf.append(column.getDetailedSize());
+                        buf.append("]</TD>");
+                    }
+                    buf.append("</TR>" + lineSeparator);
+                } else {
+                    skippedTrivial = true;
                 }
-                buf.append("</TR>" + lineSeparator);
             }
         }
-
+        
+        if (skippedTrivial || !config.showColumns) {
+            buf.append("      <TR><TD PORT=\"elipses\" COLSPAN=\"3\" ALIGN=\"LEFT\">...</TD></TR>" + lineSeparator);
+        }
+        
         buf.append("      <TR>");
         buf.append("<TD ALIGN=\"LEFT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
-        int numParents = showImplied ? table.getNumParents() : table.getNumRealParents();
-        if (numParents > 0 || isDetailed)
+        int numParents = config.showImpliedRelationships ? table.getNumParents() : table.getNumRealParents();
+        if (numParents > 0 || config.showColumnDetails)
             buf.append("&lt; " + numParents);
         else
             buf.append("  ");
@@ -132,15 +138,15 @@ public class DotNode {
         }
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
-        int numChildren = showImplied ? table.getNumChildren() : table.getNumRealChildren();
-        if (numChildren > 0 || isDetailed)
+        int numChildren = config.showImpliedRelationships ? table.getNumChildren() : table.getNumRealChildren();
+        if (numChildren > 0 || config.showColumnDetails)
             buf.append(numChildren + " &gt;");
         else
             buf.append("  ");
         buf.append("</TD></TR>" + lineSeparator);
 
         buf.append("    </TABLE>>" + lineSeparator);
-        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + (path.length() == 0 && !isDetailed ? "#graph" : "#") + "\"" + lineSeparator);
+        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + (path.length() == 0 && !config.showColumnDetails ? "#graph" : "#") + "\"" + lineSeparator);
         buf.append("    tooltip=\"" + toNCR(tableName) + "\"" + lineSeparator);
         buf.append("  ];");
 
@@ -169,5 +175,25 @@ public class DotNode {
             }
         }
         return result.toString();
+    }
+    
+    public static class DotNodeConfig {
+        private final boolean showColumns;
+        private boolean showTrivialColumns;
+        private final boolean showColumnDetails;
+        private boolean showImpliedRelationships;
+        
+        /**
+         * Nothing but table name and counts are displayed
+         */
+        public DotNodeConfig() {
+            showColumns = showTrivialColumns = showColumnDetails = showImpliedRelationships = false;
+        }
+        
+        public DotNodeConfig(boolean showTrivialColumns, boolean showColumnDetails) {
+            this.showColumns = true;
+            this.showTrivialColumns = showTrivialColumns;
+            this.showColumnDetails = showColumnDetails;
+        }
     }
 }
