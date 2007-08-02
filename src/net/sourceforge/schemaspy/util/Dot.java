@@ -8,6 +8,7 @@ public class Dot {
     private final Version version;
     private final Version supportedVersion = new Version("2.2.1");
     private final Version badVersion = new Version("2.4");
+    private final String lineSeparator = System.getProperty("line.separator");
 
     private Dot() {
         String versionText = null;
@@ -61,10 +62,10 @@ public class Dot {
     }
 
     /**
-     * Using the specified .dot file generates a .png and writes an image map to <code>mapOut</code>.
+     * Using the specified .dot file generates a .png returning the .png's image map.
      */
-    public void generateGraph(File dotFile, File graphFile, LineWriter mapOut) throws DotFailure {
-        LineWriter mapBuffer = new LineWriter(new StringWriter(1024));
+    public String generateGraph(File dotFile, File graphFile) throws DotFailure {
+        StringBuffer mapBuffer = new StringBuffer(1024);
         
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
@@ -77,20 +78,20 @@ public class Dot {
             new ProcessOutputReader(commandLine, process.getErrorStream()).start();
             mapReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
-            while ((line = mapReader.readLine()) != null)
-                mapBuffer.writeln(line);
+            while ((line = mapReader.readLine()) != null) {
+                mapBuffer.append(line);
+                mapBuffer.append(lineSeparator);
+            }
             int rc = process.waitFor();
             if (rc != 0)
                 throw new DotFailure("'" + commandLine + "' failed with return code " + rc);
             if (!graphFile.exists())
                 throw new DotFailure("'" + commandLine + "' failed to create output file");
 
-            // don't write map output until we're sure everything worked...otherwise
-            // we risk trashing the resulting html page
-            String html401Compatible = mapBuffer.toString().replace("/>", ">"); 
-            mapOut.write(html401Compatible);
+            // dot generates post-HTML 4.0.1 output...convert trailing />'s to >'s
+            return mapBuffer.toString().replace("/>", ">");
         } catch (InterruptedException interrupted) {
-            interrupted.printStackTrace();
+            throw new RuntimeException(interrupted);
         } catch (DotFailure failed) {
             graphFile.delete();
             throw failed;
