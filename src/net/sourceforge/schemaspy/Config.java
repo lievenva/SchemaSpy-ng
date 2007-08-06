@@ -62,7 +62,8 @@ public class Config
      */
     public Config()
     {
-        setInstance(this);
+        if (instance == null)
+            setInstance(this);
         options = new ArrayList();
     }
 
