@@ -372,14 +372,14 @@ public class HtmlTablePage extends HtmlFormatter {
     private void writeView(Table table, Database db, LineWriter out) throws IOException {
         String sql;
         if (table.isView() && (sql = table.getViewSql()) != null) {
-            Map tables = new HashMap();
+            Map tables = new CaseInsensitiveMap();
             for (Iterator iter = db.getTables().iterator(); iter.hasNext(); ) {
                 Table t = (Table)iter.next();
-                tables.put(t.getName().toUpperCase(), t);
+                tables.put(t.getName(), t);
             }
             for (Iterator iter = db.getViews().iterator(); iter.hasNext(); ) {
                 Table t = (Table)iter.next();
-                tables.put(t.getName().toUpperCase(), t);
+                tables.put(t.getName(), t);
             }
             
             out.writeln("<div class='indent'>");
@@ -398,7 +398,7 @@ public class HtmlTablePage extends HtmlFormatter {
                     out.write(nextToken);
                     out.write("</b>");
                 } else {
-                    Table t = (Table)tables.get(nextToken.toUpperCase());
+                    Table t = (Table)tables.get(nextToken);
                     if (t != null) {
                         out.write("<a href='");
                         out.write(t.getName());

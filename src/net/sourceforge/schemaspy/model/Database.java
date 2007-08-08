@@ -5,14 +5,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.regex.*;
+import net.sourceforge.schemaspy.util.*;
 
 public class Database {
     private final String databaseName;
     private final String schema;
     private final String description;
-    private final Map tables = new HashMap();
-    private final Map views = new HashMap();
-    private final Map remoteTables = new HashMap(); // key: schema.tableName value: RemoteTable
+    private final Map tables = new CaseInsensitiveMap();
+    private final Map views = new CaseInsensitiveMap();
+    private final Map remoteTables = new CaseInsensitiveMap(); // key: schema.tableName value: RemoteTable
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
@@ -169,7 +170,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    Table table = (Table)tables.get(tableName);
                     if (table != null)
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
@@ -198,7 +199,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    Table table = (Table)tables.get(tableName);
                     if (table != null)
                         table.setId(rs.getObject("table_id"));
                 }
@@ -227,7 +228,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    Table table = (Table)tables.get(tableName);
                     if (table != null) {
                         TableIndex index = table.getIndex(rs.getString("index_name"));
                         if (index != null)
@@ -259,7 +260,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    Table table = (Table)tables.get(tableName);
                     if (table != null)
                         table.setComments(rs.getString("comments"));
                 }
@@ -289,7 +290,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName.toUpperCase());
+                    Table table = (Table)tables.get(tableName);
                     if (table != null) {
                         TableColumn column = table.getColumn(rs.getString("column_name"));
                         if (column != null)
@@ -527,7 +528,7 @@ public class Database {
                         Table view = new View(this, rs, properties.getProperty("selectViewSql"));
                         
                         if (include.matcher(view.getName()).matches())
-                            views.put(view.getName().toUpperCase(), view);
+                            views.put(view.getName(), view);
                     } catch (SQLException exc) {
                         System.out.flush();
                         System.err.println();
@@ -564,7 +565,7 @@ public class Database {
 
         protected void createImpl(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
             Table table = new Table(Database.this, schemaName, tableName, remarks, properties);
-            tables.put(table.getName().toUpperCase(), table);
+            tables.put(table.getName(), table);
             System.out.print('.');
         }
 

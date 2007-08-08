@@ -3,14 +3,15 @@ package net.sourceforge.schemaspy.model;
 import java.sql.*;
 import java.util.*;
 import net.sourceforge.schemaspy.*;
+import net.sourceforge.schemaspy.util.*;
 
 public class Table implements Comparable {
     private final String schema;
     private final String name;
-    protected final Map columns = new HashMap();
+    protected final CaseInsensitiveMap columns = new CaseInsensitiveMap();
     private final List primaryKeys = new ArrayList();
-    private final Map foreignKeys = new HashMap();
-    private final Map indexes = new HashMap();
+    private final CaseInsensitiveMap foreignKeys = new CaseInsensitiveMap();
+    private final CaseInsensitiveMap indexes = new CaseInsensitiveMap();
     private       Object id;
     private final Map checkConstraints = new TreeMap(new ByCheckConstraintStringsComparator());
     private final int numRows;
@@ -61,7 +62,7 @@ public class Table implements Comparable {
     }
 
     public ForeignKeyConstraint getForeignKey(String keyName) {
-        return (ForeignKeyConstraint)foreignKeys.get(keyName.toUpperCase());
+        return (ForeignKeyConstraint)foreignKeys.get(keyName);
     }
 
     public Collection getForeignKeys() {
@@ -90,13 +91,13 @@ public class Table implements Comparable {
         if (foreignKey == null) {
             foreignKey = new ForeignKeyConstraint(this, rs);
 
-            foreignKeys.put(foreignKey.getName().toUpperCase(), foreignKey);
+            foreignKeys.put(foreignKey.getName(), foreignKey);
         }
 
         TableColumn childColumn = getColumn(rs.getString("FKCOLUMN_NAME"));
         foreignKey.addChildColumn(childColumn);
 
-        Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME").toUpperCase());
+        Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME"));
         if (parentTable == null) {
             String otherSchema = rs.getString("PKTABLE_SCHEM");
             if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
@@ -237,7 +238,7 @@ public class Table implements Comparable {
         if (getColumn(columnName) == null) {
             TableColumn column = new TableColumn(this, rs);
 
-            columns.put(column.getName().toUpperCase(), column);
+            columns.put(column.getName(), column);
         }
     }
 
@@ -319,7 +320,7 @@ public class Table implements Comparable {
     }
 
     public TableIndex getIndex(String indexName) {
-        return (TableIndex)indexes.get(indexName.toUpperCase());
+        return (TableIndex)indexes.get(indexName);
     }
 
     private void addIndex(ResultSet rs) throws SQLException {
@@ -333,7 +334,7 @@ public class Table implements Comparable {
         if (index == null) {
             index = new TableIndex(rs);
 
-            indexes.put(index.getName().toUpperCase(), index);
+            indexes.put(index.getName(), index);
         }
 
         index.addColumn(getColumn(rs.getString("COLUMN_NAME")), rs.getString("ASC_OR_DESC"));
@@ -379,7 +380,7 @@ public class Table implements Comparable {
     }
 
     public TableColumn getColumn(String columnName) {
-        return (TableColumn)columns.get(columnName.toUpperCase());
+        return (TableColumn)columns.get(columnName);
     }
 
     /**

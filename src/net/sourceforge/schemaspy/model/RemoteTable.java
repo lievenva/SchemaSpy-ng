@@ -1,7 +1,8 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import net.sourceforge.schemaspy.util.*;
 
 /**
  * A table that's outside of the default schema but is referenced
@@ -22,7 +23,7 @@ public class RemoteTable extends Table {
      * @param db
      * @param tables
      */
-    public void connectForeignKeys(Map tables, Database db) throws SQLException {
+    public void connectForeignKeys(CaseInsensitiveMap tables, Database db) throws SQLException {
         ResultSet rs = null;
 
         try {
