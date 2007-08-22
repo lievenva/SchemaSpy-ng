@@ -175,9 +175,10 @@ public class Database {
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
             } catch (SQLException sqlException) {
+                // don't die just because this failed
                 System.err.println();
+                System.err.println("Failed to retrieve check constraints: " + sqlException);
                 System.err.println(sql);
-                throw sqlException;
             } finally {
                 if (rs != null)
                     rs.close();
