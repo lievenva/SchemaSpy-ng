@@ -9,6 +9,7 @@ public class Dot {
     private final Version supportedVersion = new Version("2.2.1");
     private final Version badVersion = new Version("2.4");
     private final String lineSeparator = System.getProperty("line.separator");
+    private String renderer;
 
     private Dot() {
         String versionText = null;
@@ -62,6 +63,37 @@ public class Dot {
     }
 
     /**
+     * Returns true if the installed dot requires specifying :gd as a renderer.
+     * This was added when Win 2.15 came out because it defaulted to Cairo, which produces
+     * better quality output, but at a significant speed and size penalty.<p/>
+     * 
+     * The intent of this property is to determine if it's ok to tack ":gd" to
+     * the format specifier.  Earlier versions didn't require it and didn't know
+     * about the option.
+     * 
+     * @return
+     */
+    public boolean requiresGdRenderer() {
+        return getVersion().compareTo(new Version("2.12")) >= 0;
+    }
+    
+    /**
+     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
+     * at <a href='http://www.graphviz.org/doc/info/command.html'>
+     * http://www.graphviz.org/doc/info/command.html</a>.<p/>
+     * Note that the leading ":" is required while :formatter is optional.
+     * 
+     * @param renderer
+     */
+    public void setRenderer(String renderer) {
+        this.renderer = renderer;
+    }
+    
+    public String getRenderer() {
+        return renderer != null ? renderer : (requiresGdRenderer() ? ":gd" : "");
+    }
+
+    /**
      * Using the specified .dot file generates a .png returning the .png's image map.
      */
     public String generateGraph(File dotFile, File graphFile) throws DotFailure {
@@ -69,7 +101,7 @@ public class Dot {
         
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
-        String[] dotParams = new String[] {"dot", "-Tpng", dotFile.toString(), "-o" + graphFile, "-Tcmapx"};
+        String[] dotParams = new String[] {"dot", "-Tpng" + getRenderer(), dotFile.toString(), "-o" + graphFile, "-Tcmapx"};
         // this one is for display purposes ONLY.
         String commandLine = getDisplayableCommand(dotParams);
 
