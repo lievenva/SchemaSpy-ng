@@ -54,8 +54,9 @@ public class Config
     private Boolean meterEnabled;
     private Boolean evaluteAll;
     private String schemaSpec;  // used in conjunction with evaluateAll
-    private boolean populating = false;
-
+    private String renderer;
+private boolean populating = false;
+    
     /**
      * Default constructor. Intended for when you want to inject properties
      * independently (i.e. not from a command line interface).
@@ -603,6 +604,32 @@ public class Config
             schemaSpec = pullParam("-schemaSpec");
         
         return schemaSpec;
+    }
+    
+    /**
+     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
+     * at <a href='http://www.graphviz.org/doc/info/command.html'>
+     * http://www.graphviz.org/doc/info/command.html</a>.<p/>
+     * Note that the leading ":" is required while :formatter is optional.<p/>
+     * The default renderer is typically GD. 
+     */
+    public void setRenderer(String renderer) {
+        this.renderer = renderer;
+        Dot.getInstance().setRenderer(renderer);
+    }
+    
+    /**
+     * @see #setRenderer(String)
+     * @return
+     */
+    public String getRenderer() {
+        if (renderer == null) {
+            renderer = pullParam("-renderer");
+            if (renderer != null)
+                setRenderer(renderer);
+        }
+        
+        return renderer;
     }
     
     /**
