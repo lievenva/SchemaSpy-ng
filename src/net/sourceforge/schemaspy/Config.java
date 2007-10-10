@@ -53,9 +53,9 @@ public class Config
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
     private Boolean evaluteAll;
+    private Boolean highQuality;
     private String schemaSpec;  // used in conjunction with evaluateAll
-    private String renderer;
-private boolean populating = false;
+    private boolean populating = false;
     
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -605,31 +605,59 @@ private boolean populating = false;
         
         return schemaSpec;
     }
+
+    // removed these as they're too low-level to expose externally...replaced with -hq
+//    /**
+//     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
+//     * at <a href='http://www.graphviz.org/doc/info/command.html'>
+//     * http://www.graphviz.org/doc/info/command.html</a>.<p/>
+//     * Note that the leading ":" is required while :formatter is optional.<p/>
+//     * The default renderer is typically GD. 
+//     */
+//    public void setRenderer(String renderer) {
+//        this.renderer = renderer;
+//        Dot.getInstance().setRenderer(renderer);
+//    }
+//    
+//    /**
+//     * @see #setRenderer(String)
+//     * @return
+//     */
+//    public String getRenderer() {
+//        if (renderer == null) {
+//            renderer = pullParam("-renderer");
+//            if (renderer != null)
+//                setRenderer(renderer);
+//        }
+//        
+//        return renderer;
+//    }
     
     /**
-     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
-     * at <a href='http://www.graphviz.org/doc/info/command.html'>
-     * http://www.graphviz.org/doc/info/command.html</a>.<p/>
-     * Note that the leading ":" is required while :formatter is optional.<p/>
-     * The default renderer is typically GD. 
+     * If <code>true</code> then generate graphical output of "higher quality"
+     * than the default ("lower quality").  
+     * Note that the default is intended to be "lower quality", 
+     * but various installations of Graphviz may have have different abilities.
+     * That is, some might not have the "lower quality" libraries and others might
+     * not have the "higher quality" libraries.<p/>
+     * Higher quality output takes longer to generate and results in significantly
+     * larger image files (which take longer to download / display), but it looks better.
      */
-    public void setRenderer(String renderer) {
-        this.renderer = renderer;
-        Dot.getInstance().setRenderer(renderer);
+    public void setHighQuality(boolean highQuality) {
+        this.highQuality = Boolean.valueOf(highQuality);
+        Dot.getInstance().setHighQuality(highQuality);
     }
     
     /**
-     * @see #setRenderer(String)
-     * @return
+     * @see #setHighQuality(boolean)
      */
-    public String getRenderer() {
-        if (renderer == null) {
-            renderer = pullParam("-renderer");
-            if (renderer != null)
-                setRenderer(renderer);
+    public boolean isHighQuality() {
+        if (highQuality == null) {
+            highQuality = Boolean.valueOf(options.remove("-hq"));
+            Dot.getInstance().setHighQuality(highQuality.booleanValue());
         }
-        
-        return renderer;
+
+        return Dot.getInstance().isHighQuality();
     }
     
     /**

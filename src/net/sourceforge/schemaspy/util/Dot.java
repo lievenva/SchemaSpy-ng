@@ -1,7 +1,15 @@
 package net.sourceforge.schemaspy.util;
 
-import java.io.*;
-import java.util.regex.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Dot {
     private static Dot instance = new Dot();
@@ -9,7 +17,10 @@ public class Dot {
     private final Version supportedVersion = new Version("2.2.1");
     private final Version badVersion = new Version("2.4");
     private final String lineSeparator = System.getProperty("line.separator");
+    private String format = "png";
     private String renderer;
+    private Set validatedRenderers = Collections.synchronizedSet(new HashSet());
+    private Set invalidatedRenderers = Collections.synchronizedSet(new HashSet());
 
     private Dot() {
         String versionText = null;
@@ -63,6 +74,25 @@ public class Dot {
     }
 
     /**
+     * Set the image format to generate.  Defaults to <code>png</code>.
+     * See <a href='http://www.graphviz.org/doc/info/output.html'>http://www.graphviz.org/doc/info/output.html</a>
+     * for valid formats.
+     * 
+     * @param format image format to generate
+     */
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    /**
+     * @see #setFormat(String)
+     * @return
+     */
+    public String getFormat() {
+        return format;
+    }
+    
+    /**
      * Returns true if the installed dot requires specifying :gd as a renderer.
      * This was added when Win 2.15 came out because it defaulted to Cairo, which produces
      * better quality output, but at a significant speed and size penalty.<p/>
@@ -74,13 +104,14 @@ public class Dot {
      * @return
      */
     public boolean requiresGdRenderer() {
-        return getVersion().compareTo(new Version("2.12")) >= 0;
+        return getVersion().compareTo(new Version("2.12")) >= 0 && supportsRenderer(":gd", false);
     }
     
     /**
-     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
+     * Set the renderer to use for the -Tformat[:renderer[:formatter]] dot option as specified
      * at <a href='http://www.graphviz.org/doc/info/command.html'>
-     * http://www.graphviz.org/doc/info/command.html</a>.<p/>
+     * http://www.graphviz.org/doc/info/command.html</a> where "format" is specified by
+     * {@link #setFormat(String)}<p/>
      * Note that the leading ":" is required while :formatter is optional.
      * 
      * @param renderer
@@ -90,18 +121,86 @@ public class Dot {
     }
     
     public String getRenderer() {
-        return renderer != null ? renderer : (requiresGdRenderer() ? ":gd" : "");
+        return renderer != null && supportsRenderer(renderer, true) ? renderer 
+            : (requiresGdRenderer() ? ":gd" : "");
+    }
+    
+    /**
+     * If <code>true</code> then generate graphical output of "higher quality"
+     * than the default ("lower quality").  
+     * Note that the default is intended to be "lower quality", 
+     * but various installations of Graphviz may have have different abilities.
+     * That is, some might not have the "lower quality" libraries and others might
+     * not have the "higher quality" libraries.
+     */
+    public void setHighQuality(boolean highQuality) {
+        if (highQuality && supportsRenderer(":cairo", true)) {
+            setRenderer(":cairo");
+        } else if (supportsRenderer(":gd", false)) {
+            setRenderer(":gd");
+        }
     }
 
     /**
-     * Using the specified .dot file generates a .png returning the .png's image map.
+     * @see #setHighQuality(boolean)
+     */
+    public boolean isHighQuality() {
+        return getRenderer().indexOf(":cairo") != -1;
+    }
+    
+    /**
+     * Returns <code>true</code> if the specified renderer is supported.
+     * See {@link #setRenderer(String)} for renderer details.
+     * 
+     * @param renderer
+     * @param warnIfNotSupported 
+     * @return
+     */
+    public boolean supportsRenderer(String renderer, boolean warnIfNotSupported) {
+        if (!exists())
+            return false;
+        
+        if (validatedRenderers.contains(renderer))
+            return true;
+        
+        if (invalidatedRenderers.contains(renderer))
+            return false;
+        
+        try {
+            String[] dotParams = new String[] {"dot", "-T" + getFormat() + ':'};
+            Process process = Runtime.getRuntime().exec(dotParams);
+            BufferedReader errors = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            String line;
+            while ((line = errors.readLine()) != null) {
+                if (line.contains(getFormat() + renderer)) {
+                    validatedRenderers.add(renderer);
+                }
+            }
+            process.waitFor();
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
+        
+        if (!validatedRenderers.contains(renderer)) {
+            if (warnIfNotSupported) {
+                System.err.println("\nFailed to validate " + getFormat() + " renderer '" + renderer + "'.  Reverting to detault renderer for " + getFormat() + '.');
+                invalidatedRenderers.add(renderer);
+            }
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Using the specified .dot file generates an image returning the image's image map.
      */
     public String generateGraph(File dotFile, File graphFile) throws DotFailure {
         StringBuffer mapBuffer = new StringBuffer(1024);
         
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
-        String[] dotParams = new String[] {"dot", "-Tpng" + getRenderer(), dotFile.toString(), "-o" + graphFile, "-Tcmapx"};
+        String[] dotParams = new String[] {"dot", "-T" + getFormat() + getRenderer(), dotFile.toString(), "-o" + graphFile, "-Tcmapx"};
         // this one is for display purposes ONLY.
         String commandLine = getDisplayableCommand(dotParams);
 
