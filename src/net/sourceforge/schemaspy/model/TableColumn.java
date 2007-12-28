@@ -28,8 +28,15 @@ public class TableColumn {
      */
     TableColumn(Table table, ResultSet rs) throws SQLException {
         this.table = table;
-        name = rs.getString("COLUMN_NAME");
-        type = rs.getString("TYPE_NAME");
+        
+        // names and types are typically reused *many* times in a database,
+        // so keep a single instance of each distint one
+        // (thanks to Mike Barnes for the suggestion)
+        String tmp = rs.getString("COLUMN_NAME");
+        name = tmp == null ? null : tmp.intern();
+        tmp = rs.getString("TYPE_NAME");
+        type = tmp == null ? null : tmp.intern();
+        
         decimalDigits = rs.getInt("DECIMAL_DIGITS");
         Number bufLength = (Number)rs.getObject("BUFFER_LENGTH");
         if (bufLength != null && bufLength.shortValue() > 0)
