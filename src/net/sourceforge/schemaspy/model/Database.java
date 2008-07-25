@@ -533,7 +533,7 @@ public class Database {
                     } catch (SQLException exc) {
                         System.out.flush();
                         System.err.println();
-                        System.err.println("Ignoring view due to exception:");
+                        System.err.println("Ignoring view " + rs.getString("TABLE_NAME") + " due to exception:");
                         exc.printStackTrace();
                         System.err.println("Continuing analysis.");
                     }
