@@ -110,7 +110,8 @@ public class SchemaAnalyzer {
 
             if (tables.isEmpty()) {
                 dumpNoTablesMessage(schema, config.getUser(), meta, config.getTableInclusions() != null);
-                return 2;
+                if (!config.isOneOfMultipleSchemas()) // don't bail if we're doing the whole enchilada
+                    return 2;
             }
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
