@@ -26,7 +26,7 @@ public class Table implements Comparable {
         initColumns(db);
         initIndexes(db, properties);
         initPrimaryKeys(db.getMetaData());
-        numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db) : -1;
+        numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db, properties) : -1;
     }
     
     public void connectForeignKeys(Map tables, Database db) throws SQLException {
@@ -577,10 +577,36 @@ public class Table implements Comparable {
      * returns -1 if unable to successfully fetch the row count
      *
      * @param db Database
-     * @throws SQLException
      * @return int
+     * @throws SQLException 
      */
-    protected int fetchNumRows(Database db) {
+    protected int fetchNumRows(Database db, Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectRowCountSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = db.prepareStatement(sql, getName());
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    return rs.getInt("row_count");
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                System.err.println();
+                System.err.println("Unable to extract the number of rows for table " + getName() + ": " + sqlException);
+                System.err.println(sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+
+        // if we get here then we either didn't have custom SQL or it didn't work
         try {
             // '*' should work best for the majority of cases
             return fetchNumRows(db, "count(*)", false);
