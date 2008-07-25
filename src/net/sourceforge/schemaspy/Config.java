@@ -56,6 +56,7 @@ public class Config
     private Boolean highQuality;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
+    public static final String DOT_CHARSET = "UTF-8"; 
     
     /**
      * Default constructor. Intended for when you want to inject properties

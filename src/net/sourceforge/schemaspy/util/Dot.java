@@ -44,6 +44,7 @@ public class Dot {
                 System.err.println("   " + versionLine);
             }
         } catch (Exception validDotDoesntExist) {
+            validDotDoesntExist.printStackTrace();
         }
 
         version = new Version(versionText);

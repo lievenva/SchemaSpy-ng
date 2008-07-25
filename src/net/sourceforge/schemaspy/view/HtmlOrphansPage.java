@@ -1,9 +1,16 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.util.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlOrphansPage extends HtmlGraphFormatter {
     private static HtmlOrphansPage instance = new HtmlOrphansPage();
@@ -43,7 +50,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
                 File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");
                 File graphFile = new File(graphDir, dotBaseFilespec + ".1degree.png");
 
-                LineWriter dotOut = new LineWriter(new FileOutputStream(dotFile));
+                LineWriter dotOut = new LineWriter(dotFile, Config.DOT_CHARSET);
                 DotFormatter.getInstance().writeOrphan(table, dotOut);
                 dotOut.close();
                 try {

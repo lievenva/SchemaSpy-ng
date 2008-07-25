@@ -512,11 +512,11 @@ public class HtmlTablePage extends HtmlFormatter {
     private void generateDots(Table table, File graphDir, WriteStats stats) throws IOException {
         if (table.getMaxChildren() + table.getMaxParents() > 0) {
             DotFormatter formatter = DotFormatter.getInstance();
-            LineWriter dotOut = new LineWriter(new FileOutputStream(new File(graphDir, table.getName() + ".1degree.dot")));
+            LineWriter dotOut = new LineWriter(new File(graphDir, table.getName() + ".1degree.dot"), Config.DOT_CHARSET);
             formatter.writeRealRelationships(table, false, stats, dotOut);
             dotOut.close();
 
-            dotOut = new LineWriter(new FileOutputStream(new File(graphDir, table.getName() + ".2degrees.dot")));
+            dotOut = new LineWriter(new File(graphDir, table.getName() + ".2degrees.dot"), Config.DOT_CHARSET);
             WriteStats twoStats = new WriteStats(stats);
             formatter.writeRealRelationships(table, true, twoStats, dotOut);
             dotOut.close();
@@ -524,7 +524,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 stats.setWroteTwoDegrees(true);
 
             if (stats.wroteImplied()) {
-                dotOut = new LineWriter(new FileOutputStream(new File(graphDir, table.getName() + ".implied2degrees.dot")));
+                dotOut = new LineWriter(new File(graphDir, table.getName() + ".implied2degrees.dot"), Config.DOT_CHARSET);
                 formatter.writeAllRelationships(table, true, stats, dotOut);
                 dotOut.close();
             }

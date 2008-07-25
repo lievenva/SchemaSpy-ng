@@ -20,7 +20,7 @@ public final class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List args, String user, File outputDir, String loadedFrom) throws SQLException, IOException {
+    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
         List genericCommand = new ArrayList();
         genericCommand.add("java");
@@ -49,7 +49,7 @@ public final class MultipleSchemaAnalyzer {
             System.out.print(" " + iter.next());
         System.out.println();
 
-        writeIndexPage(dbName, populatedSchemas, meta, outputDir);
+        writeIndexPage(dbName, populatedSchemas, meta, outputDir, charset);
 
         for (Iterator iter = populatedSchemas.iterator(); iter.hasNext(); ) {
             String schema = iter.next().toString();
@@ -85,9 +85,9 @@ public final class MultipleSchemaAnalyzer {
         return 0;
     }
 
-    private void writeIndexPage(String dbName, List populatedSchemas, DatabaseMetaData meta, File outputDir) throws IOException {
+    private void writeIndexPage(String dbName, List populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
         if (populatedSchemas.size() > 0) {
-            LineWriter index = new LineWriter(new FileOutputStream(new File(outputDir, "index.html")));
+            LineWriter index = new LineWriter(new File(outputDir, "index.html"), charset);
             HtmlMultipleSchemasIndexPage.getInstance().write(dbName, populatedSchemas, meta, index);
             index.close();
         }

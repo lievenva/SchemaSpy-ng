@@ -80,7 +80,7 @@ public class SchemaAnalyzer {
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
-                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, config.getUser(), outputDir, Config.getLoadedFromJar());
+                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
             }
 
             if (schema == null && meta.supportsSchemasInTableDefinitions()) {
@@ -136,7 +136,7 @@ public class SchemaAnalyzer {
 
                 File graphsDir = new File(outputDir, "graphs/summary");
                 String dotBaseFilespec = "relationships";
-                out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.compact.dot")));
+                out = new LineWriter(new File(graphsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
                 WriteStats stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeRealRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
@@ -145,7 +145,7 @@ public class SchemaAnalyzer {
 
                 if (hasRealRelationships) {
                     System.out.print(".");
-                    out = new LineWriter(new FileOutputStream(new File(graphsDir, dotBaseFilespec + ".real.large.dot")));
+                    out = new LineWriter(new File(graphsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
@@ -165,7 +165,7 @@ public class SchemaAnalyzer {
                 System.out.print(".");
 
                 File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
-                out = new LineWriter(new FileOutputStream(impliedDotFile));
+                out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                 stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasImplied = stats.wroteImplied();
@@ -174,7 +174,7 @@ public class SchemaAnalyzer {
                 out.close();
                 if (hasImplied) {
                     impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
-                    out = new LineWriter(new FileOutputStream(impliedDotFile));
+                    out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeAllRelationships(db, tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
@@ -182,33 +182,33 @@ public class SchemaAnalyzer {
                     impliedDotFile.delete();
                 }
 
-                out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
+                out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
                 HtmlRelationshipsPage.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
                 out.close();
 
                 System.out.print(".");
                 dotBaseFilespec = "utilities";
-                out = new LineWriter(new FileWriter(new File(outputDir, dotBaseFilespec + ".html")));
+                out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
                 HtmlOrphansPage.getInstance().write(db, orphans, graphsDir, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "index.html")), 64 * 1024);
+                out = new LineWriter(new File(outputDir, "index.html"), 64 * 1024, config.getCharset());
                 HtmlMainIndexPage.getInstance().write(db, tables, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 List constraints = DbAnalyzer.getForeignKeyConstraints(tables);
-                out = new LineWriter(new FileWriter(new File(outputDir, "constraints.html")), 256 * 1024);
+                out = new LineWriter(new File(outputDir, "constraints.html"), 256 * 1024, config.getCharset());
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
-                out = new LineWriter(new FileWriter(new File(outputDir, "anomalies.html")), 16 * 1024);
+                out = new LineWriter(new File(outputDir, "anomalies.html"), 16 * 1024, config.getCharset());
                 HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasOrphans, out);
                 stats = new WriteStats(stats);
                 out.close();
@@ -217,7 +217,7 @@ public class SchemaAnalyzer {
                 Iterator iter = HtmlColumnsPage.getInstance().getColumnInfos().iterator();
                 while (iter.hasNext()) {
                     HtmlColumnsPage.ColumnInfo columnInfo = (HtmlColumnsPage.ColumnInfo)iter.next();
-                    out = new LineWriter(new FileWriter(new File(outputDir, columnInfo.getLocation())), 16 * 1024);
+                    out = new LineWriter(new File(outputDir, columnInfo.getLocation()), 16 * 1024, config.getCharset());
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
                     stats = new WriteStats(stats);
                     out.close();
@@ -232,16 +232,16 @@ public class SchemaAnalyzer {
                 for (iter = tables.iterator(); iter.hasNext(); ) {
                     System.out.print('.');
                     Table table = (Table)iter.next();
-                    out = new LineWriter(new FileWriter(new File(outputDir, "tables/" + table.getName() + ".html")), 24 * 1024);
+                    out = new LineWriter(new File(outputDir, "tables/" + table.getName() + ".html"), 24 * 1024, config.getCharset());
                     tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
                 }
 
-                out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.css")));
+                out = new LineWriter(new File(outputDir, "schemaSpy.css"), config.getCharset());
                 StyleSheet.getInstance().write(out);
                 out.close();
-                out = new LineWriter(new FileWriter(new File(outputDir, "schemaSpy.js")));
+                out = new LineWriter(new File(outputDir, "schemaSpy.js"), config.getCharset());
                 JavaScriptFormatter.getInstance().write(out);
                 out.close();
             }
@@ -252,8 +252,8 @@ public class SchemaAnalyzer {
             String xmlName = dbName;
             if (schema != null)
                 xmlName += '.' + schema;
-            // use OutputStream constructor to force it to use UTF8 (per Bernard D'Havé)
-            out = new LineWriter(new FileOutputStream(new File(outputDir, xmlName + ".xml")));
+            
+            out = new LineWriter(new File(outputDir, xmlName + ".xml"), Config.DOT_CHARSET);
             document.getDocumentElement().normalize();
             DOMUtil.printDOM(document, out);
             out.close();
@@ -276,11 +276,11 @@ public class SchemaAnalyzer {
             // also populates the recursiveConstraints collection
             List orderedTables = spy.sortTablesByRI(recursiveConstraints);
 
-            out = new LineWriter(new FileWriter(new File(outputDir, "insertionOrder.txt")), 16 * 1024);
+            out = new LineWriter(new File(outputDir, "insertionOrder.txt"), 16 * 1024, Config.DOT_CHARSET);
             TextFormatter.getInstance().write(orderedTables, false, out);
             out.close();
 
-            out = new LineWriter(new FileWriter(new File(outputDir, "deletionOrder.txt")), 16 * 1024);
+            out = new LineWriter(new File(outputDir, "deletionOrder.txt"), 16 * 1024, Config.DOT_CHARSET);
             Collections.reverse(orderedTables);
             TextFormatter.getInstance().write(orderedTables, false, out);
             out.close();
@@ -290,7 +290,7 @@ public class SchemaAnalyzer {
             File constraintsFile = new File(outputDir, "removeRecursiveConstraints.sql");
             constraintsFile.delete();
             if (!recursiveConstraints.isEmpty()) {
-                out = new LineWriter(new FileWriter(constraintsFile), 4 * 1024);
+                out = new LineWriter(constraintsFile, 4 * 1024);
                 writeRemoveRecursiveConstraintsSql(recursiveConstraints, schema, out);
                 out.close();
             }
@@ -299,7 +299,7 @@ public class SchemaAnalyzer {
             constraintsFile.delete();
 
             if (!recursiveConstraints.isEmpty()) {
-                out = new LineWriter(new FileWriter(constraintsFile), 4 * 1024);
+                out = new LineWriter(constraintsFile, 4 * 1024);
                 writeRestoreRecursiveConstraintsSql(recursiveConstraints, schema, out);
                 out.close();
             }
