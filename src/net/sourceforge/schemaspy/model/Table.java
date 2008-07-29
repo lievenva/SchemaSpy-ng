@@ -581,6 +581,9 @@ public class Table implements Comparable {
      * @throws SQLException 
      */
     protected int fetchNumRows(Database db, Properties properties) throws SQLException {
+        if (properties == null) // some "meta" tables don't have associated properties
+            return 0;
+        
         String sql = properties.getProperty("selectRowCountSql");
         if (sql != null) {
             PreparedStatement stmt = null;
