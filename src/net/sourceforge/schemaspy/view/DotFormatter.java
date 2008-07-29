@@ -51,24 +51,22 @@ public class DotFormatter {
     private void writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
         Pattern regex = getRegexWithoutTable(table, stats);
         Pattern originalRegex = stats.setExclusionPattern(regex);
-        Set tablesWritten = new HashSet();
+        Set<Table> tablesWritten = new HashSet<Table>();
 
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
 
         String graphName = stats.includeImplied() ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph");
         writeHeader(graphName, true, dot);
 
-        Set relatedTables = getImmediateRelatives(table, stats);
+        Set<Table> relatedTables = getImmediateRelatives(table, stats);
 
-        Set connectors = new TreeSet(finder.getRelatedConnectors(table, stats));
+        Set<DotConnector> connectors = new TreeSet<DotConnector>(finder.getRelatedConnectors(table, stats));
         tablesWritten.add(table);
 
-        Map nodes = new TreeMap();
+        Map<Table, DotNode> nodes = new TreeMap<Table, DotNode>();
 
         // write immediate relatives first
-        Iterator iter = relatedTables.iterator();
-        while (iter.hasNext()) {
-            Table relatedTable = (Table)iter.next();
+        for (Table relatedTable : relatedTables) {
             if (!tablesWritten.add(relatedTable))
                 continue; // already written
 
@@ -78,26 +76,20 @@ public class DotFormatter {
 
         // connect the edges that go directly to the target table
         // so they go to the target table's type column instead
-        iter = connectors.iterator();
-        while (iter.hasNext()) {
-            DotConnector connector = (DotConnector)iter.next();
+        for (DotConnector connector : connectors) {
             if (connector.pointsTo(table))
                 connector.connectToParentDetails();
         }
 
-        Set allCousins = new HashSet();
-        Set allCousinConnectors = new TreeSet();
+        Set<Table> allCousins = new HashSet<Table>();
+        Set<DotConnector> allCousinConnectors = new TreeSet<DotConnector>();
 
         // next write 'cousins' (2nd degree of separation)
         if (twoDegreesOfSeparation) {
-            iter = relatedTables.iterator();
-            while (iter.hasNext()) {
-                Table relatedTable = (Table)iter.next();
-                Set cousins = getImmediateRelatives(relatedTable, stats);
+            for (Table relatedTable : relatedTables) {
+                Set<Table> cousins = getImmediateRelatives(relatedTable, stats);
 
-                Iterator cousinsIter = cousins.iterator();
-                while (cousinsIter.hasNext()) {
-                    Table cousin = (Table)cousinsIter.next();
+                for (Table cousin : cousins) {
                     if (!tablesWritten.add(cousin))
                         continue; // already written
 
@@ -113,9 +105,7 @@ public class DotFormatter {
 
         // now directly connect the loose ends to the title of the
         // 2nd degree of separation tables
-        iter = allCousinConnectors.iterator();
-        while (iter.hasNext()) {
-            DotConnector connector = (DotConnector)iter.next();
+        for (DotConnector connector : allCousinConnectors) {
             if (allCousins.contains(connector.getParentTable()))
                 connector.connectToParentTitle();
             if (allCousins.contains(connector.getChildTable()))
@@ -126,23 +116,19 @@ public class DotFormatter {
         nodes.put(table, new DotNode(table, ""));
 
         connectors.addAll(allCousinConnectors);
-        iter = connectors.iterator();
-        while (iter.hasNext()) {
-            DotConnector connector = (DotConnector)iter.next();
+        for (DotConnector connector : connectors) {
             if (connector.isImplied()) {
-                DotNode node = (DotNode)nodes.get(connector.getParentTable());
+                DotNode node = nodes.get(connector.getParentTable());
                 if (node != null)
                     node.setShowImplied(true);
-                node = (DotNode)nodes.get(connector.getChildTable());
+                node = nodes.get(connector.getChildTable());
                 if (node != null)
                     node.setShowImplied(true);
             }
             dot.writeln(connector.toString());
         }
 
-        iter = nodes.values().iterator();
-        while (iter.hasNext()) {
-            DotNode node = (DotNode)iter.next();
+        for (DotNode node : nodes.values()) {
             dot.writeln(node.toString());
             stats.wroteTable(node.getTable());
         }
@@ -152,8 +138,8 @@ public class DotFormatter {
     }
 
     private Pattern getRegexWithoutTable(Table table, WriteStats stats) {
-        Set pieces = new HashSet();
-        List regexes = Arrays.asList(stats.getExclusionPattern().pattern().split("\\)\\|\\("));
+        Set<String> pieces = new HashSet<String>();
+        List<String> regexes = Arrays.asList(stats.getExclusionPattern().pattern().split("\\)\\|\\("));
         for (int i = 0; i < regexes.size(); ++i) {
             String regex = regexes.get(i).toString();
             if (!regex.startsWith("("))
@@ -164,12 +150,10 @@ public class DotFormatter {
         }
 
         // now removed the pieces that match some of the columns of this table
-        Iterator iter = pieces.iterator();
+        Iterator<String> iter = pieces.iterator();
         while (iter.hasNext()) {
-            String regex = iter.next().toString();
-            Iterator columnIter = table.getColumns().iterator();
-            while (columnIter.hasNext()) {
-                TableColumn column = (TableColumn)columnIter.next();
+            String regex = iter.next();
+            for (TableColumn column : table.getColumns()) {
                 Pattern columnPattern = Pattern.compile(regex);
                 if (column.matches(columnPattern)) {
                     iter.remove();
@@ -179,18 +163,17 @@ public class DotFormatter {
         }
 
         StringBuffer pattern = new StringBuffer();
-        iter = pieces.iterator();
-        while (iter.hasNext()) {
+        for (String piece : pieces) {
             if (pattern.length() > 0)
                 pattern.append("|");
-            pattern.append(iter.next());
+            pattern.append(piece);
         }
 
         return Pattern.compile(pattern.toString());
     }
 
-    private Set getImmediateRelatives(Table table, WriteStats stats) {
-        Set relatedColumns = new HashSet();
+    private Set<Table> getImmediateRelatives(Table table, WriteStats stats) {
+        Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
         boolean foundImplied = false;
         Iterator iter = table.getColumns().iterator();
         while (iter.hasNext()) {
@@ -225,12 +208,9 @@ public class DotFormatter {
             }
         }
 
-        Set relatedTables = new HashSet();
-        iter = relatedColumns.iterator();
-        while (iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
+        Set<Table> relatedTables = new HashSet<Table>();
+        for (TableColumn column : relatedColumns)
             relatedTables.add(column.getTable());
-        }
 
         relatedTables.remove(table);
         stats.setWroteImplied(foundImplied);
@@ -267,19 +247,19 @@ public class DotFormatter {
         dot.writeln("  ];");
 }
 
-    public void writeRealRelationships(Database db, Collection tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
+    public void writeRealRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
         boolean oldImplied = stats.setIncludeImplied(false);
         writeRelationships(db, tables, compact, showColumns, stats, dot);
         stats.setIncludeImplied(oldImplied);
     }
 
-    public void writeAllRelationships(Database db, Collection tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
+    public void writeAllRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
         boolean oldImplied = stats.setIncludeImplied(true);
         writeRelationships(db, tables, compact, showColumns, stats, dot);
         stats.setIncludeImplied(oldImplied);
     }
 
-    private void writeRelationships(Database db, Collection tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
+    private void writeRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         DotNodeConfig nodeConfig = showColumns ? new DotNodeConfig(!compact, false) : new DotNodeConfig();
         
@@ -297,33 +277,27 @@ public class DotFormatter {
         }
         writeHeader(graphName, true, dot);
 
-        Map nodes = new TreeMap();
+        Map<Table, DotNode> nodes = new TreeMap<Table, DotNode>();
 
-        Iterator iter = tables.iterator();
-        while (iter.hasNext()) {
-            Table table = (Table)iter.next();
+        for (Table table : tables) {
             if (!table.isOrphan(stats.includeImplied())) {
                 nodes.put(table, new DotNode(table, "tables/", nodeConfig));
             }
         }
-        
-        iter = db.getRemoteTables().iterator();
-        while (iter.hasNext()) {
-            Table table = (Table)iter.next();
+
+        for (Table table : db.getRemoteTables()) {
             nodes.put(table, new DotNode(table, "../" + table.getSchema() + "/tables", nodeConfig));
         }
 
-        Set connectors = new TreeSet();
+        Set<DotConnector> connectors = new TreeSet<DotConnector>();
 
-        iter = nodes.values().iterator();
-        while (iter.hasNext())
-            connectors.addAll(finder.getRelatedConnectors(((DotNode)iter.next()).getTable(), stats));
+        for (DotNode node : nodes.values()) {
+            connectors.addAll(finder.getRelatedConnectors(node.getTable(), stats));
+        }
 
         markExcludedColumns(nodes, stats.getExcludedColumns());
 
-        iter = nodes.values().iterator();
-        while (iter.hasNext()) {
-            DotNode node = (DotNode)iter.next();
+        for (DotNode node : nodes.values()) {
             Table table = node.getTable();
 
             dot.writeln(node.toString());
@@ -333,18 +307,16 @@ public class DotFormatter {
             }
         }
 
-        iter = connectors.iterator();
-        while (iter.hasNext())
-            dot.writeln(iter.next().toString());
+        for (DotConnector connector : connectors) {
+            dot.writeln(connector.toString());
+        }
 
         dot.writeln("}");
     }
 
-    private void markExcludedColumns(Map nodes, Set excludedColumns) {
-        Iterator iter = excludedColumns.iterator();
-        while (iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
-            DotNode node = (DotNode)nodes.get(column.getTable());
+    private void markExcludedColumns(Map<Table, DotNode> nodes, Set<TableColumn> excludedColumns) {
+        for (TableColumn column : excludedColumns) {
+            DotNode node = nodes.get(column.getTable());
             if (node != null) {
                 node.excludeColumn(column);
             }

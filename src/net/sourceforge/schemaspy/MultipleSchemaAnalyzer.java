@@ -22,7 +22,7 @@ public final class MultipleSchemaAnalyzer {
 
     public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
-        List genericCommand = new ArrayList();
+        List<String> genericCommand = new ArrayList<String>();
         genericCommand.add("java");
         genericCommand.add("-Doneofmultipleschemas=true");
         if (new File(loadedFrom).isDirectory()) {
@@ -53,14 +53,14 @@ public final class MultipleSchemaAnalyzer {
 
         for (Iterator iter = populatedSchemas.iterator(); iter.hasNext(); ) {
             String schema = iter.next().toString();
-            List command = new ArrayList(genericCommand);
+            List<String> command = new ArrayList<String>(genericCommand);
             command.add("-s");
             command.add(schema);
             command.add("-o");
             command.add(new File(outputDir, schema).toString());
             System.out.println("Analyzing " + schema);
             System.out.flush();
-            Process java = Runtime.getRuntime().exec((String[])command.toArray(new String[]{}));
+            Process java = Runtime.getRuntime().exec(command.toArray(new String[]{}));
             new ProcessOutputReader(java.getInputStream(), System.out).start();
             new ProcessOutputReader(java.getErrorStream(), System.err).start();
 
@@ -93,8 +93,8 @@ public final class MultipleSchemaAnalyzer {
         }
     }
 
-    private List getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, String user) throws SQLException {
-        List populatedSchemas;
+    private List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, String user) throws SQLException {
+        List<String> populatedSchemas;
 
         if (meta.supportsSchemasInTableDefinitions()) {
             Pattern schemaRegex = Pattern.compile(schemaSpec);

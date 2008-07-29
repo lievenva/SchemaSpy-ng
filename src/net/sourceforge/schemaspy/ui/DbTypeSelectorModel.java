@@ -11,12 +11,12 @@ import net.sourceforge.schemaspy.util.*;
  */
 public class DbTypeSelectorModel extends AbstractListModel implements ComboBoxModel {
     private static final long serialVersionUID = 1L;
-    private List dbConfigs = new ArrayList();
+    private List<DbSpecificConfig> dbConfigs = new ArrayList<DbSpecificConfig>();
     private Object selected;
     
     public DbTypeSelectorModel(String defaultType) {
         Pattern pattern = Pattern.compile(".*/" + defaultType);
-        Set dbTypes = new TreeSet(Config.getBuiltInDatabaseTypes(Config.getLoadedFromJar()));
+        Set<String> dbTypes = new TreeSet<String>(Config.getBuiltInDatabaseTypes(Config.getLoadedFromJar()));
         for (Iterator iter = dbTypes.iterator(); iter.hasNext(); ) {
             String dbType = iter.next().toString();
             DbSpecificConfig config = new DbSpecificConfig(dbType);

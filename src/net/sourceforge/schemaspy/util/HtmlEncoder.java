@@ -10,7 +10,7 @@ import java.util.Map;
  * @author John Currier
  */
 public class HtmlEncoder {
-    private static final Map map = new HashMap();
+    private static final Map<String, String> map = new HashMap<String, String>();
     
     static {
         map.put("<", "&lt;");
@@ -26,7 +26,7 @@ public class HtmlEncoder {
     }
     
     public static String encode(String str) {
-        Object result = map.get(str);
-        return (result == null) ? str : result.toString();
+        String result = map.get(str);
+        return (result == null) ? str : result;
     }
 }

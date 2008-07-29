@@ -14,7 +14,7 @@ public class WriteStats {
     private boolean wroteImplied;
     private boolean wroteTwoDegrees;
     private Pattern exclusionPattern;
-    private final Set excludedColumns = new HashSet();
+    private final Set<TableColumn> excludedColumns = new HashSet<TableColumn>();
 
     public WriteStats(Pattern exclusionPattern, boolean includeImplied) {
         this.exclusionPattern = exclusionPattern;
@@ -65,7 +65,7 @@ public class WriteStats {
         excludedColumns.add(column);
     }
 
-    public Set getExcludedColumns() {
+    public Set<TableColumn> getExcludedColumns() {
         return excludedColumns;
     }
 

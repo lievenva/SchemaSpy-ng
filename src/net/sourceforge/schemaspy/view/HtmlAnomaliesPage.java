@@ -20,14 +20,14 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection tables, List impliedConstraints, boolean hasOrphans, LineWriter out) throws IOException {
+    public void write(Database database, Collection<Table> tables, List<? extends ForeignKeyConstraint> impliedConstraints, boolean hasOrphans, LineWriter out) throws IOException {
         writeHeader(database, hasOrphans, out);
         writeImpliedConstraints(impliedConstraints, out);
-        writeTablesWithoutIndexes(DbAnalyzer.getTablesWithoutIndexes(new HashSet(tables)), out);
-        writeUniqueNullables(DbAnalyzer.getMustBeUniqueNullableColumns(new HashSet(tables)), out);
+        writeTablesWithoutIndexes(DbAnalyzer.getTablesWithoutIndexes(new HashSet<Table>(tables)), out);
+        writeUniqueNullables(DbAnalyzer.getMustBeUniqueNullableColumns(new HashSet<Table>(tables)), out);
         writeTablesWithOneColumn(DbAnalyzer.getTablesWithOneColumn(tables), out);
         writeTablesWithIncrementingColumnNames(DbAnalyzer.getTablesWithIncrementingColumnNames(tables), out);
-        writeDefaultNullStrings(DbAnalyzer.getDefaultNullStringColumns(new HashSet(tables)), out);
+        writeDefaultNullStrings(DbAnalyzer.getDefaultNullStringColumns(new HashSet<Table>(tables)), out);
         writeFooter(out);
     }
 
@@ -44,13 +44,12 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         html.writeln("<ul>");
     }
 
-    private void writeImpliedConstraints(List impliedConstraints, LineWriter out) throws IOException {
+    private void writeImpliedConstraints(List<? extends ForeignKeyConstraint> impliedConstraints, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Columns whose name and type imply a relationship to another table's primary key:</b>");
         int numDetected = 0;
-        Iterator iter = impliedConstraints.iterator();
-        while (iter.hasNext()) {
-            ForeignKeyConstraint impliedConstraint = (ForeignKeyConstraint)iter.next();
+        
+        for (ForeignKeyConstraint impliedConstraint : impliedConstraints) {
             Table childTable = impliedConstraint.getChildTable();
             if (!childTable.isView()) {
                 ++numDetected;
@@ -68,9 +67,8 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            iter = impliedConstraints.iterator();
-            while (iter.hasNext()) {
-                ForeignKeyConstraint impliedConstraint = (ForeignKeyConstraint)iter.next();
+            
+            for (ForeignKeyConstraint impliedConstraint : impliedConstraints) {
                 Table childTable = impliedConstraint.getChildTable();
                 if (!childTable.isView()) {
                     out.writeln(" <tr>");
@@ -106,14 +104,14 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         out.writeln("<p/></li>");
     }
 
-    private void writeUniqueNullables(List uniqueNullables, LineWriter out) throws IOException {
+    private void writeUniqueNullables(List<TableColumn> uniqueNullables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Columns that are flagged as both 'nullable' and 'must be unique':</b>");
         writeColumnBasedAnomaly(uniqueNullables, out);
         out.writeln("<p/></li>");
     }
 
-    private void writeTablesWithoutIndexes(List unindexedTables, LineWriter out) throws IOException {
+    private void writeTablesWithoutIndexes(List<Table> unindexedTables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Tables without indexes:</b>");
         if (!unindexedTables.isEmpty()) {
@@ -130,9 +128,8 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            Iterator iter = unindexedTables.iterator();
-            while (iter.hasNext()) {
-                Table table = (Table)iter.next();
+            
+            for (Table table : unindexedTables) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
                 out.write("<a href='tables/");
@@ -157,7 +154,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         out.writeln("<p/></li>");
     }
 
-    private void writeTablesWithIncrementingColumnNames(List tables, LineWriter out) throws IOException {
+    private void writeTablesWithIncrementingColumnNames(List<Table> tables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Tables with incrementing column names, potentially indicating denormalization:</b>");
         if (!tables.isEmpty()) {
@@ -168,9 +165,8 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            Iterator iter = tables.iterator();
-            while (iter.hasNext()) {
-                Table table = (Table)iter.next();
+            
+            for (Table table : tables) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
                 out.write("<a href='tables/");
@@ -189,7 +185,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         out.writeln("<p/></li>");
     }
 
-    private void writeTablesWithOneColumn(List tables, LineWriter out) throws IOException {
+    private void writeTablesWithOneColumn(List<Table> tables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.write("<b>Tables that contain a single column:</b>");
         if (!tables.isEmpty()) {
@@ -203,9 +199,8 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            Iterator iter = tables.iterator();
-            while (iter.hasNext()) {
-                Table table = (Table)iter.next();
+            
+            for (Table table : tables) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
                 out.write("<a href='tables/");
@@ -225,14 +220,14 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         out.writeln("<p/></li>");
     }
 
-    private void writeDefaultNullStrings(List uniqueNullables, LineWriter out) throws IOException {
+    private void writeDefaultNullStrings(List<TableColumn> uniqueNullables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Columns whose default value is the word 'NULL' or 'null', but the SQL NULL value may have been intended:</b>");
         writeColumnBasedAnomaly(uniqueNullables, out);
         out.writeln("<p/></li>");
     }
 
-    private void writeColumnBasedAnomaly(List columns, LineWriter out) throws IOException {
+    private void writeColumnBasedAnomaly(List<TableColumn> columns, LineWriter out) throws IOException {
         if (!columns.isEmpty()) {
             out.writeln("<table class='dataTable' border='1' rules='groups'>");
             out.writeln("<thead align='left'>");
@@ -241,9 +236,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            Iterator iter = columns.iterator();
-            while (iter.hasNext()) {
-                TableColumn column = (TableColumn)iter.next();
+            for (TableColumn column : columns) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
                 String tableName = column.getTable().getName();

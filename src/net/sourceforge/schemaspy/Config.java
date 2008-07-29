@@ -16,9 +16,9 @@ import net.sourceforge.schemaspy.util.*;
 public class Config
 {
     private static Config instance;
-    private List options;
-    private Map dbSpecificOptions;
-    private Map originalDbSpecificOptions;
+    private List<String> options;
+    private Map<String, String> dbSpecificOptions;
+    private Map<String, String> originalDbSpecificOptions;
     private boolean helpRequired;
     private boolean dbHelpRequired;
     private File outputDir;
@@ -66,7 +66,7 @@ public class Config
     {
         if (instance == null)
             setInstance(this);
-        options = new ArrayList();
+        options = new ArrayList<String>();
     }
 
     /**
@@ -733,7 +733,7 @@ public class Config
         return dbPropertiesLoadedFrom;
     }
 
-    public List getRemainingParameters()
+    public List<String> getRemainingParameters()
     {
         try {
             populate();
@@ -748,14 +748,14 @@ public class Config
      *  
      * @param dbSpecificOptions
      */
-    public void setDbSpecificOptions(Map dbSpecificOptions) {
+    public void setDbSpecificOptions(Map<String, String> dbSpecificOptions) {
         this.dbSpecificOptions = dbSpecificOptions;
-        this.originalDbSpecificOptions = new HashMap(dbSpecificOptions);
+        this.originalDbSpecificOptions = new HashMap<String, String>(dbSpecificOptions);
     }
     
-    public Map getDbSpecificOptions() {
+    public Map<String, String> getDbSpecificOptions() {
         if (dbSpecificOptions ==  null)
-            dbSpecificOptions = new HashMap();
+            dbSpecificOptions = new HashMap<String, String>();
         return dbSpecificOptions;
     }
 
@@ -830,11 +830,10 @@ public class Config
      *            List
      * @return List
      */
-    protected List fixupArgs(List args) {
-        List expandedArgs = new ArrayList();
+    protected List<String> fixupArgs(List<String> args) {
+        List<String> expandedArgs = new ArrayList<String>();
 
-        for (Iterator iter = args.iterator(); iter.hasNext(); ) {
-            String arg = iter.next().toString();
+        for (String arg : args) {
             int indexOfEquals = arg.indexOf('=');
             if (indexOfEquals != -1 && indexOfEquals -1 != arg.indexOf("\\=")) {
                 expandedArgs.add(arg.substring(0, indexOfEquals));
@@ -847,10 +846,9 @@ public class Config
         // some OSes/JVMs do filename expansion with runtime.exec() and some don't,
         // so MultipleSchemaAnalyzer has to surround params with double quotes...
         // strip them here for the OSes/JVMs that don't do anything with the params  
-        List unquotedArgs = new ArrayList();
+        List<String> unquotedArgs = new ArrayList<String>();
         
-        for (Iterator iter = expandedArgs.iterator(); iter.hasNext(); ) {
-            String arg = iter.next().toString();
+        for (String arg : expandedArgs) {
             if (arg.startsWith("\"") && arg.endsWith("\""))  // ".*" becomes .*
                 arg = arg.substring(1, arg.length() - 1);
             unquotedArgs.add(arg);
@@ -876,15 +874,15 @@ public class Config
             for (int i = 0; i < props.length; ++i) {
                 Method readMethod = props[i].getReadMethod();
                 if (readMethod != null)
-                    readMethod.invoke(this, null);
+                    readMethod.invoke(this, (Object[])null);
             }
             
             populating = false;
         }
     }
 
-    public static Set getBuiltInDatabaseTypes(String loadedFromJar) {
-        Set databaseTypes = new TreeSet();
+    public static Set<String> getBuiltInDatabaseTypes(String loadedFromJar) {
+        Set<String> databaseTypes = new TreeSet<String>();
         JarInputStream jar = null;
 
         try {
@@ -970,7 +968,7 @@ public class Config
             for (int i = 0; i < props.length; ++i) {
                 PropertyDescriptor prop = props[i];
                 if (prop.getName().equalsIgnoreCase(paramName)) {
-                    Object result = prop.getReadMethod().invoke(this, null);
+                    Object result = prop.getReadMethod().invoke(this, (Object[])null);
                     return result == null ? null : result.toString();
                 }
             }
@@ -988,8 +986,8 @@ public class Config
      * @return
      * @throws IOException
      */
-    public List asList() throws IOException {
-        List list = new ArrayList();
+    public List<String> asList() throws IOException {
+        List<String> list = new ArrayList<String>();
         
         if (originalDbSpecificOptions != null) {
             Iterator iter = originalDbSpecificOptions.keySet().iterator();
@@ -1088,7 +1086,7 @@ public class Config
         list.add("-maxdet");
         list.add(String.valueOf(getMaxDetailedTables()));
         list.add("-o");
-        list.add(getOutputDir());
+        list.add(getOutputDir().toString());
         
         return list;
     }

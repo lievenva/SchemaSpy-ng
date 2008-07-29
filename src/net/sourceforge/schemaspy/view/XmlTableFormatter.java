@@ -23,10 +23,10 @@ public class XmlTableFormatter {
      * @param schemaNode
      * @param tables
      */
-    public void appendTables(Element schemaNode, Collection tables) {
-        Set byName = new TreeSet(new Comparator() {
-            public int compare(Object object1, Object object2) {
-                return ((Table)object1).getName().compareTo(((Table)object2).getName());
+    public void appendTables(Element schemaNode, Collection<Table> tables) {
+        Set<Table> byName = new TreeSet<Table>(new Comparator<Table>() {
+            public int compare(Table table1, Table table2) {
+                return table1.getName().compareTo(table2.getName());
             }
         });
         byName.addAll(tables);
@@ -34,9 +34,8 @@ public class XmlTableFormatter {
         Document document = schemaNode.getOwnerDocument();
         Element tablesNode = document.createElement("tables");
         schemaNode.appendChild(tablesNode);
-        for (Iterator iter = byName.iterator(); iter.hasNext(); ) {
-            appendTable(tablesNode, (Table)iter.next());
-        }
+        for (Table table : byName)
+            appendTable(tablesNode, table);
     }
     
     private void appendTable(Element tablesNode, Table table) {
@@ -60,8 +59,8 @@ public class XmlTableFormatter {
     }
 
     private void appendColumns(Element tableNode, Table table) {
-        for (Iterator iter = table.getColumns().iterator(); iter.hasNext(); ) {
-            appendColumn(tableNode, (TableColumn)iter.next());
+        for (TableColumn column : table.getColumns()) {
+            appendColumn(tableNode, column);
         }
     }
 
@@ -81,9 +80,7 @@ public class XmlTableFormatter {
             DOMUtil.appendAttribute(columnNode, "defaultValue", String.valueOf(column.getDefaultValue()));
         DOMUtil.appendAttribute(columnNode, "remarks", column.getComments() == null ? "" : column.getComments());
 
-        Iterator iter = column.getChildren().iterator();
-        while (iter.hasNext()) {
-            TableColumn childColumn = (TableColumn)iter.next();
+        for (TableColumn childColumn : column.getChildren()) {
             Node childNode = document.createElement("child");
             columnNode.appendChild(childNode);
             ForeignKeyConstraint constraint = column.getChildConstraint(childColumn);
@@ -94,9 +91,7 @@ public class XmlTableFormatter {
             DOMUtil.appendAttribute(childNode, "onDeleteCascade", String.valueOf(constraint.isOnDeleteCascade()));
         }
 
-        iter = column.getParents().iterator();
-        while (iter.hasNext()) {
-            TableColumn parentColumn = (TableColumn)iter.next();
+        for (TableColumn parentColumn : column.getParents()) {
             Node parentNode = document.createElement("parent");
             columnNode.appendChild(parentNode);
             ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn);
@@ -140,9 +135,9 @@ public class XmlTableFormatter {
 
     private void appendIndexes(Node tableNode, Table table) {
         boolean showId = table.getId() != null;
-        Set indexes = table.getIndexes();
+        Set<TableIndex> indexes = table.getIndexes();
         if (indexes != null && !indexes.isEmpty()) {
-            indexes = new TreeSet(indexes); // sort primary keys first
+            indexes = new TreeSet<TableIndex>(indexes); // sort primary keys first
             Document document = tableNode.getOwnerDocument();
 
             for (Iterator iter = indexes.iterator(); iter.hasNext(); ) {

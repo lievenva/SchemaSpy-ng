@@ -27,12 +27,11 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    public Set getRelatedConnectors(Table table, WriteStats stats) {
-        Set relationships = new HashSet();
+    public Set<DotConnector> getRelatedConnectors(Table table, WriteStats stats) {
+        Set<DotConnector> relationships = new HashSet<DotConnector>();
 
-        Iterator iter = table.getColumns().iterator();
-        while (iter.hasNext()) {
-            relationships.addAll(getRelatedConnectors((TableColumn)iter.next(), null, stats));
+        for (TableColumn column : table.getColumns()) {
+            relationships.addAll(getRelatedConnectors(column, null, stats));
         }
 
         return relationships;
@@ -46,17 +45,15 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    public Set getRelatedConnectors(Table table1, Table table2, WriteStats stats) {
-        Set relationships = new HashSet();
+    public Set<DotConnector> getRelatedConnectors(Table table1, Table table2, WriteStats stats) {
+        Set<DotConnector> relationships = new HashSet<DotConnector>();
 
-        Iterator iter = table1.getColumns().iterator();
-        while (iter.hasNext()) {
-            relationships.addAll(getRelatedConnectors((TableColumn)iter.next(), table2, stats));
+        for (TableColumn column : table1.getColumns()) {
+            relationships.addAll(getRelatedConnectors(column, table2, stats));
         }
 
-        iter = table2.getColumns().iterator();
-        while (iter.hasNext()) {
-            relationships.addAll(getRelatedConnectors((TableColumn)iter.next(), table1, stats));
+        for (TableColumn column : table2.getColumns()) {
+            relationships.addAll(getRelatedConnectors(column, table1, stats));
         }
 
         return relationships;
@@ -68,13 +65,12 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    private Set getRelatedConnectors(TableColumn column, Table targetTable, WriteStats stats) {
-        Set relatedConnectors = new HashSet();
+    private Set<DotConnector> getRelatedConnectors(TableColumn column, Table targetTable, WriteStats stats) {
+        Set<DotConnector> relatedConnectors = new HashSet<DotConnector>();
         if (DotConnector.isExcluded(column, stats))
             return relatedConnectors;
 
-        for (Iterator iter = column.getParents().iterator(); iter.hasNext(); ) {
-            TableColumn parentColumn = (TableColumn)iter.next();
+        for (TableColumn parentColumn : column.getParents()) {
             Table parentTable = parentColumn.getTable();
             if (targetTable != null && parentTable != targetTable)
                 continue;
@@ -86,8 +82,7 @@ public class DotConnectorFinder {
             }
         }
 
-        for (Iterator iter = column.getChildren().iterator(); iter.hasNext(); ) {
-            TableColumn childColumn = (TableColumn)iter.next();
+        for (TableColumn childColumn : column.getChildren()) {
             Table childTable = childColumn.getTable();
             if (targetTable != null && childTable != targetTable)
                 continue;

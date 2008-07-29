@@ -63,13 +63,11 @@ public class SchemaAnalyzer {
             }
 
             if (config.isEvaluateAllEnabled()) {
-                List args = config.asList();
-                Iterator iter = urlBuilder.getOptions().iterator();
-                while (iter.hasNext()) {
-                    DbSpecificOption option = (DbSpecificOption)iter.next();
+                List<String> args = config.asList();
+                for (DbSpecificOption option : urlBuilder.getOptions()) {
                     if (!args.contains("-" + option.getName())) {
                         args.add("-" + option.getName());
-                        args.add(option.getValue());
+                        args.add(option.getValue().toString());
                     }
                 }
                     
@@ -105,7 +103,7 @@ public class SchemaAnalyzer {
             Database db = spy.getDatabase();
 
             LineWriter out;
-            Collection tables = new ArrayList(db.getTables());
+            Collection<Table> tables = new ArrayList<Table>(db.getTables());
             tables.addAll(db.getViews());
 
             if (tables.isEmpty()) {
@@ -154,13 +152,13 @@ public class SchemaAnalyzer {
 
                 // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
                 // here unless they want that behavior
-                List impliedConstraints = null;
+                List<ImpliedForeignKeyConstraint> impliedConstraints = null;
                 if (includeImpliedConstraints)
                     impliedConstraints = DbAnalyzer.getImpliedConstraints(tables);
                 else
-                    impliedConstraints = new ArrayList();
+                    impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
 
-                List orphans = DbAnalyzer.getOrphans(tables);
+                List<Table> orphans = DbAnalyzer.getOrphans(tables);
                 boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
 
                 System.out.print(".");
@@ -201,7 +199,7 @@ public class SchemaAnalyzer {
                 out.close();
 
                 System.out.print(".");
-                List constraints = DbAnalyzer.getForeignKeyConstraints(tables);
+                List<ForeignKeyConstraint> constraints = DbAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new File(outputDir, "constraints.html"), 256 * 1024, config.getCharset());
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
@@ -271,11 +269,11 @@ public class SchemaAnalyzer {
             rootNode = null;
             urlBuilder = null;
             
-            List recursiveConstraints = new ArrayList();
+            List<ForeignKeyConstraint> recursiveConstraints = new ArrayList<ForeignKeyConstraint>();
 
             // side effect is that the RI relationships get trashed
             // also populates the recursiveConstraints collection
-            List orderedTables = spy.sortTablesByRI(recursiveConstraints);
+            List<Table> orderedTables = spy.sortTablesByRI(recursiveConstraints);
 
             out = new LineWriter(new File(outputDir, "insertionOrder.txt"), 16 * 1024, Config.DOT_CHARSET);
             TextFormatter.getInstance().write(orderedTables, false, out);
@@ -369,8 +367,8 @@ public class SchemaAnalyzer {
         System.out.println("Using database properties:");
         System.out.println("    " + config.getDbPropertiesLoadedFrom());
 
-        List classpath = new ArrayList();
-        List invalidClasspathEntries = new ArrayList();
+        List<URL> classpath = new ArrayList<URL>();
+        List<File> invalidClasspathEntries = new ArrayList<File>();
         StringTokenizer tokenizer = new StringTokenizer(driverPath, File.pathSeparator);
         while (tokenizer.hasMoreTokens()) {
             File pathElement = new File(tokenizer.nextToken());
@@ -380,7 +378,7 @@ public class SchemaAnalyzer {
                 invalidClasspathEntries.add(pathElement);
         }
 
-        URLClassLoader loader = new URLClassLoader((URL[])classpath.toArray(new URL[classpath.size()]));
+        URLClassLoader loader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
         Driver driver = null;
         try {
             driver = (Driver)Class.forName(driverClass, true, loader).newInstance();

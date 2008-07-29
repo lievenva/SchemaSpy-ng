@@ -3,7 +3,6 @@ package net.sourceforge.schemaspy.view;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import net.sourceforge.schemaspy.Config;
@@ -22,15 +21,14 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         return instance;
     }
 
-    public boolean write(Database db, List orphanTables, File graphDir, LineWriter html) throws IOException {
+    public boolean write(Database db, List<Table> orphanTables, File graphDir, LineWriter html) throws IOException {
         Dot dot = getDot();
         if (dot == null)
             return false;
 
-        Set orphansWithImpliedRelationships = new HashSet();
-        Iterator iter = orphanTables.iterator();
-        while (iter.hasNext()) {
-            Table table = (Table)iter.next();
+        Set<Table> orphansWithImpliedRelationships = new HashSet<Table>();
+        
+        for (Table table : orphanTables) {
             if (!table.isOrphan(true)){
                 orphansWithImpliedRelationships.add(table);
             }
@@ -41,10 +39,8 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         html.writeln("<a name='graph'>");
         try {
             StringBuffer maps = new StringBuffer(64 * 1024);
-            
-            iter = orphanTables.iterator();
-            while (iter.hasNext()) {
-                Table table = (Table)iter.next();
+
+            for (Table table : orphanTables) {
                 String dotBaseFilespec = table.getName();
 
                 File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");

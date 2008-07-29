@@ -24,9 +24,9 @@ public class HtmlColumnsPage extends HtmlFormatter {
      * 
      * @return
      */
-    public List getColumnInfos()
+    public List<ColumnInfo> getColumnInfos()
     {
-        List columns = new ArrayList();
+        List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
         
         columns.add(new ColumnInfo("Column", new ByColumnComparator()));
         columns.add(new ColumnInfo("Table", new ByTableComparator()));
@@ -44,9 +44,9 @@ public class HtmlColumnsPage extends HtmlFormatter {
     public class ColumnInfo
     {
         private final String columnName;
-        private final Comparator comparator;
+        private final Comparator<TableColumn> comparator;
         
-        private ColumnInfo(String columnName, Comparator comparator)
+        private ColumnInfo(String columnName, Comparator<TableColumn> comparator)
         {
             this.columnName = columnName;
             this.comparator = comparator;
@@ -64,19 +64,20 @@ public class HtmlColumnsPage extends HtmlFormatter {
             return "columns.by" + columnName + ".html";
         }
 
-        private Comparator getComparator() {
+        private Comparator<TableColumn> getComparator() {
             return comparator;
         }
-        
+
+        @Override
         public String toString() {
             return getLocation();
         }
     }
 
     public void write(Database database, Collection tables, ColumnInfo columnInfo, boolean showOrphansGraph, LineWriter html) throws IOException {
-        Set columns = new TreeSet(columnInfo.getComparator());
-        Set primaryColumns = new HashSet();
-        Set indexedColumns = new HashSet();
+        Set<TableColumn> columns = new TreeSet<TableColumn>(columnInfo.getComparator());
+        Set<TableColumn> primaryColumns = new HashSet<TableColumn>();
+        Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
 
         Iterator iter = tables.iterator();
         while (iter.hasNext()) {
@@ -218,10 +219,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         return true;
     }
     
-    private class ByColumnComparator implements Comparator {
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+    private class ByColumnComparator implements Comparator<TableColumn> {
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.getName().compareTo(column2.getName());
             if (rc == 0)
                 rc = column1.getTable().getName().compareTo(column2.getTable().getName());
@@ -229,10 +228,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
     
-    private class ByTableComparator implements Comparator {
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+    private class ByTableComparator implements Comparator<TableColumn> {
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
             if (rc == 0)
                 rc = column1.getName().compareTo(column2.getName());
@@ -240,12 +237,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class ByTypeComparator implements Comparator {
-        private Comparator bySize = new BySizeComparator();
+    private class ByTypeComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> bySize = new BySizeComparator();
         
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.getType().compareTo(column2.getType());
             if (rc == 0) {
                 rc = bySize.compare(column1, column2);
@@ -254,12 +249,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class BySizeComparator implements Comparator {
-        private Comparator byColumn = new ByColumnComparator();
+    private class BySizeComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> byColumn = new ByColumnComparator();
         
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.getLength() - column2.getLength();
             if (rc == 0) {
                 rc = column1.getDecimalDigits() - column2.getDecimalDigits();
@@ -270,12 +263,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class ByNullableComparator implements Comparator {
-        private Comparator byColumn = new ByColumnComparator();
+    private class ByNullableComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> byColumn = new ByColumnComparator();
 
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.isNullable() == column2.isNullable() ? 0 : column1.isNullable() ? -1 : 1;
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
@@ -283,12 +274,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class ByAutoUpdateComparator implements Comparator {
-        private Comparator byColumn = new ByColumnComparator();
+    private class ByAutoUpdateComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> byColumn = new ByColumnComparator();
 
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.isAutoUpdated() == column2.isAutoUpdated() ? 0 : column1.isAutoUpdated() ? -1 : 1;
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
@@ -296,12 +285,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class ByDefaultValueComparator implements Comparator {
-        private Comparator byColumn = new ByColumnComparator();
+    private class ByDefaultValueComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> byColumn = new ByColumnComparator();
 
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = String.valueOf(column1.getDefaultValue()).compareTo(String.valueOf(column2.getDefaultValue()));
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
@@ -309,14 +296,12 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class ByChildrenComparator implements Comparator {
-        private Comparator byColumn = new ByColumnComparator();
+    private class ByChildrenComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> byColumn = new ByColumnComparator();
 
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
-            Set childTables1 = new TreeSet();
-            Set childTables2 = new TreeSet();
+        public int compare(TableColumn column1, TableColumn column2) {
+            Set<String> childTables1 = new TreeSet<String>();
+            Set<String> childTables2 = new TreeSet<String>();
             
             Iterator iter = column1.getChildren().iterator();
             while (iter.hasNext()) {
@@ -339,14 +324,12 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    private class ByParentsComparator implements Comparator {
-        private Comparator byColumn = new ByColumnComparator();
+    private class ByParentsComparator implements Comparator<TableColumn> {
+        private Comparator<TableColumn> byColumn = new ByColumnComparator();
 
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
-            Set parentTables1 = new TreeSet();
-            Set parentTables2 = new TreeSet();
+        public int compare(TableColumn column1, TableColumn column2) {
+            Set<String> parentTables1 = new TreeSet<String>();
+            Set<String> parentTables2 = new TreeSet<String>();
             
             Iterator iter = column1.getParents().iterator();
             while (iter.hasNext()) {

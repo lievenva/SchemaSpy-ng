@@ -10,11 +10,11 @@ import net.sourceforge.schemaspy.util.*;
 
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
-    private Set keywords = null;
+    private Set<String> keywords = null;
     private final boolean encodeComments = Config.getInstance().isEncodeCommentsEnabled();
     private final boolean commentsInitiallyDisplayed = Config.getInstance().isDisplayCommentsIntiallyEnabled();
 
-    private Map defaultValueAliases = new HashMap();
+    private Map<String, String> defaultValueAliases = new HashMap<String, String>();
     {
         defaultValueAliases.put("CURRENT TIMESTAMP", "now"); // DB2
         defaultValueAliases.put("CURRENT TIME", "now");      // DB2
@@ -93,17 +93,14 @@ public class HtmlTablePage extends HtmlFormatter {
         HtmlColumnsPage.getInstance().writeMainTableHeader(table.getId() != null, null, out);
 
         out.writeln("<tbody valign='top'>");
-        Set primaries = new HashSet(table.getPrimaryColumns());
-        Set indexedColumns = new HashSet();
-        Iterator indexIter = table.getIndexes().iterator();
-        while (indexIter.hasNext()) {
-            TableIndex index = (TableIndex)indexIter.next();
+        Set<TableColumn> primaries = new HashSet<TableColumn>(table.getPrimaryColumns());
+        Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
+        for (TableIndex index : table.getIndexes()) {
             indexedColumns.addAll(index.getColumns());
         }
         
         boolean showIds = table.getId() != null;
-        for (Iterator iter = table.getColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : table.getColumns()) {
             onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, showIds, out);
         }
         out.writeln("</table>");
@@ -111,7 +108,7 @@ public class HtmlTablePage extends HtmlFormatter {
         return onCascadeDelete;
     }
 
-    public boolean writeColumn(TableColumn column, String tableName, Set primaries, Set indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
+    public boolean writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
         out.writeln("<tr>");
         if (showIds) {
             out.write(" <td class='detail' align='right'>");
@@ -202,7 +199,7 @@ public class HtmlTablePage extends HtmlFormatter {
      */
     private boolean writeRelatives(TableColumn baseRelative, boolean dumpParents, String path, LineWriter out) throws IOException {
         boolean onCascadeDelete = false;
-        Set columns = dumpParents ? baseRelative.getParents() : baseRelative.getChildren();
+        Set<TableColumn> columns = dumpParents ? baseRelative.getParents() : baseRelative.getChildren();
         final int numColumns = columns.size();
 
         if (numColumns > 0) {
@@ -210,8 +207,7 @@ public class HtmlTablePage extends HtmlFormatter {
             out.writeln("  <table border='0' width='100%' cellspacing='0' cellpadding='0'>");
         }
 
-        for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns) {
             String columnTableName = column.getTable().getName();
             ForeignKeyConstraint constraint = dumpParents ? column.getChildConstraint(baseRelative) : column.getParentConstraint(baseRelative);
             if (constraint.isImplied())
@@ -287,7 +283,7 @@ public class HtmlTablePage extends HtmlFormatter {
 
     private void writeIndexes(Table table, LineWriter out) throws IOException {
         boolean showId = table.getId() != null;
-        Set indexes = table.getIndexes();
+        Set<TableIndex> indexes = table.getIndexes();
         if (indexes != null && !indexes.isEmpty()) {
             // see if we've got any strangeness so we can have the correct number of colgroups
             boolean containsAnomalies = false;
@@ -311,7 +307,7 @@ public class HtmlTablePage extends HtmlFormatter {
             out.writeln("</thead>");
             out.writeln("<tbody>");
 
-            indexes = new TreeSet(indexes); // sort primary keys first
+            indexes = new TreeSet<TableIndex>(indexes); // sort primary keys first
 
             for (Iterator iter = indexes.iterator(); iter.hasNext(); ) {
                 TableIndex index = (TableIndex)iter.next();
@@ -372,15 +368,12 @@ public class HtmlTablePage extends HtmlFormatter {
     private void writeView(Table table, Database db, LineWriter out) throws IOException {
         String sql;
         if (table.isView() && (sql = table.getViewSql()) != null) {
-            Map tables = new CaseInsensitiveMap();
-            for (Iterator iter = db.getTables().iterator(); iter.hasNext(); ) {
-                Table t = (Table)iter.next();
+            Map<String, Table> tables = new CaseInsensitiveMap<Table>();
+            
+            for (Table t : db.getTables())
                 tables.put(t.getName(), t);
-            }
-            for (Iterator iter = db.getViews().iterator(); iter.hasNext(); ) {
-                Table t = (Table)iter.next();
-                tables.put(t.getName(), t);
-            }
+            for (View v : db.getViews())
+                tables.put(v.getName(), v);
             
             out.writeln("<div class='indent'>");
             out.writeln("View SQL:");
@@ -398,7 +391,7 @@ public class HtmlTablePage extends HtmlFormatter {
                     out.write(nextToken);
                     out.write("</b>");
                 } else {
-                    Table t = (Table)tables.get(nextToken);
+                    Table t = tables.get(nextToken);
                     if (t != null) {
                         out.write("<a href='");
                         out.write(t.getName());
@@ -423,9 +416,9 @@ public class HtmlTablePage extends HtmlFormatter {
      *
      * @return Object
      */
-    private Set getKeywords(DatabaseMetaData meta) {
+    private Set<String> getKeywords(DatabaseMetaData meta) {
         if (keywords == null) {
-            keywords = new HashSet(Arrays.asList(new String[] {
+            keywords = new HashSet<String>(Arrays.asList(new String[] {
                 "ABSOLUTE", "ACTION", "ADD", "ALL", "ALLOCATE", "ALTER", "AND",
                 "ANY", "ARE", "AS", "ASC", "ASSERTION", "AT", "AUTHORIZATION", "AVG",
                 "BEGIN", "BETWEEN", "BIT", "BIT_LENGTH", "BOTH", "BY",

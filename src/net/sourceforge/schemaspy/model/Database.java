@@ -11,13 +11,13 @@ public class Database {
     private final String databaseName;
     private final String schema;
     private final String description;
-    private final Map tables = new CaseInsensitiveMap();
-    private final Map views = new CaseInsensitiveMap();
-    private final Map remoteTables = new CaseInsensitiveMap(); // key: schema.tableName value: RemoteTable
+    private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
+    private final Map<String, View> views = new CaseInsensitiveMap<View>();
+    private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName value: RemoteTable
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
-    private Set sqlKeywords;
+    private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
 
     public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads) throws SQLException, MissingResourceException {
@@ -46,15 +46,15 @@ public class Database {
         return description;
     }
 
-    public Collection getTables() {
+    public Collection<Table> getTables() {
         return tables.values();
     }
 
-    public Collection getViews() {
+    public Collection<View> getViews() {
         return views.values();
     }
     
-    public Collection getRemoteTables() {
+    public Collection<Table> getRemoteTables() {
         return remoteTables.values();
     }
     
@@ -170,7 +170,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName);
+                    Table table = tables.get(tableName);
                     if (table != null)
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
@@ -200,7 +200,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName);
+                    Table table = tables.get(tableName);
                     if (table != null)
                         table.setId(rs.getObject("table_id"));
                 }
@@ -229,7 +229,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName);
+                    Table table = tables.get(tableName);
                     if (table != null) {
                         TableIndex index = table.getIndex(rs.getString("index_name"));
                         if (index != null)
@@ -261,7 +261,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName);
+                    Table table = tables.get(tableName);
                     if (table != null)
                         table.setComments(rs.getString("comments"));
                 }
@@ -291,7 +291,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = (Table)tables.get(tableName);
+                    Table table = tables.get(tableName);
                     if (table != null) {
                         TableColumn column = table.getColumn(rs.getString("column_name"));
                         if (column != null)
@@ -327,7 +327,7 @@ public class Database {
      */
     public PreparedStatement prepareStatement(String sql, String tableName) throws SQLException {
         StringBuffer sqlBuf = new StringBuffer(sql);
-        List sqlParams = getSqlParams(sqlBuf, tableName); // modifies sqlBuf
+        List<String> sqlParams = getSqlParams(sqlBuf, tableName); // modifies sqlBuf
         PreparedStatement stmt = getConnection().prepareStatement(sqlBuf.toString());
 
         try {
@@ -344,7 +344,7 @@ public class Database {
     
     public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties) throws SQLException {
         String fullName = remoteSchema + "." + remoteTableName;
-        Table remoteTable = (Table)remoteTables.get(fullName);
+        Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
             remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties);
             remoteTable.connectForeignKeys(tables, this, properties);
@@ -360,7 +360,7 @@ public class Database {
      * @return
      * @throws SQLException
      */
-    public Set getSqlKeywords() throws SQLException {
+    public Set<String> getSqlKeywords() throws SQLException {
         if (sqlKeywords == null) {
             // from http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt:
             String[] sql92Keywords =            
@@ -429,7 +429,7 @@ public class Database {
 
             String[] nonSql92Keywords = getMetaData().getSQLKeywords().toUpperCase().split(",\\s*");
 
-            sqlKeywords = new HashSet();
+            sqlKeywords = new HashSet<String>();
             sqlKeywords.addAll(Arrays.asList(sql92Keywords));
             sqlKeywords.addAll(Arrays.asList(nonSql92Keywords));
         }
@@ -486,8 +486,8 @@ public class Database {
      *
      * @see #prepareStatement(String, String)
      */
-    private List getSqlParams(StringBuffer sql, String tableName) {
-        Map namedParams = new HashMap();
+    private List<String> getSqlParams(StringBuffer sql, String tableName) {
+        Map<String, String> namedParams = new HashMap<String, String>();
         String schema = getSchema();
         if (schema == null)
             schema = getName(); // some 'schema-less' db's treat the db name like a schema (unusual case)
@@ -498,11 +498,11 @@ public class Database {
             namedParams.put(":view", tableName); // alias for :table
         }
 
-        List sqlParams = new ArrayList();
+        List<String> sqlParams = new ArrayList<String>();
         int nextColon = sql.indexOf(":");
         while (nextColon != -1) {
             String paramName = new StringTokenizer(sql.substring(nextColon), " ,").nextToken();
-            String paramValue = (String)namedParams.get(paramName);
+            String paramValue = namedParams.get(paramName);
             if (paramValue == null)
                 throw new IllegalArgumentException("Unexpected named parameter '" + paramName + "' found in SQL '" + sql + "'");
             sqlParams.add(paramValue);
@@ -526,7 +526,7 @@ public class Database {
                     System.out.print('.');
                     
                     try {
-                        Table view = new View(this, rs, properties.getProperty("selectViewSql"));
+                        View view = new View(this, rs, properties.getProperty("selectViewSql"));
                         
                         if (include.matcher(view.getName()).matches())
                             views.put(view.getName(), view);
@@ -546,9 +546,9 @@ public class Database {
     }
 
     private void connectTables(Properties properties) throws SQLException {
-        Iterator iter = tables.values().iterator();
+        Iterator<Table> iter = tables.values().iterator();
         while (iter.hasNext()) {
-            Table table = (Table)iter.next();
+            Table table = iter.next();
             table.connectForeignKeys(tables, this, properties);
         }
     }
@@ -582,7 +582,7 @@ public class Database {
      * Multi-threaded implementation of a class that creates tables
      */
     private class ThreadedTableCreator extends TableCreator {
-        private final Set threads = new HashSet();
+        private final Set<Thread> threads = new HashSet<Thread>();
         private final int maxThreads;
 
         ThreadedTableCreator(int maxThreads) {
@@ -628,11 +628,11 @@ public class Database {
                 Thread thread;
 
                 synchronized (threads) {
-                    Iterator iter = threads.iterator();
+                    Iterator<Thread> iter = threads.iterator();
                     if (!iter.hasNext())
                         break;
 
-                    thread = (Thread)iter.next();
+                    thread = iter.next();
                 }
 
                 try {

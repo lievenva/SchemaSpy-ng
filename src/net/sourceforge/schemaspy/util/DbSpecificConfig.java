@@ -10,7 +10,7 @@ import net.sourceforge.schemaspy.*;
 public class DbSpecificConfig {
     private final String type;
     private       String description;
-    private final List options = new ArrayList();
+    private final List<DbSpecificOption> options = new ArrayList<DbSpecificOption>();
     private final Config config = new Config();
     
     public DbSpecificConfig(final String dbType) {
@@ -71,7 +71,7 @@ public class DbSpecificConfig {
      * 
      * @return
      */
-    public List getOptions() {
+    public List<DbSpecificOption> getOptions() {
         return options;
     }
     

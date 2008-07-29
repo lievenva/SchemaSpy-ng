@@ -19,8 +19,8 @@ public class Dot {
     private final String lineSeparator = System.getProperty("line.separator");
     private String format = "png";
     private String renderer;
-    private Set validatedRenderers = Collections.synchronizedSet(new HashSet());
-    private Set invalidatedRenderers = Collections.synchronizedSet(new HashSet());
+    private Set<String> validatedRenderers = Collections.synchronizedSet(new HashSet<String>());
+    private Set<String> invalidatedRenderers = Collections.synchronizedSet(new HashSet<String>());
 
     private Dot() {
         String versionText = null;

@@ -1,8 +1,14 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.util.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class StyleSheet {
     private static StyleSheet instance;
@@ -14,7 +20,7 @@ public class StyleSheet {
     private String indexedColumnBackgroundColor;
     private String selectedTableBackgroundColor;
     private String excludedColumnBackgroundColor;
-    private final List ids = new ArrayList();
+    private final List<String> ids = new ArrayList<String>();
 
     private StyleSheet(BufferedReader cssReader) throws IOException {
         String lineSeparator = System.getProperty("line.separator");
@@ -43,21 +49,21 @@ public class StyleSheet {
                 id = token.toLowerCase();
                 ids.add(id);
             } else {
-                Map attribs = parseAttributes(token);
+                Map<String, String> attribs = parseAttributes(token);
                 if (id.equals(".content"))
-                    bodyBackgroundColor = attribs.get("background").toString();
+                    bodyBackgroundColor = attribs.get("background");
                 else if (id.equals("th"))
-                    tableHeadBackgroundColor = attribs.get("background-color").toString();
+                    tableHeadBackgroundColor = attribs.get("background-color");
                 else if (id.equals("td"))
-                    tableBackgroundColor = attribs.get("background-color").toString();
+                    tableBackgroundColor = attribs.get("background-color");
                 else if (id.equals(".primarykey"))
-                    primaryKeyBackgroundColor = attribs.get("background").toString();
+                    primaryKeyBackgroundColor = attribs.get("background");
                 else if (id.equals(".indexedcolumn"))
-                    indexedColumnBackgroundColor = attribs.get("background").toString();
+                    indexedColumnBackgroundColor = attribs.get("background");
                 else if (id.equals(".selectedtable"))
-                    selectedTableBackgroundColor = attribs.get("background").toString();
+                    selectedTableBackgroundColor = attribs.get("background");
                 else if (id.equals(".excludedcolumn"))
-                    excludedColumnBackgroundColor = attribs.get("background").toString();
+                    excludedColumnBackgroundColor = attribs.get("background");
                 id = null;
             }
         }
@@ -71,8 +77,8 @@ public class StyleSheet {
         instance = new StyleSheet(cssReader);
     }
 
-    private Map parseAttributes(String data) {
-        Map attribs = new HashMap();
+    private Map<String, String> parseAttributes(String data) {
+        Map<String, String> attribs = new HashMap<String, String>();
 
         try {
             StringTokenizer attrTokenizer = new StringTokenizer(data, ";");

@@ -8,8 +8,8 @@ public class TableIndex implements Comparable {
     private final boolean isUnique;
     private Object id;
     private boolean isPrimary;
-    private final List columns = new ArrayList();
-    private final List columnsAscending = new ArrayList(); // Booleans for whether colums are ascending order
+    private final List<TableColumn> columns = new ArrayList<TableColumn>();
+    private final List<Boolean> columnsAscending = new ArrayList<Boolean>(); // for whether colums are ascending order
 
     /**
      * @param rs
@@ -86,7 +86,7 @@ public class TableIndex implements Comparable {
         return buf.toString();
     }
 
-    public List getColumns() {
+    public List<TableColumn> getColumns() {
         return Collections.unmodifiableList(columns);
     }
 
@@ -115,7 +115,7 @@ public class TableIndex implements Comparable {
      * @return
      */
     public boolean isAscending(TableColumn column) {
-        return ((Boolean)columnsAscending.get(columns.indexOf(column))).booleanValue();
+        return columnsAscending.get(columns.indexOf(column)).booleanValue();
     }
 
     /**

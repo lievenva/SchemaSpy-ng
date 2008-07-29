@@ -16,8 +16,8 @@ public class TableColumn {
     private       boolean isAutoUpdated;
     private final Object defaultValue;
     private       String comments;
-    private final Map parents = new HashMap();
-    private final Map children = new TreeMap(new ColumnComparator());
+    private final Map<TableColumn, ForeignKeyConstraint> parents = new HashMap<TableColumn, ForeignKeyConstraint>();
+    private final Map<TableColumn, ForeignKeyConstraint> children = new TreeMap<TableColumn, ForeignKeyConstraint>(new ColumnComparator());
 
     /**
      * Create a column associated with a table.
@@ -95,9 +95,7 @@ public class TableColumn {
     }
 
     public boolean isUnique() {
-        Iterator iter = table.getIndexes().iterator();
-        while (iter.hasNext()) {
-            TableIndex index = (TableIndex)iter.next();
+        for (TableIndex index : table.getIndexes()) {
             if (index.isUnique()) {
                 List indexColumns = index.getColumns();
                 if (indexColumns.size() == 1 && indexColumns.contains(this)) {
@@ -153,7 +151,7 @@ public class TableColumn {
         parents.clear();
     }
 
-    public Set getParents() {
+    public Set<TableColumn> getParents() {
         return parents.keySet();
     }
 
@@ -161,7 +159,7 @@ public class TableColumn {
      * returns the constraint that connects this column to the specified column (this 'child' column to specified 'parent' column)
      */
     public ForeignKeyConstraint getParentConstraint(TableColumn parent) {
-        return (ForeignKeyConstraint)parents.get(parent);
+        return parents.get(parent);
     }
 
     /**
@@ -169,9 +167,8 @@ public class TableColumn {
      * @return
      */
     public ForeignKeyConstraint removeAParentFKConstraint() {
-        for (Iterator iter = parents.keySet().iterator(); iter.hasNext(); ) {
-            TableColumn relatedColumn = (TableColumn)iter.next();
-            ForeignKeyConstraint constraint = (ForeignKeyConstraint)parents.remove(relatedColumn);
+        for (TableColumn relatedColumn : parents.keySet()) {
+            ForeignKeyConstraint constraint = parents.remove(relatedColumn);
             relatedColumn.removeChild(this);
             return constraint;
         }
@@ -180,9 +177,8 @@ public class TableColumn {
     }
 
     public ForeignKeyConstraint removeAChildFKConstraint() {
-        for (Iterator iter = children.keySet().iterator(); iter.hasNext(); ) {
-            TableColumn relatedColumn = (TableColumn)iter.next();
-            ForeignKeyConstraint constraint = (ForeignKeyConstraint)children.remove(relatedColumn);
+        for (TableColumn relatedColumn : children.keySet()) {
+            ForeignKeyConstraint constraint = children.remove(relatedColumn);
             relatedColumn.removeParent(this);
             return constraint;
         }
@@ -200,10 +196,8 @@ public class TableColumn {
     }
 
     public void unlinkChildren() {
-        for (Iterator iter = children.keySet().iterator(); iter.hasNext(); ) {
-            TableColumn child = (TableColumn)iter.next();
+        for (TableColumn child : children.keySet())
             child.removeParent(this);
-        }
         children.clear();
     }
 
@@ -212,7 +206,7 @@ public class TableColumn {
      * references this <code>TableColumn</code>.
      * @return Set
      */
-    public Set getChildren() {
+    public Set<TableColumn> getChildren() {
         return children.keySet();
     }
 
@@ -221,7 +215,7 @@ public class TableColumn {
      * (specified 'child' to this 'parent' column)
      */
     public ForeignKeyConstraint getChildConstraint(TableColumn child) {
-        return (ForeignKeyConstraint)children.get(child);
+        return children.get(child);
     }
 
     /**
@@ -241,10 +235,8 @@ public class TableColumn {
         return getName();
     }
 
-    private class ColumnComparator implements Comparator {
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+    private class ColumnComparator implements Comparator<TableColumn> {
+        public int compare(TableColumn column1, TableColumn column2) {
             int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
             if (rc == 0)
                 rc = column1.getName().compareTo(column2.getName());

@@ -6,9 +6,9 @@ import java.util.*;
 public class ForeignKeyConstraint {
     private final String name;
     private Table parentTable;
-    private final List parentColumns = new ArrayList();
+    private final List<TableColumn> parentColumns = new ArrayList<TableColumn>();
     private final Table childTable;
-    private final List childColumns = new ArrayList();
+    private final List<TableColumn> childColumns = new ArrayList<TableColumn>();
     private final char deleteRule;
     private final char updateRule;
 
@@ -42,7 +42,7 @@ public class ForeignKeyConstraint {
         return parentTable;
     }
 
-    public List getParentColumns() {
+    public List<TableColumn> getParentColumns() {
         return Collections.unmodifiableList(parentColumns);
     }
 
@@ -50,7 +50,7 @@ public class ForeignKeyConstraint {
         return childTable;
     }
 
-    public List getChildColumns() {
+    public List<TableColumn> getChildColumns() {
         return Collections.unmodifiableList(childColumns);
     }
 
@@ -80,7 +80,7 @@ public class ForeignKeyConstraint {
      * @param columns
      * @return
      */
-    public static String toString(List columns) {
+    public static String toString(List<TableColumn> columns) {
         if (columns.size() == 1)
             return columns.iterator().next().toString();
         return columns.toString();

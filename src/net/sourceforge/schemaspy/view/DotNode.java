@@ -9,7 +9,7 @@ public class DotNode {
     private final Table table;
     private final DotNodeConfig config;
     private final String path;
-    private final Set excludedColumns = new HashSet();
+    private final Set<TableColumn> excludedColumns = new HashSet<TableColumn>();
     private final String lineSeparator = System.getProperty("line.separator");
     private final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
 
@@ -71,17 +71,15 @@ public class DotNode {
         boolean skippedTrivial = false;
 
         if (config.showColumns) {
-            List primaryColumns = table.getPrimaryColumns();
-            Set indexColumns = new HashSet();
-            Iterator iter = table.getIndexes().iterator();
-            while (iter.hasNext()) {
-                TableIndex index = (TableIndex)iter.next();
+            List<TableColumn> primaryColumns = table.getPrimaryColumns();
+            Set<TableColumn> indexColumns = new HashSet<TableColumn>();
+            
+            for (TableIndex index : table.getIndexes()) {
                 indexColumns.addAll(index.getColumns());
             }
             indexColumns.removeAll(primaryColumns);
-            
-            for (iter = table.getColumns().iterator(); iter.hasNext(); ) {
-                TableColumn column = (TableColumn)iter.next();
+
+            for (TableColumn column : table.getColumns()) {
                 if (config.showTrivialColumns || config.showColumnDetails || column.isPrimary() || column.isForeignKey() || indexColumns.contains(column)) {
                     buf.append("      <TR>");
                     buf.append("<TD PORT=\"" + column.getName() + "\" " + colspan);

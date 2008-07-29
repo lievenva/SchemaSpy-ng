@@ -20,10 +20,10 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection tables, boolean showOrphansGraph, LineWriter html) throws IOException {
-        Set byName = new TreeSet(new Comparator() {
-            public int compare(Object object1, Object object2) {
-                return ((Table)object1).getName().compareTo(((Table)object2).getName());
+    public void write(Database database, Collection<Table> tables, boolean showOrphansGraph, LineWriter html) throws IOException {
+        Set<Table> byName = new TreeSet<Table>(new Comparator<Table>() {
+            public int compare(Table table1, Table table2) {
+                return table1.getName().compareTo(table2.getName());
             }
         });
         byName.addAll(tables);
@@ -41,8 +41,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         writeHeader(database, byName.size() - numViews, numViews, showIds, showOrphansGraph, html);
 
         int numRows = 0;
-        for (Iterator iter = byName.iterator(); iter.hasNext(); ) {
-            Table table = (Table)iter.next();
+        for (Table table : byName) {
             numRows += writeLineItem(table, showIds, html);
         }
 

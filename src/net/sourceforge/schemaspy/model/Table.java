@@ -5,15 +5,15 @@ import java.util.*;
 import net.sourceforge.schemaspy.*;
 import net.sourceforge.schemaspy.util.*;
 
-public class Table implements Comparable {
+public class Table implements Comparable<Table> {
     private final String schema;
     private final String name;
-    protected final CaseInsensitiveMap columns = new CaseInsensitiveMap();
-    private final List primaryKeys = new ArrayList();
-    private final CaseInsensitiveMap foreignKeys = new CaseInsensitiveMap();
-    private final CaseInsensitiveMap indexes = new CaseInsensitiveMap();
+    protected final CaseInsensitiveMap<TableColumn> columns = new CaseInsensitiveMap<TableColumn>();
+    private final List<TableColumn> primaryKeys = new ArrayList<TableColumn>();
+    private final CaseInsensitiveMap<ForeignKeyConstraint> foreignKeys = new CaseInsensitiveMap<ForeignKeyConstraint>();
+    private final CaseInsensitiveMap<TableIndex> indexes = new CaseInsensitiveMap<TableIndex>();
     private       Object id;
-    private final Map checkConstraints = new TreeMap(new ByCheckConstraintStringsComparator());
+    private final Map<String, String> checkConstraints = new TreeMap<String, String>(new ByCheckConstraintStringsComparator());
     private final int numRows;
     private       String comments;
     private int maxChildren;
@@ -62,10 +62,10 @@ public class Table implements Comparable {
     }
 
     public ForeignKeyConstraint getForeignKey(String keyName) {
-        return (ForeignKeyConstraint)foreignKeys.get(keyName);
+        return foreignKeys.get(keyName);
     }
 
-    public Collection getForeignKeys() {
+    public Collection<ForeignKeyConstraint> getForeignKeys() {
         return Collections.unmodifiableCollection(foreignKeys.values());
     }
 
@@ -320,7 +320,7 @@ public class Table implements Comparable {
     }
 
     public TableIndex getIndex(String indexName) {
-        return (TableIndex)indexes.get(indexName);
+        return indexes.get(indexName);
     }
 
     private void addIndex(ResultSet rs) throws SQLException {
@@ -356,15 +356,15 @@ public class Table implements Comparable {
         return id;
     }
 
-    public Map getCheckConstraints() {
+    public Map<String, String> getCheckConstraints() {
         return checkConstraints;
     }
 
-    public Set getIndexes() {
-        return new HashSet(indexes.values());
+    public Set<TableIndex> getIndexes() {
+        return new HashSet<TableIndex>(indexes.values());
     }
 
-    public List getPrimaryColumns() {
+    public List<TableColumn> getPrimaryColumns() {
         return Collections.unmodifiableList(primaryKeys);
     }
     
@@ -380,17 +380,17 @@ public class Table implements Comparable {
     }
 
     public TableColumn getColumn(String columnName) {
-        return (TableColumn)columns.get(columnName);
+        return columns.get(columnName);
     }
 
     /**
      * Returns <code>List</code> of <code>TableColumn</code>s in ascending column number order.
      * @return
      */
-    public List getColumns() {
-        Set sorted = new TreeSet(new ByIndexColumnComparator());
+    public List<TableColumn> getColumns() {
+        Set<TableColumn> sorted = new TreeSet<TableColumn>(new ByIndexColumnComparator());
         sorted.addAll(columns.values());
-        return new ArrayList(sorted);
+        return new ArrayList<TableColumn>(sorted);
     }
 
     public int getMaxParents() {
@@ -450,8 +450,8 @@ public class Table implements Comparable {
         if (recursiveConstraint != null) {
             // more drastic removal solution by Remke Rutgers:
             for (int i = 0; i < recursiveConstraint.getChildColumns().size(); i++) {
-                TableColumn childColumn = (TableColumn)recursiveConstraint.getChildColumns().get(i);
-                TableColumn parentColumn = (TableColumn)recursiveConstraint.getParentColumns().get(i);
+                TableColumn childColumn = recursiveConstraint.getChildColumns().get(i);
+                TableColumn parentColumn = recursiveConstraint.getParentColumns().get(i);
                 childColumn.removeParent(parentColumn);
                 parentColumn.removeChild(childColumn);
             }
@@ -462,10 +462,8 @@ public class Table implements Comparable {
     }
 
     private ForeignKeyConstraint getSelfReferencingConstraint() {
-        for (Iterator columnIter = getColumns().iterator(); columnIter.hasNext(); ) {
-            TableColumn column = (TableColumn)columnIter.next();
-            for (Iterator parentColumnIter = column.getParents().iterator(); parentColumnIter.hasNext(); ) {
-                TableColumn parentColumn = (TableColumn)parentColumnIter.next();
+        for (TableColumn column : getColumns()) {
+            for (TableColumn parentColumn : column.getParents()) {
                 if (parentColumn.getTable().getName().equals(getName())) {
                     return column.getParentConstraint(parentColumn);
                 }
@@ -661,7 +659,8 @@ public class Table implements Comparable {
                 stmt.close();
         }
     }
-    
+
+    @Override
     public String toString() {
         return getName();
     }
@@ -695,15 +694,12 @@ public class Table implements Comparable {
         return true;
     }
 
-    public int compareTo(Object o) {
-        Table table = (Table)o;
+    public int compareTo(Table table) {
         return getName().compareTo(table.getName());
     }
 
-    private static class ByIndexColumnComparator implements Comparator {
-        public int compare(Object object1, Object object2) {
-            TableColumn column1 = (TableColumn)object1;
-            TableColumn column2 = (TableColumn)object2;
+    private static class ByIndexColumnComparator implements Comparator<TableColumn> {
+        public int compare(TableColumn column1, TableColumn column2) {
             if (column1.getId() == null || column2.getId() == null)
                 return column1.getName().compareTo(column2.getName());
             if (column1.getId() instanceof Number)
@@ -712,9 +708,9 @@ public class Table implements Comparable {
         }
     }
 
-    private static class ByCheckConstraintStringsComparator implements Comparator {
-        public int compare(Object object1, Object object2) {
-            return object1.toString().compareTo(object2.toString());
+    private static class ByCheckConstraintStringsComparator implements Comparator<String> {
+        public int compare(String string1, String string2) {
+            return string1.compareTo(string2);
         }
     }
 }

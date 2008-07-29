@@ -13,7 +13,7 @@ import net.sourceforge.schemaspy.util.*;
  */
 public class DbConfigTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
-    private final List options = new ArrayList();
+    private final List<PropertyDescriptor> options = new ArrayList<PropertyDescriptor>();
     private Config config = Config.getInstance(); // the config associated with DbSpecificConfig
     
     public DbConfigTableModel() {
@@ -111,20 +111,20 @@ public class DbConfigTableModel extends AbstractTableModel {
         if (col != 1)
             return false;
         
-        return ((PropertyDescriptor)options.get(row)).getWriteMethod() != null;
+        return options.get(row).getWriteMethod() != null;
     }
     
     /* (non-Javadoc)
      * @see javax.swing.table.TableModel#getValueAt(int, int)
      */
     public Object getValueAt(int row, int column) {
-        PropertyDescriptor descriptor = (PropertyDescriptor)options.get(row);
+        PropertyDescriptor descriptor = options.get(row);
         switch (column) {
             case 0:
                 return descriptor.getName();
             case 1:
                 try {
-                    Object value = descriptor.getReadMethod().invoke(config, null); 
+                    Object value = descriptor.getReadMethod().invoke(config, (Object[])null); 
                     //System.out.println(descriptor.getReadMethod().getName() + ":'" + value + "' " + (value != null ? value.getClass().toString() : ""));
                     return value; 
                 } catch (InvocationTargetException exc) {
@@ -142,7 +142,7 @@ public class DbConfigTableModel extends AbstractTableModel {
     public void setValueAt(Object value, int row, int col) {
         Object oldValue = getValueAt(row, col);
         if (oldValue != value && (value == null || oldValue == null || !value.equals(oldValue))) {
-            PropertyDescriptor descriptor = (PropertyDescriptor)options.get(row);
+            PropertyDescriptor descriptor = options.get(row);
             try {
                 //System.out.println(descriptor.getWriteMethod().getName() + ":'" + value + "' " + (value != null ? value.getClass().toString() : ""));
                 if (value instanceof String && descriptor.getPropertyType().isAssignableFrom(Integer.class)) {
@@ -167,7 +167,7 @@ public class DbConfigTableModel extends AbstractTableModel {
      * @return
      */
     public Class getClass(int row) {
-        PropertyDescriptor descriptor = (PropertyDescriptor)options.get(row);
+        PropertyDescriptor descriptor = options.get(row);
         return descriptor.getPropertyType();
     }
 
@@ -176,7 +176,7 @@ public class DbConfigTableModel extends AbstractTableModel {
      * @return
      */
     public String getDescription(int row) {
-        PropertyDescriptor descriptor = (PropertyDescriptor)options.get(row);
+        PropertyDescriptor descriptor = options.get(row);
         return descriptor.getShortDescription();
     }
 }

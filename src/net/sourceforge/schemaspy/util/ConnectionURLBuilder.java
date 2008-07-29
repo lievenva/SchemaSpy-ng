@@ -8,17 +8,16 @@ import net.sourceforge.schemaspy.*;
  */
 public class ConnectionURLBuilder {
     private final String connectionURL;
-    private List options;
+    private List<DbSpecificOption> options;
 
     /**
      * @param config
      * @param properties
      */
     public ConnectionURLBuilder(Config config, Properties properties) {
-        List opts = new ArrayList();
-        Iterator iter = config.getDbSpecificOptions().keySet().iterator();
-        while (iter.hasNext()) {
-            String key = iter.next().toString();
+        List<String> opts = new ArrayList<String>();
+        
+        for (String key : config.getDbSpecificOptions().keySet()) {
             opts.add((key.startsWith("-") ? "" : "-") + key);
             opts.add(config.getDbSpecificOptions().get(key));
         }
@@ -28,10 +27,9 @@ public class ConnectionURLBuilder {
         options = dbConfig.getOptions();
         connectionURL = buildUrl(opts, properties, config);
         
-        List remaining = config.getRemainingParameters();
-        iter = options.iterator();
-        while (iter.hasNext()) {
-            DbSpecificOption option = (DbSpecificOption)iter.next();
+        List<String> remaining = config.getRemainingParameters();
+        
+        for (DbSpecificOption option : options) {
             int idx = remaining.indexOf("-" + option.getName());
             if (idx >= 0) {
                 remaining.remove(idx);  // -paramKey
@@ -43,9 +41,7 @@ public class ConnectionURLBuilder {
     private String buildUrl(List args, Properties properties, Config config) {
         String connectionSpec = properties.getProperty("connectionSpec");
         
-        Iterator iter = options.iterator();
-        while (iter.hasNext()) {
-            DbSpecificOption option = (DbSpecificOption)iter.next();
+        for (DbSpecificOption option : options) {
             option.setValue(getParam(args, option, config));
             
             // replace e.g. <host> with <myDbHost>
@@ -65,7 +61,7 @@ public class ConnectionURLBuilder {
      * 
      * @return
      */
-    public List getOptions() {
+    public List<DbSpecificOption> getOptions() {
         return options;
     }
 

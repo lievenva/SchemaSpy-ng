@@ -10,8 +10,8 @@ import java.util.*;
  * @author John Currier
  * @version 1.0
  */
-public class Version implements Comparable {
-    private final List segments = new ArrayList();
+public class Version implements Comparable<Version> {
+    private final List<Integer> segments = new ArrayList<Integer>();
     private final String asString;
     private final int hashCode;
 
@@ -36,12 +36,11 @@ public class Version implements Comparable {
      * negative integer, zero, or a positive integer as this object is less
      * than, equal to, or greater than the specified object.
      */
-    public int compareTo(Object version) {
-        Version other = (Version)version;
+    public int compareTo(Version other) {
         int size = Math.min(segments.size(), other.segments.size());
         for (int i = 0; i < size; ++i) {
-            Integer thisSegment = (Integer)segments.get(i);
-            Integer otherSegment = (Integer)other.segments.get(i);
+            Integer thisSegment = segments.get(i);
+            Integer otherSegment = other.segments.get(i);
             int result = thisSegment.compareTo(otherSegment);
             if (result != 0)
                 return result;
@@ -54,16 +53,19 @@ public class Version implements Comparable {
         return -1;
     }
 
+    @Override
     public boolean equals(Object other) {
         if (other == null || !(other instanceof Version))
             return false;
-        return compareTo(other) == 0;
+        return compareTo((Version)other) == 0;
     }
 
+    @Override
     public int hashCode() {
         return hashCode;
     }
 
+    @Override
     public String toString() {
         return asString;
     }

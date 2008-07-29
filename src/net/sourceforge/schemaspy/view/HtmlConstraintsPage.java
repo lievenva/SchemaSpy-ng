@@ -19,7 +19,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, List constraints, Collection tables, boolean hasOrphans, LineWriter html) throws IOException {
+    public void write(Database database, List<ForeignKeyConstraint> constraints, Collection<Table> tables, boolean hasOrphans, LineWriter html) throws IOException {
         writeHeader(database, hasOrphans, html);
         writeForeignKeyConstraints(constraints, html);
         writeCheckConstraints(tables, html);
@@ -43,10 +43,10 @@ public class HtmlConstraintsPage extends HtmlFormatter {
      * @param html LineWriter
      * @throws IOException
      */
-    private void writeForeignKeyConstraints(List constraints, LineWriter html) throws IOException {
-        Set constraintsByName = new TreeSet(new Comparator() {
-            public int compare(Object object1, Object object2) {
-                return ((ForeignKeyConstraint)object1).getName().compareTo(((ForeignKeyConstraint)object2).getName());
+    private void writeForeignKeyConstraints(List<ForeignKeyConstraint> constraints, LineWriter html) throws IOException {
+        Set<ForeignKeyConstraint> constraintsByName = new TreeSet<ForeignKeyConstraint>(new Comparator<ForeignKeyConstraint>() {
+            public int compare(ForeignKeyConstraint cons1, ForeignKeyConstraint cons2) {
+                return cons1.getName().compareTo(cons2.getName());
             }
         });
         constraintsByName.addAll(constraints);
@@ -138,7 +138,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
      * @param html LineWriter
      * @throws IOException
      */
-    public void writeCheckConstraints(Collection tables, LineWriter html) throws IOException {
+    public void writeCheckConstraints(Collection<Table> tables, LineWriter html) throws IOException {
         html.writeln("<a name='checkConstraints'></a><p/>");
         html.writeln("<b>Check Constraints:</b>");
         html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
@@ -154,13 +154,12 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.writeln("</thead>");
         html.writeln("<tbody>");
 
-        List tablesByName = DbAnalyzer.sortTablesByName(new ArrayList(tables));
+        List<Table> tablesByName = DbAnalyzer.sortTablesByName(new ArrayList<Table>(tables));
 
         int constraintsWritten = 0;
 
         // iter over all tables...only ones with check constraints will write anything
-        for (Iterator iter = tablesByName.iterator(); iter.hasNext(); ) {
-            Table table = (Table)iter.next();
+        for (Table table : tablesByName) {
             constraintsWritten += writeCheckConstraints(table, html);
         }
 
@@ -206,6 +205,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         return constraintsWritten;
     }
 
+    @Override
     protected boolean isConstraintsPage() {
         return true;
     }
