@@ -2,7 +2,8 @@ package net.sourceforge.schemaspy.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.sourceforge.schemaspy.util.*;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * A table that's outside of the default schema but is referenced
@@ -13,8 +14,8 @@ import net.sourceforge.schemaspy.util.*;
 public class RemoteTable extends Table {
     private final String baseSchema;
 
-    public RemoteTable(Database db, String schema, String name, String baseSchema) throws SQLException {
-        super(db, schema, name, null, null);
+    public RemoteTable(Database db, String schema, String name, String baseSchema, Properties properties) throws SQLException {
+        super(db, schema, name, null, properties);
         this.baseSchema = baseSchema;
     }
     
@@ -23,7 +24,7 @@ public class RemoteTable extends Table {
      * @param db
      * @param tables
      */
-    public void connectForeignKeys(CaseInsensitiveMap tables, Database db) throws SQLException {
+    public void connectForeignKeys(Map tables, Database db, Properties properties) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -32,7 +33,7 @@ public class RemoteTable extends Table {
             while (rs.next()) {
                 String otherSchema = rs.getString("PKTABLE_SCHEM");
                 if (otherSchema != null && otherSchema.equals(baseSchema))
-                    addForeignKey(rs, tables, db);
+                    addForeignKey(rs, tables, db, properties);
             }
         } finally {
             if (rs != null)

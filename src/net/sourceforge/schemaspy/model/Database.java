@@ -28,7 +28,7 @@ public class Database {
         this.description = description;
         initTables(schema, meta, properties, include, maxThreads);
         initViews(schema, meta, properties, include);
-        connectTables();
+        connectTables(properties);
     }
 
     public String getName() {
@@ -342,12 +342,12 @@ public class Database {
         return stmt;
     }
     
-    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema) throws SQLException {
+    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties) throws SQLException {
         String fullName = remoteSchema + "." + remoteTableName;
         Table remoteTable = (Table)remoteTables.get(fullName);
         if (remoteTable == null) {
-            remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema);
-            remoteTable.connectForeignKeys(tables, this);
+            remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties);
+            remoteTable.connectForeignKeys(tables, this, properties);
             remoteTables.put(fullName, remoteTable);
         }
         
@@ -545,11 +545,11 @@ public class Database {
         }
     }
 
-    private void connectTables() throws SQLException {
+    private void connectTables(Properties properties) throws SQLException {
         Iterator iter = tables.values().iterator();
         while (iter.hasNext()) {
             Table table = (Table)iter.next();
-            table.connectForeignKeys(tables, this);
+            table.connectForeignKeys(tables, this, properties);
         }
     }
 
