@@ -1,7 +1,7 @@
 package test.net.sourceforge.schemaspy.util;
 
-import junit.framework.*;
-import net.sourceforge.schemaspy.util.*;
+import junit.framework.TestCase;
+import net.sourceforge.schemaspy.util.Version;
 
 /**
  * @author John Currier

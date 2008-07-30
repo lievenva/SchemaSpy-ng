@@ -1,10 +1,10 @@
 package net.sourceforge.schemaspy.view;
 
-import net.sourceforge.schemaspy.model.Table;
 import java.io.File;
-import net.sourceforge.schemaspy.util.LineWriter;
-import net.sourceforge.schemaspy.util.Dot;
 import java.io.IOException;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlTableGrapher extends HtmlGraphFormatter {
     private static HtmlTableGrapher instance = new HtmlTableGrapher();

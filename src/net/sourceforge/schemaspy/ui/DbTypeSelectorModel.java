@@ -1,10 +1,14 @@
 package net.sourceforge.schemaspy.ui;
 
-import java.util.*;
-import java.util.regex.*;
-import javax.swing.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Pattern;
+import javax.swing.AbstractListModel;
+import javax.swing.ComboBoxModel;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.util.DbSpecificConfig;
 
 /**
  * @author John Currier
@@ -17,8 +21,7 @@ public class DbTypeSelectorModel extends AbstractListModel implements ComboBoxMo
     public DbTypeSelectorModel(String defaultType) {
         Pattern pattern = Pattern.compile(".*/" + defaultType);
         Set<String> dbTypes = new TreeSet<String>(Config.getBuiltInDatabaseTypes(Config.getLoadedFromJar()));
-        for (Iterator iter = dbTypes.iterator(); iter.hasNext(); ) {
-            String dbType = iter.next().toString();
+        for (String dbType : dbTypes) {
             DbSpecificConfig config = new DbSpecificConfig(dbType);
             dbConfigs.add(config);
             

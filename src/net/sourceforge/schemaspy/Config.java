@@ -1,12 +1,33 @@
 package net.sourceforge.schemaspy;
 
-import java.beans.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.jar.*;
-import java.util.regex.*;
-import net.sourceforge.schemaspy.util.*;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TreeSet;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.util.DbSpecificConfig;
+import net.sourceforge.schemaspy.util.Dot;
 
 /**
  * Configuration of a SchemaSpy run
@@ -767,10 +788,10 @@ public class Config
      * @return Properties
      */
     public static Properties add(Properties properties, ResourceBundle bundle) {
-        Enumeration iter = bundle.getKeys();
+        Enumeration<String> iter = bundle.getKeys();
         while (iter.hasMoreElements()) {
-            Object key = iter.nextElement();
-            properties.put(key, bundle.getObject(key.toString()));
+            String key = iter.nextElement();
+            properties.put(key, bundle.getObject(key));
         }
 
         return properties;
@@ -934,9 +955,7 @@ public class Config
 
         if (detailedDb) {
             System.out.println("Built-in database types and their required connection parameters:");
-            Set datatypes = getBuiltInDatabaseTypes(getLoadedFromJar());
-            for (Iterator iter = datatypes.iterator(); iter.hasNext(); ) {
-                String dbType = iter.next().toString();
+            for (String dbType : getBuiltInDatabaseTypes(getLoadedFromJar())) {
                 new DbSpecificConfig(dbType).dumpUsage();
             }
             System.out.println();
@@ -990,10 +1009,8 @@ public class Config
         List<String> list = new ArrayList<String>();
         
         if (originalDbSpecificOptions != null) {
-            Iterator iter = originalDbSpecificOptions.keySet().iterator();
-            while (iter.hasNext()) {
-                String key = iter.next().toString();
-                String value = originalDbSpecificOptions.get(key).toString();
+            for (String key : originalDbSpecificOptions.keySet()) {
+                String value = originalDbSpecificOptions.get(key);
                 if (!key.startsWith("-"))
                     key = "-" + key;
                 list.add(key);

@@ -1,6 +1,6 @@
 package net.sourceforge.schemaspy.view;
 
-import net.sourceforge.schemaspy.util.*;
+import net.sourceforge.schemaspy.util.Dot;
 
 public class HtmlGraphFormatter extends HtmlFormatter {
     private static boolean printedNoDotWarning = false;

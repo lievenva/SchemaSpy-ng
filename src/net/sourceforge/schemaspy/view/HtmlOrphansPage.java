@@ -90,6 +90,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         html.writeln("</td></tr></table>");
     }
 
+    @Override
     protected boolean isOrphansPage() {
         return true;
     }

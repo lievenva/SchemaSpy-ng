@@ -1,7 +1,9 @@
 package net.sourceforge.schemaspy.util;
 
-import java.util.*;
-import net.sourceforge.schemaspy.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import net.sourceforge.schemaspy.Config;
 
 /**
  * @author John Currier
@@ -38,7 +40,7 @@ public class ConnectionURLBuilder {
         }
     }
 
-    private String buildUrl(List args, Properties properties, Config config) {
+    private String buildUrl(List<String> args, Properties properties, Config config) {
         String connectionSpec = properties.getProperty("connectionSpec");
         
         for (DbSpecificOption option : options) {
@@ -65,7 +67,7 @@ public class ConnectionURLBuilder {
         return options;
     }
 
-    private String getParam(List args, DbSpecificOption option, Config config) {
+    private String getParam(List<String> args, DbSpecificOption option, Config config) {
         String param = null;
         int paramIndex = args.indexOf("-" + option.getName());
 

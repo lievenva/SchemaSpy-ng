@@ -1,12 +1,18 @@
 package net.sourceforge.schemaspy.ui;
 
-import java.beans.*;
-import java.lang.reflect.*;
-import java.util.*;
-import javax.swing.table.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.Config.*;
-import net.sourceforge.schemaspy.util.*;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.table.AbstractTableModel;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.Config.MissingRequiredParameterException;
+import net.sourceforge.schemaspy.util.DbSpecificConfig;
+import net.sourceforge.schemaspy.util.DbSpecificOption;
 
 /**
  * @author John Currier
@@ -32,9 +38,7 @@ public class DbConfigTableModel extends AbstractTableModel {
         PropertyDescriptor[] props = getConfigProps();
         removeDbSpecificOptions();
         
-        Iterator iter = dbConfig.getOptions().iterator();
-        while (iter.hasNext()) {
-            DbSpecificOption option = (DbSpecificOption)iter.next();
+        for (DbSpecificOption option : dbConfig.getOptions()) {
             PropertyDescriptor descriptor = getDescriptor(option.getName(), option.getDescription(), props);
             descriptor.setValue("dbSpecific", Boolean.TRUE);
             options.add(descriptor);
@@ -43,6 +47,7 @@ public class DbConfigTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
     
+    @Override
     public String getColumnName(int column) {
         switch (column) {
             case 0:
@@ -85,9 +90,9 @@ public class DbConfigTableModel extends AbstractTableModel {
     }
 
     private void removeDbSpecificOptions() {
-        Iterator iter = options.iterator();
+        Iterator<PropertyDescriptor> iter = options.iterator();
         while (iter.hasNext()) {
-            PropertyDescriptor descriptor = (PropertyDescriptor)iter.next();
+            PropertyDescriptor descriptor = iter.next();
             if (descriptor.getValue("dbSpecific") != null)
                 iter.remove();
         }
@@ -107,6 +112,7 @@ public class DbConfigTableModel extends AbstractTableModel {
         return options.size();
     }
     
+    @Override
     public boolean isCellEditable(int row, int col) {
         if (col != 1)
             return false;
@@ -139,6 +145,7 @@ public class DbConfigTableModel extends AbstractTableModel {
         return null;
     }
     
+    @Override
     public void setValueAt(Object value, int row, int col) {
         Object oldValue = getValueAt(row, col);
         if (oldValue != value && (value == null || oldValue == null || !value.equals(oldValue))) {
@@ -166,7 +173,7 @@ public class DbConfigTableModel extends AbstractTableModel {
      * @param row
      * @return
      */
-    public Class getClass(int row) {
+    public Class<?> getClass(int row) {
         PropertyDescriptor descriptor = options.get(row);
         return descriptor.getPropertyType();
     }

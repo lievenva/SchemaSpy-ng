@@ -1,9 +1,18 @@
 package net.sourceforge.schemaspy.view;
 
-import java.util.*;
-import org.w3c.dom.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.model.TableIndex;
+import net.sourceforge.schemaspy.util.DOMUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class XmlTableFormatter {
     private static final XmlTableFormatter instance = new XmlTableFormatter();
@@ -108,9 +117,8 @@ public class XmlTableFormatter {
     private void appendPrimaryKeys(Element tableNode, Table table) {
         Document document = tableNode.getOwnerDocument();
         int index = 1;
-        
-        for (Iterator iter = table.getPrimaryColumns().iterator(); iter.hasNext(); ) {
-            TableColumn primaryKeyColumn = (TableColumn)iter.next();
+
+        for (TableColumn primaryKeyColumn : table.getPrimaryColumns()) {
             Node primaryKeyNode = document.createElement("primaryKey");
             tableNode.appendChild(primaryKeyNode);
             
@@ -121,10 +129,9 @@ public class XmlTableFormatter {
     
     private void appendCheckConstraints(Element tableNode, Table table) {
         Document document = tableNode.getOwnerDocument();
-        Map constraints = table.getCheckConstraints();
+        Map<String, String> constraints = table.getCheckConstraints();
         if (constraints != null && !constraints.isEmpty()) {
-            for (Iterator iter = constraints.keySet().iterator(); iter.hasNext(); ) {
-                String name = iter.next().toString();
+            for (String name : constraints.keySet()) {
                 Node constraintNode = document.createElement("checkConstraint");
                 tableNode.appendChild(constraintNode);
                 DOMUtil.appendAttribute(tableNode, "name", name);
@@ -140,17 +147,14 @@ public class XmlTableFormatter {
             indexes = new TreeSet<TableIndex>(indexes); // sort primary keys first
             Document document = tableNode.getOwnerDocument();
 
-            for (Iterator iter = indexes.iterator(); iter.hasNext(); ) {
-                TableIndex index = (TableIndex)iter.next();
-
+            for (TableIndex index : indexes) {
                 Node indexNode = document.createElement("index");
                 if (showId)
                     DOMUtil.appendAttribute(indexNode, "id", String.valueOf(index.getId()));
                 DOMUtil.appendAttribute(indexNode, "name", index.getName());
                 DOMUtil.appendAttribute(indexNode, "unique", String.valueOf(index.isUnique()));
-                Iterator columnsIter = index.getColumns().iterator();
-                while (columnsIter.hasNext()) {
-                    TableColumn column = (TableColumn)columnsIter.next();
+                
+                for (TableColumn column : index.getColumns()) {
                     Node columnNode = document.createElement("column");
                     DOMUtil.appendAttribute(columnNode, "name", column.getName());
                     DOMUtil.appendAttribute(columnNode, "ascending", String.valueOf(index.isAscending(column)));

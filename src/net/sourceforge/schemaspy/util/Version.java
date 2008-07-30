@@ -1,6 +1,8 @@
 package net.sourceforge.schemaspy.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Simple class that allows logical comparisons between "dotted" versions of products.

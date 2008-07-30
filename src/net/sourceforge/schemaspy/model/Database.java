@@ -1,11 +1,27 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
-import java.util.regex.*;
-import net.sourceforge.schemaspy.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 
 public class Database {
     private final String databaseName;
@@ -589,8 +605,10 @@ public class Database {
             this.maxThreads = maxThreads;
         }
 
+        @Override
         void create(final String schemaName, final String tableName, final String remarks, final Properties properties) throws SQLException {
             Thread runner = new Thread() {
+                @Override
                 public void run() {
                     try {
                         createImpl(schemaName, tableName, remarks, properties);
@@ -623,6 +641,7 @@ public class Database {
         /**
          * Wait for all of the started threads to complete
          */
+        @Override
         public void join() {
             while (true) {
                 Thread thread;

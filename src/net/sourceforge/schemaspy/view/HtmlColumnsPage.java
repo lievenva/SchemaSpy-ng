@@ -1,10 +1,19 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.util.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.model.TableIndex;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlColumnsPage extends HtmlFormatter {
     private static HtmlColumnsPage instance = new HtmlColumnsPage();
@@ -74,20 +83,16 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    public void write(Database database, Collection tables, ColumnInfo columnInfo, boolean showOrphansGraph, LineWriter html) throws IOException {
+    public void write(Database database, Collection<Table> tables, ColumnInfo columnInfo, boolean showOrphansGraph, LineWriter html) throws IOException {
         Set<TableColumn> columns = new TreeSet<TableColumn>(columnInfo.getComparator());
         Set<TableColumn> primaryColumns = new HashSet<TableColumn>();
         Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
 
-        Iterator iter = tables.iterator();
-        while (iter.hasNext()) {
-            Table table = (Table)iter.next();
+        for (Table table : tables) {
             columns.addAll(table.getColumns());
 
             primaryColumns.addAll(table.getPrimaryColumns());
-            Iterator indexIter = table.getIndexes().iterator();
-            while (indexIter.hasNext()) {
-                TableIndex index = (TableIndex)indexIter.next();
+            for (TableIndex index : table.getIndexes()) {
                 indexedColumns.addAll(index.getColumns());
             }
         }
@@ -96,9 +101,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
-        iter = columns.iterator();
-        while (iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns) {
             formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, false, false, html);
         }
 
@@ -136,8 +139,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.write(" contains ");
         html.write(String.valueOf(numberOfColumns));
         html.write(" columns</b> - click on heading to sort:");
-        Collection tables = db.getTables();
-        boolean hasTableIds = tables.size() > 0 && ((Table)tables.iterator().next()).getId() != null;
+        Collection<Table> tables = db.getTables();
+        boolean hasTableIds = tables.size() > 0 && tables.iterator().next().getId() != null;
         writeMainTableHeader(hasTableIds, selectedColumn, html);
         html.writeln("<tbody valign='top'>");
     }
@@ -209,12 +212,14 @@ public class HtmlColumnsPage extends HtmlFormatter {
         return buf.toString();
     }
 
+    @Override
     protected void writeFooter(LineWriter html) throws IOException {
         html.writeln("</table>");
         html.writeln("</div>");
         super.writeFooter(html);
     }
 
+    @Override
     protected boolean isColumnsPage() {
         return true;
     }
@@ -302,17 +307,13 @@ public class HtmlColumnsPage extends HtmlFormatter {
         public int compare(TableColumn column1, TableColumn column2) {
             Set<String> childTables1 = new TreeSet<String>();
             Set<String> childTables2 = new TreeSet<String>();
-            
-            Iterator iter = column1.getChildren().iterator();
-            while (iter.hasNext()) {
-                TableColumn column = (TableColumn)iter.next();
+
+            for (TableColumn column : column1.getChildren()) {
                 if (!column.getParentConstraint(column1).isImplied())
                     childTables1.add(column.getTable().getName());
             }
 
-            iter = column2.getChildren().iterator();
-            while (iter.hasNext()) {
-                TableColumn column = (TableColumn)iter.next();
+            for (TableColumn column : column2.getChildren()) {
                 if (!column.getParentConstraint(column2).isImplied())
                     childTables2.add(column.getTable().getName());
             }
@@ -331,16 +332,12 @@ public class HtmlColumnsPage extends HtmlFormatter {
             Set<String> parentTables1 = new TreeSet<String>();
             Set<String> parentTables2 = new TreeSet<String>();
             
-            Iterator iter = column1.getParents().iterator();
-            while (iter.hasNext()) {
-                TableColumn column = (TableColumn)iter.next();
+            for (TableColumn column : column1.getParents()) {
                 if (!column.getChildConstraint(column1).isImplied())
                     parentTables1.add(column.getTable().getName());
             }
             
-            iter = column2.getParents().iterator();
-            while (iter.hasNext()) {
-                TableColumn column = (TableColumn)iter.next();
+            for (TableColumn column : column2.getParents()) {
                 if (!column.getChildConstraint(column2).isImplied())
                     parentTables2.add(column.getTable().getName());
             }

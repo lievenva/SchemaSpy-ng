@@ -2,7 +2,6 @@ package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.util.LineWriter;
 
@@ -19,9 +18,8 @@ public class TextFormatter {
         return instance;
     }
 
-    public void write(Collection tables, boolean includeViews, LineWriter out) throws IOException {
-        for (Iterator iter = tables.iterator(); iter.hasNext(); ) {
-            Table table = (Table)iter.next();
+    public void write(Collection<Table> tables, boolean includeViews, LineWriter out) throws IOException {
+        for (Table table : tables) {
             if (!table.isView() || includeViews)
                 out.writeln(table.getName());
         }

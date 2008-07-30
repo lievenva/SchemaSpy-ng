@@ -1,6 +1,6 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
+import java.sql.SQLException;
 
 public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
     /**
@@ -21,6 +21,7 @@ public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
     /**
      * @return
      */
+    @Override
     public String getName() {
         return "Implied Constraint";
     }
@@ -28,6 +29,7 @@ public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
     /**
      * @return
      */
+    @Override
     public boolean isImplied() {
         return true;
     }
@@ -35,6 +37,7 @@ public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
     /**
      * @return
      */
+    @Override
     public String toString() {
         StringBuffer buf = new StringBuffer();
 

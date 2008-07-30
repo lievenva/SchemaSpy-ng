@@ -1,9 +1,23 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
-import java.util.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.util.*;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 
 public class Table implements Comparable<Table> {
     private final String schema;
@@ -29,7 +43,7 @@ public class Table implements Comparable<Table> {
         numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db, properties) : -1;
     }
     
-    public void connectForeignKeys(Map tables, Database db, Properties properties) throws SQLException {
+    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -80,7 +94,7 @@ public class Table implements Comparable<Table> {
      * @param db 
      * @throws SQLException
      */
-    protected void addForeignKey(ResultSet rs, Map tables, Database db, Properties properties) throws SQLException {
+    protected void addForeignKey(ResultSet rs, Map<String, Table> tables, Database db, Properties properties) throws SQLException {
         String name = rs.getString("FK_NAME");
 
         if (name == null)
@@ -97,7 +111,7 @@ public class Table implements Comparable<Table> {
         TableColumn childColumn = getColumn(rs.getString("FKCOLUMN_NAME"));
         foreignKey.addChildColumn(childColumn);
 
-        Table parentTable = (Table)tables.get(rs.getString("PKTABLE_NAME"));
+        Table parentTable = tables.get(rs.getString("PKTABLE_NAME"));
         if (parentTable == null) {
             String otherSchema = rs.getString("PKTABLE_SCHEM");
             if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
@@ -402,15 +416,13 @@ public class Table implements Comparable<Table> {
     }
 
     public void unlinkParents() {
-        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns.values()) {
             column.unlinkParents();
         }
     }
 
     public boolean isRoot() {
-        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns.values()) {
             if (column.isForeignKey()) {
                 return false;
             }
@@ -428,15 +440,13 @@ public class Table implements Comparable<Table> {
     }
 
     public void unlinkChildren() {
-        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns.values()) {
             column.unlinkChildren();
         }
     }
 
     public boolean isLeaf() {
-        for (Iterator iter = columns.values().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns.values()) {
             if (!column.getChildren().isEmpty()) {
                 return false;
             }
@@ -462,7 +472,7 @@ public class Table implements Comparable<Table> {
     }
 
     private ForeignKeyConstraint getSelfReferencingConstraint() {
-        for (TableColumn column : getColumns()) {
+        for (TableColumn column : columns.values()) {
             for (TableColumn parentColumn : column.getParents()) {
                 if (parentColumn.getTable().getName().equals(getName())) {
                     return column.getParentConstraint(parentColumn);
@@ -475,8 +485,7 @@ public class Table implements Comparable<Table> {
     public int getNumChildren() {
         int numChildren = 0;
 
-        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns.values()) {
             numChildren += column.getChildren().size();
         }
 
@@ -486,11 +495,8 @@ public class Table implements Comparable<Table> {
     public int getNumRealChildren() {
         int numChildren = 0;
 
-        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
-            Iterator childIter = column.getChildren().iterator();
-            while (childIter.hasNext()) {
-                TableColumn childColumn = (TableColumn)childIter.next();
+        for (TableColumn column : columns.values()) {
+            for (TableColumn childColumn : column.getChildren()) {
                 if (!column.getChildConstraint(childColumn).isImplied())
                     ++numChildren;
             }
@@ -502,8 +508,7 @@ public class Table implements Comparable<Table> {
     public int getNumParents() {
         int numParents = 0;
 
-        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns.values()) {
             numParents += column.getParents().size();
         }
 
@@ -513,11 +518,8 @@ public class Table implements Comparable<Table> {
     public int getNumRealParents() {
         int numParents = 0;
 
-        for (Iterator iter = getColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
-            Iterator parentIter = column.getParents().iterator();
-            while (parentIter.hasNext()) {
-                TableColumn parentColumn = (TableColumn)parentIter.next();
+        for (TableColumn column : columns.values()) {
+            for (TableColumn parentColumn : column.getParents()) {
                 if (!column.getParentConstraint(parentColumn).isImplied())
                     ++numParents;
             }
@@ -527,20 +529,18 @@ public class Table implements Comparable<Table> {
     }
 
     public ForeignKeyConstraint removeAForeignKeyConstraint() {
-        final List columns = getColumns();
+        final List<TableColumn> columns = getColumns();
         int numParents = 0;
         int numChildren = 0;
         // remove either a child or parent, chosing which based on which has the
         // least number of foreign key associations (when either gets to zero then
         // the table can be pruned)
-        for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns) {
             numParents += column.getParents().size();
             numChildren += column.getChildren().size();
         }
 
-        for (Iterator iter = columns.iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : columns) {
             ForeignKeyConstraint constraint;
             if (numParents <= numChildren)
                 constraint = column.removeAParentFKConstraint();
@@ -675,18 +675,12 @@ public class Table implements Comparable<Table> {
         if (withImpliedRelationships)
             return getMaxParents() == 0 && getMaxChildren() == 0;
 
-        Iterator iter = getColumns().iterator();
-        while (iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
-            Iterator parentIter = column.getParents().iterator();
-            while (parentIter.hasNext()) {
-                TableColumn parentColumn = (TableColumn)parentIter.next();
+        for (TableColumn column : columns.values()) {
+            for (TableColumn parentColumn : column.getParents()) {
                 if (!column.getParentConstraint(parentColumn).isImplied())
                     return false;
             }
-            Iterator childIter = column.getChildren().iterator();
-            while (childIter.hasNext()) {
-                TableColumn childColumn = (TableColumn)childIter.next();
+            for (TableColumn childColumn : column.getChildren()) {
                 if (!column.getChildConstraint(childColumn).isImplied())
                     return false;
             }

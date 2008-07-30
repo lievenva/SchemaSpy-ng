@@ -1,6 +1,8 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class View extends Table {
     private final String viewSql;
@@ -19,10 +21,12 @@ public class View extends Table {
     /**
      * @return
      */
+    @Override
     public boolean isView() {
         return true;
     }
 
+    @Override
     public String getViewSql() {
         return viewSql;
     }

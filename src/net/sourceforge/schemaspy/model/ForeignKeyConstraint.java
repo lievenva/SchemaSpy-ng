@@ -1,7 +1,10 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ForeignKeyConstraint {
     private final String name;
@@ -89,6 +92,7 @@ public class ForeignKeyConstraint {
     /**
      * @return
      */
+    @Override
     public String toString() {
         StringBuffer buf = new StringBuffer();
         buf.append(childTable.getName());

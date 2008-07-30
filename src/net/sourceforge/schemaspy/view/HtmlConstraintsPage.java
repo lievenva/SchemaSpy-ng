@@ -1,10 +1,20 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.util.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import net.sourceforge.schemaspy.DbAnalyzer;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlConstraintsPage extends HtmlFormatter {
     private static HtmlConstraintsPage instance = new HtmlConstraintsPage();
@@ -31,6 +41,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.writeln("<div class='indent'>");
     }
 
+    @Override
     protected void writeFooter(LineWriter html) throws IOException {
         html.writeln("</div>");
         super.writeFooter(html);
@@ -76,8 +87,8 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.writeln("</tr>");
         html.writeln("</thead>");
         html.writeln("<tbody>");
-        for (Iterator iter = constraintsByName.iterator(); iter.hasNext(); ) {
-            writeForeignKeyConstraint((ForeignKeyConstraint)iter.next(), html);
+        for (ForeignKeyConstraint constraint : constraintsByName) {
+            writeForeignKeyConstraint(constraint, html);
         }
         if (constraints.size() == 0) {
             html.writeln(" <tr>");
@@ -101,8 +112,8 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.write(constraint.getName());
         html.writeln("</td>");
         html.write("  <td class='detail'>");
-        for (Iterator iter = constraint.getChildColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (Iterator<TableColumn> iter = constraint.getChildColumns().iterator(); iter.hasNext(); ) {
+            TableColumn column = iter.next();
             html.write("<a href='tables/");
             html.write(column.getTable().getName());
             html.write(".html'>");
@@ -115,8 +126,8 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         }
         html.writeln("</td>");
         html.write("  <td class='detail'>");
-        for (Iterator iter = constraint.getParentColumns().iterator(); iter.hasNext(); ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (Iterator<TableColumn> iter = constraint.getParentColumns().iterator(); iter.hasNext(); ) {
+            TableColumn column = iter.next();
             html.write("<a href='tables/");
             html.write(column.getTable().getName());
             html.write(".html'>");
@@ -182,10 +193,9 @@ public class HtmlConstraintsPage extends HtmlFormatter {
      * @return int
      */
     private int writeCheckConstraints(Table table, LineWriter html) throws IOException {
-        Map constraints = table.getCheckConstraints();  // constraint name -> text pairs
+        Map<String, String> constraints = table.getCheckConstraints();  // constraint name -> text pairs
         int constraintsWritten = 0;
-        for (Iterator iter = constraints.keySet().iterator(); iter.hasNext(); ) {
-            String name = iter.next().toString();
+        for (String name : constraints.keySet()) {
             html.writeln(" <tr>");
             html.write("  <td class='detail' valign='top'><a href='tables/");
             html.write(table.getName());

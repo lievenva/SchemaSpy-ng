@@ -1,9 +1,20 @@
 package net.sourceforge.schemaspy;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
-import net.sourceforge.schemaspy.model.*;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.Table;
 
 public class SchemaSpy {
     private final Database database;
@@ -32,8 +43,8 @@ public class SchemaSpy {
         List<Table> unattached = new ArrayList<Table>();
 
         // first pass to gather the 'low hanging fruit'
-        for (Iterator iter = remainingTables.iterator(); iter.hasNext(); ) {
-            Table table = (Table)iter.next();
+        for (Iterator<Table> iter = remainingTables.iterator(); iter.hasNext(); ) {
+            Table table = iter.next();
             if (table.isLeaf() && table.isRoot()) {
                 unattached.add(table);
                 iter.remove();
@@ -51,8 +62,7 @@ public class SchemaSpy {
             // resolve it by removing a constraint, one by one, 'till the tables are all trimmed
             if (tablesLeft == remainingTables.size()) {
                 boolean foundSimpleRecursion = false;
-                for (Iterator iter = remainingTables.iterator(); iter.hasNext(); ) {
-                    Table potentialRecursiveTable = (Table)iter.next();
+                for (Table potentialRecursiveTable : remainingTables) {
                     ForeignKeyConstraint recursiveConstraint = potentialRecursiveTable.removeSelfReferencingConstraint();
                     if (recursiveConstraint != null) {
                         recursiveConstraints.add(recursiveConstraint);

@@ -1,10 +1,11 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Set;
 import net.sourceforge.schemaspy.Config;
-import net.sourceforge.schemaspy.model.*;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
@@ -167,13 +168,11 @@ public class HtmlFormatter {
         html.write("Please <a href='http://sourceforge.net/donate/index.php?group_id=137197' target='_blank' title='Please help keep SchemaSpy alive'>support</a> this project");
     }
 
-    protected void writeExcludedColumns(Set excludedColumns, LineWriter html) throws IOException {
+    protected void writeExcludedColumns(Set<TableColumn> excludedColumns, LineWriter html) throws IOException {
         if (excludedColumns.size() > 0) {
             html.writeln("<span class='excludedRelationship'>");
             html.writeln("<br>These columns were not evaluated during analysis: ");
-            Iterator iter = excludedColumns.iterator();
-            while (iter.hasNext()) {
-                TableColumn column = (TableColumn)iter.next();
+            for (TableColumn column : excludedColumns) {
                 html.write("<a href=\"" + getPathToRoot() + "tables/");
                 html.write(column.getTable().getName());
                 html.write(".html\">");

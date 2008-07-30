@@ -1,7 +1,10 @@
 package net.sourceforge.schemaspy.view;
 
-import java.util.*;
-import net.sourceforge.schemaspy.model.*;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
 
 /**
  * Format table data into .dot format to feed to GraphVis' dot program.

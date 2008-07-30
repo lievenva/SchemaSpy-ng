@@ -1,8 +1,10 @@
 package net.sourceforge.schemaspy.view;
 
-import java.util.*;
-import java.util.regex.*;
-import net.sourceforge.schemaspy.model.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
 
 /**
  * Simple ugly hack that provides details of what was written.

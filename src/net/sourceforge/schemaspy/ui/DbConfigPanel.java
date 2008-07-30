@@ -1,12 +1,20 @@
 package net.sourceforge.schemaspy.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import net.sourceforge.schemaspy.util.*;
+import java.awt.BorderLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import net.sourceforge.schemaspy.util.DbSpecificConfig;
 
 /**
  * @author John Currier
@@ -42,6 +50,7 @@ public class DbConfigPanel extends JPanel {
                 setDefaultEditor(File.class, fileEditor);
             }
 
+            @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
                 TableCellRenderer renderer;
                 
@@ -54,6 +63,7 @@ public class DbConfigPanel extends JPanel {
                 return renderer;
             }
 
+            @Override
             public TableCellEditor getCellEditor(int row, int column) {
                 return getDefaultEditor(model.getClass(row));
             }

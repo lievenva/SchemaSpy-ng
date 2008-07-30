@@ -1,6 +1,9 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class ImageWriter {
     private static ImageWriter instance = new ImageWriter();

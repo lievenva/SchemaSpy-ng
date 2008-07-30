@@ -1,11 +1,20 @@
 package net.sourceforge.schemaspy;
 
-import java.io.*;
-import java.sql.*;
-import java.util.*;
-import java.util.regex.*;
-import net.sourceforge.schemaspy.util.*;
-import net.sourceforge.schemaspy.view.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.util.LineWriter;
+import net.sourceforge.schemaspy.view.HtmlMultipleSchemasIndexPage;
 
 /**
  * @author John Currier
@@ -20,7 +29,7 @@ public final class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
+    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
         List<String> genericCommand = new ArrayList<String>();
         genericCommand.add("java");
@@ -34,8 +43,7 @@ public final class MultipleSchemaAnalyzer {
             genericCommand.add(loadedFrom);
         }
         
-        for (Iterator iter = args.iterator(); iter.hasNext(); ) {
-            String next = iter.next().toString();
+        for (String next : args) {
             if (next.startsWith("-"))
                 genericCommand.add(next);
             else
@@ -44,15 +52,14 @@ public final class MultipleSchemaAnalyzer {
 
         System.out.println("Analyzing schemas that match regular expression '" + schemaSpec + "':");
         System.out.println("(use -schemaSpec on command line or in .properties to exclude other schemas)");
-        List populatedSchemas = getPopulatedSchemas(meta, schemaSpec, user);
-        for (Iterator iter = populatedSchemas.iterator(); iter.hasNext(); )
-            System.out.print(" " + iter.next());
+        List<String> populatedSchemas = getPopulatedSchemas(meta, schemaSpec, user);
+        for (String populatedSchema : populatedSchemas)
+            System.out.print(" " + populatedSchema);
         System.out.println();
 
         writeIndexPage(dbName, populatedSchemas, meta, outputDir, charset);
 
-        for (Iterator iter = populatedSchemas.iterator(); iter.hasNext(); ) {
-            String schema = iter.next().toString();
+        for (String schema : populatedSchemas) {
             List<String> command = new ArrayList<String>(genericCommand);
             command.add("-s");
             command.add(schema);
@@ -68,9 +75,8 @@ public final class MultipleSchemaAnalyzer {
                 int rc = java.waitFor();
                 if (rc != 0) {
                     System.err.println("Failed to execute this process (rc " + rc + "):");
-                    iter = command.iterator();
-                    while (iter.hasNext())
-                        System.err.print(" " + iter.next());
+                    for (String chunk : command)
+                        System.err.print(" " + chunk);
                     System.err.println();
                     return rc;
                 }
@@ -85,7 +91,7 @@ public final class MultipleSchemaAnalyzer {
         return 0;
     }
 
-    private void writeIndexPage(String dbName, List populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
+    private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
         if (populatedSchemas.size() > 0) {
             LineWriter index = new LineWriter(new File(outputDir, "index.html"), charset);
             HtmlMultipleSchemasIndexPage.getInstance().write(dbName, populatedSchemas, meta, index);
@@ -100,9 +106,9 @@ public final class MultipleSchemaAnalyzer {
             Pattern schemaRegex = Pattern.compile(schemaSpec);
 
             populatedSchemas = DbAnalyzer.getPopulatedSchemas(meta, schemaSpec);
-            Iterator iter = populatedSchemas.iterator();
+            Iterator<String> iter = populatedSchemas.iterator();
             while (iter.hasNext()) {
-                String schema = iter.next().toString();
+                String schema = iter.next();
                 if (!schemaRegex.matcher(schema).matches())
                     iter.remove(); // remove those that we're not supposed to analyze
             }
@@ -123,6 +129,7 @@ public final class MultipleSchemaAnalyzer {
             setDaemon(true);
         }
 
+        @Override
         public void run() {
             try {
                 int ch;

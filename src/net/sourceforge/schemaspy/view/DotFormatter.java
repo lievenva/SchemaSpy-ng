@@ -1,11 +1,22 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.view.DotNode.DotNodeConfig;
 
 /**
@@ -175,16 +186,14 @@ public class DotFormatter {
     private Set<Table> getImmediateRelatives(Table table, WriteStats stats) {
         Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
         boolean foundImplied = false;
-        Iterator iter = table.getColumns().iterator();
-        while (iter.hasNext()) {
-            TableColumn column = (TableColumn)iter.next();
+        
+        for (TableColumn column : table.getColumns()) {
             if (DotConnector.isExcluded(column, stats)) {
                 stats.addExcludedColumn(column);
                 continue;
             }
-            Iterator childIter = column.getChildren().iterator();
-            while (childIter.hasNext()) {
-                TableColumn childColumn = (TableColumn)childIter.next();
+            
+            for (TableColumn childColumn : column.getChildren()) {
                 if (DotConnector.isExcluded(childColumn, stats)) {
                     stats.addExcludedColumn(childColumn);
                     continue;
@@ -194,9 +203,8 @@ public class DotFormatter {
                 if (!implied || stats.includeImplied())
                     relatedColumns.add(childColumn);
             }
-            Iterator parentIter = column.getParents().iterator();
-            while (parentIter.hasNext()) {
-                TableColumn parentColumn = (TableColumn)parentIter.next();
+            
+            for (TableColumn parentColumn : column.getParents()) {
                 if (DotConnector.isExcluded(parentColumn, stats)) {
                     stats.addExcludedColumn(parentColumn);
                     continue;

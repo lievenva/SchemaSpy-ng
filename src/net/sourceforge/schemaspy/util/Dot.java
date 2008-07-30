@@ -267,6 +267,7 @@ public class Dot {
             setDaemon(true);
         }
 
+        @Override
         public void run() {
             try {
                 String line;

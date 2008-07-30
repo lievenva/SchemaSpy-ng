@@ -1,14 +1,15 @@
 package net.sourceforge.schemaspy.view;
 
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.util.Dot;
 
 /**
  * Represents GraphVis dot's concept of an edge.  That is, a connector between two nodes.
  *
  * @author John Currier
  */
-public class DotConnector implements Comparable {
+public class DotConnector implements Comparable<DotConnector> {
     private final TableColumn parentColumn;
     private final Table parentTable;
     private final TableColumn childColumn;
@@ -70,6 +71,7 @@ public class DotConnector implements Comparable {
         childPort = "elipses";
     }
 
+    @Override
     public String toString() {
         StringBuffer edge = new StringBuffer();
         edge.append("  \"");
@@ -102,8 +104,7 @@ public class DotConnector implements Comparable {
         return edge.toString();
     }
 
-    public int compareTo(Object o) {
-        DotConnector other = (DotConnector)o;
+    public int compareTo(DotConnector other) {
         int rc = childTable.getName().compareTo(other.childTable.getName());
         if (rc == 0)
             rc = childColumn.getName().compareTo(other.childColumn.getName());
@@ -116,12 +117,14 @@ public class DotConnector implements Comparable {
         return rc;
     }
 
+    @Override
     public boolean equals(Object other) {
         if (!(other instanceof DotConnector))
             return false;
-        return compareTo(other) == 0;
+        return compareTo((DotConnector)other) == 0;
     }
 
+    @Override
     public int hashCode() {
         int p = parentTable == null ? 0 : parentTable.getName().hashCode();
         int c = childTable == null ? 0 : childTable.getName().hashCode();

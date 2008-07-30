@@ -1,8 +1,12 @@
 package net.sourceforge.schemaspy.util;
 
-import java.io.*;
-import java.util.*;
-import net.sourceforge.schemaspy.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import net.sourceforge.schemaspy.Config;
 
 /**
  * @author John Currier
@@ -87,14 +91,13 @@ public class DbSpecificConfig {
     public void dumpUsage() {
         System.out.println(" " + new File(type).getName() + ":");
         System.out.println("  " + description);
-        Iterator iter = getOptions().iterator();
-
-        while (iter.hasNext()) {
-            DbSpecificOption option = (DbSpecificOption)iter.next();
+        
+        for (DbSpecificOption option : getOptions()) {
             System.out.println("   -" + option.getName() + " " + (option.getDescription() != null ? "  \t" + option.getDescription() : ""));
         }
     }
     
+    @Override
     public String toString() {
         return description;
     }

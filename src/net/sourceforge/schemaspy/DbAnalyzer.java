@@ -1,9 +1,26 @@
 package net.sourceforge.schemaspy;
 
-import java.sql.*;
-import java.util.*;
-import java.util.regex.*;
-import net.sourceforge.schemaspy.model.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.model.TableIndex;
 
 public class DbAnalyzer {
     public static List<ImpliedForeignKeyConstraint> getImpliedConstraints(Collection<Table> tables) throws SQLException {
@@ -31,8 +48,7 @@ public class DbAnalyzer {
                 }
             }
 
-            for (Iterator columnIter = table.getColumns().iterator(); columnIter.hasNext(); ) {
-                TableColumn column = (TableColumn)columnIter.next();
+            for (TableColumn column : table.getColumns()) {
                 if (!column.isForeignKey())
                     columnsWithoutParents.add(column);
             }
@@ -47,8 +63,7 @@ public class DbAnalyzer {
         sortColumnsByTable(columnsWithoutParents);
 
         List<ImpliedForeignKeyConstraint> impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
-        for (Iterator iter = columnsWithoutParents.iterator(); iter.hasNext(); ) {
-            TableColumn childColumn = (TableColumn)iter.next();
+        for (TableColumn childColumn : columnsWithoutParents) {
             Table primaryTable = allPrimaries.get(childColumn);
             if (primaryTable != null && primaryTable != childColumn.getTable()) {
                 TableColumn parentColumn = primaryTable.getColumn(childColumn.getName());
@@ -251,7 +266,7 @@ public class DbAnalyzer {
      *
      * @param meta DatabaseMetaData
      */
-    public static List getPopulatedSchemas(DatabaseMetaData meta) throws SQLException {
+    public static List<String> getPopulatedSchemas(DatabaseMetaData meta) throws SQLException {
         return getPopulatedSchemas(meta, ".*");
     }
 

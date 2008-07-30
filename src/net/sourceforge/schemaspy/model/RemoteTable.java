@@ -24,7 +24,8 @@ public class RemoteTable extends Table {
      * @param db
      * @param tables
      */
-    public void connectForeignKeys(Map tables, Database db, Properties properties) throws SQLException {
+    @Override
+    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -41,6 +42,7 @@ public class RemoteTable extends Table {
         }
     }
 
+    @Override
     public boolean isRemote() {
         return true;
     }

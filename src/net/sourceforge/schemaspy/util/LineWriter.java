@@ -60,6 +60,7 @@ public class LineWriter extends BufferedWriter {
     /**
      * Intended to simplify use when wrapping StringWriters.
      */
+    @Override
     public String toString() {
         try {
             flush();

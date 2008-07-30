@@ -1,6 +1,6 @@
 package net.sourceforge.schemaspy;
 
-import net.sourceforge.schemaspy.ui.*;
+import net.sourceforge.schemaspy.ui.MainFrame;
 
 /**
  * @author John Currier

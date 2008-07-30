@@ -1,9 +1,13 @@
 package net.sourceforge.schemaspy.view;
 
-import java.text.*;
-import java.util.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.model.*;
+import java.text.NumberFormat;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.model.TableIndex;
 
 public class DotNode {
     private final Table table;
@@ -55,6 +59,7 @@ public class DotNode {
         excludedColumns.add(column);
     }
 
+    @Override
     public String toString() {
         StyleSheet css = StyleSheet.getInstance();
         StringBuffer buf = new StringBuffer();

@@ -1,12 +1,13 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.sql.*;
-import java.text.*;
-import java.util.*;
+import java.io.IOException;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.util.*;
+import java.util.List;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
     private static HtmlMultipleSchemasIndexPage instance = new HtmlMultipleSchemasIndexPage();
@@ -18,11 +19,10 @@ public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(String dbName, List populatedSchemas, DatabaseMetaData meta, LineWriter index) throws IOException {
+    public void write(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, LineWriter index) throws IOException {
         writeHeader(dbName, meta, populatedSchemas.size(), false, populatedSchemas.get(0).toString(), index);
 
-        for (Iterator iter = populatedSchemas.iterator(); iter.hasNext(); ) {
-            String schema = iter.next().toString();
+        for (String schema : populatedSchemas) {
             writeLineItem(schema, index);
         }
 

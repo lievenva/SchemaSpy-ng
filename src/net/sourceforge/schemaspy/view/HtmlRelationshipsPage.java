@@ -1,9 +1,12 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.util.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlRelationshipsPage extends HtmlGraphFormatter {
     private static HtmlRelationshipsPage instance = new HtmlRelationshipsPage();
@@ -15,7 +18,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         return instance;
     }
 
-    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasRealRelationships, boolean hasImpliedRelationships, Set excludedColumns, LineWriter html) {
+    public boolean write(Database db, File graphDir, String dotBaseFilespec, boolean hasOrphans, boolean hasRealRelationships, boolean hasImpliedRelationships, Set<TableColumn> excludedColumns, LineWriter html) {
         File compactRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.compact.dot");
         File compactRelationshipsGraphFile = new File(graphDir, dotBaseFilespec + ".real.compact.png");
         File largeRelationshipsDotFile = new File(graphDir, dotBaseFilespec + ".real.large.dot");
@@ -159,6 +162,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         html.writeln("</td></tr></table>");
     }
 
+    @Override
     protected boolean isRelationshipsPage() {
         return true;
     }

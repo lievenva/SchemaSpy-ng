@@ -1,9 +1,12 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class TableIndex implements Comparable {
+public class TableIndex implements Comparable<TableIndex> {
     private final String name;
     private final boolean isUnique;
     private Object id;
@@ -77,11 +80,10 @@ public class TableIndex implements Comparable {
     public String getColumnsAsString() {
         StringBuffer buf = new StringBuffer();
 
-        Iterator iter = columns.iterator();
-        while (iter.hasNext()) {
+        for (TableColumn column : columns) {
             if (buf.length() > 0)
                 buf.append(" + ");
-            buf.append(iter.next());
+            buf.append(column);
         }
         return buf.toString();
     }
@@ -102,9 +104,10 @@ public class TableIndex implements Comparable {
         // if all of the columns specified by the Unique Index are nullable
         // then return true, otherwise false
         boolean allNullable = true;
-        for (Iterator iter = getColumns().iterator(); iter.hasNext() && allNullable; ) {
-            TableColumn column = (TableColumn)iter.next();
+        for (TableColumn column : getColumns()) {
             allNullable = column != null && column.isNullable();
+            if (!allNullable)
+                break;
         }
 
         return allNullable;
@@ -122,8 +125,7 @@ public class TableIndex implements Comparable {
      * @param object
      * @return
      */
-    public int compareTo(Object object) {
-        TableIndex other = (TableIndex)object;
+    public int compareTo(TableIndex other) {
         if (isPrimaryKey() && !other.isPrimaryKey())
             return -1;
         if (!isPrimaryKey() && other.isPrimaryKey())

@@ -1,10 +1,15 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.util.HtmlEncoder;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlMainIndexPage extends HtmlFormatter {
     private static HtmlMainIndexPage instance = new HtmlMainIndexPage();
@@ -31,8 +36,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         boolean showIds = false;
         int numViews = 0;
         
-        for (Iterator iter = byName.iterator(); iter.hasNext(); ) {
-            Table table = (Table)iter.next();
+        for (Table table : byName) {
             if (table.isView())
                 ++numViews;
             showIds |= table.getId() != null;
@@ -170,6 +174,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         super.writeFooter(html);
     }
 
+    @Override
     protected boolean isMainIndex() {
         return true;
     }

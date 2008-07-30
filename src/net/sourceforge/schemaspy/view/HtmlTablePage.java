@@ -1,12 +1,27 @@
 package net.sourceforge.schemaspy.view;
 
-import java.io.*;
-import java.sql.*;
-import java.text.*;
-import java.util.*;
-import net.sourceforge.schemaspy.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.DatabaseMetaData;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TreeSet;
+import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.model.TableIndex;
+import net.sourceforge.schemaspy.model.View;
+import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
+import net.sourceforge.schemaspy.util.HtmlEncoder;
+import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
@@ -108,7 +123,7 @@ public class HtmlTablePage extends HtmlFormatter {
         return onCascadeDelete;
     }
 
-    public boolean writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
+    public boolean writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set<TableColumn> indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
         out.writeln("<tr>");
         if (showIds) {
             out.write(" <td class='detail' align='right'>");
@@ -254,7 +269,7 @@ public class HtmlTablePage extends HtmlFormatter {
     }
 
     private void writeCheckConstraints(Table table, LineWriter out) throws IOException {
-        Map constraints = table.getCheckConstraints();
+        Map<String, String> constraints = table.getCheckConstraints();
         if (constraints != null && !constraints.isEmpty()) {
             out.writeln("<div class='indent'>");
             out.writeln("<b>Requirements (check constraints):</b>");
@@ -266,8 +281,7 @@ public class HtmlTablePage extends HtmlFormatter {
             out.writeln(" </tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            for (Iterator iter = constraints.keySet().iterator(); iter.hasNext(); ) {
-                String name = iter.next().toString();
+            for (String name : constraints.keySet()) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
                 out.write(constraints.get(name).toString());
@@ -287,8 +301,11 @@ public class HtmlTablePage extends HtmlFormatter {
         if (indexes != null && !indexes.isEmpty()) {
             // see if we've got any strangeness so we can have the correct number of colgroups
             boolean containsAnomalies = false;
-            for (Iterator iter = indexes.iterator(); !containsAnomalies && iter.hasNext(); )
-                containsAnomalies = ((TableIndex)iter.next()).isUniqueNullable();
+            for (TableIndex index : indexes) {
+                containsAnomalies = index.isUniqueNullable();
+                if (containsAnomalies)
+                    break;
+            }
 
             out.writeln("<div class='indent'>");
             out.writeln("<b>Indexes:</b>");
@@ -309,8 +326,7 @@ public class HtmlTablePage extends HtmlFormatter {
 
             indexes = new TreeSet<TableIndex>(indexes); // sort primary keys first
 
-            for (Iterator iter = indexes.iterator(); iter.hasNext(); ) {
-                TableIndex index = (TableIndex)iter.next();
+            for (TableIndex index : indexes) {
                 out.writeln(" <tr>");
 
                 if (showId) {
@@ -334,9 +350,9 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.writeln("</td>");
 
                 out.write("  <td class='detail' style='text-align:left;'>");
-                Iterator columnsIter = index.getColumns().iterator();
+                Iterator<TableColumn> columnsIter = index.getColumns().iterator();
                 while (columnsIter.hasNext()) {
-                    TableColumn column = (TableColumn)columnsIter.next();
+                    TableColumn column = columnsIter.next();
                     if (index.isAscending(column))
                         out.write("<span title='Ascending'>Asc</span>");
                     else
@@ -382,7 +398,7 @@ public class HtmlTablePage extends HtmlFormatter {
             out.writeln(" <tr>");
             out.write("  <td class='detail'>");
 
-            Set keywords = getKeywords(db.getMetaData());
+            Set<String> keywords = getKeywords(db.getMetaData());
             StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.,", true);
             while (tokenizer.hasMoreTokens()) {
                 String nextToken = tokenizer.nextToken();
@@ -543,6 +559,7 @@ public class HtmlTablePage extends HtmlFormatter {
         super.writeFooter(out);
     }
 
+    @Override
     protected String getPathToRoot() {
         return "../";
     }

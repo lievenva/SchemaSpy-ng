@@ -1,14 +1,54 @@
 package net.sourceforge.schemaspy;
 
-import java.io.*;
-import java.net.*;
-import java.sql.*;
-import java.util.*;
-import javax.xml.parsers.*;
-import net.sourceforge.schemaspy.model.*;
-import net.sourceforge.schemaspy.util.*;
-import net.sourceforge.schemaspy.view.*;
-import org.w3c.dom.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Driver;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.util.ConnectionURLBuilder;
+import net.sourceforge.schemaspy.util.DOMUtil;
+import net.sourceforge.schemaspy.util.DbSpecificOption;
+import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.util.LineWriter;
+import net.sourceforge.schemaspy.view.DotFormatter;
+import net.sourceforge.schemaspy.view.HtmlAnomaliesPage;
+import net.sourceforge.schemaspy.view.HtmlColumnsPage;
+import net.sourceforge.schemaspy.view.HtmlConstraintsPage;
+import net.sourceforge.schemaspy.view.HtmlMainIndexPage;
+import net.sourceforge.schemaspy.view.HtmlOrphansPage;
+import net.sourceforge.schemaspy.view.HtmlRelationshipsPage;
+import net.sourceforge.schemaspy.view.HtmlTablePage;
+import net.sourceforge.schemaspy.view.ImageWriter;
+import net.sourceforge.schemaspy.view.JavaScriptFormatter;
+import net.sourceforge.schemaspy.view.StyleSheet;
+import net.sourceforge.schemaspy.view.TextFormatter;
+import net.sourceforge.schemaspy.view.WriteStats;
+import net.sourceforge.schemaspy.view.XmlTableFormatter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * @author John Currier
@@ -38,8 +78,8 @@ public class SchemaAnalyzer {
 
             if (config.getRemainingParameters().size() != 0) {
                 System.out.print("Warning: Unrecognized option(s):");
-                for (Iterator iter = config.getRemainingParameters().iterator(); iter.hasNext(); )
-                    System.out.print(" " + iter.next());
+                for (String remnant : config.getRemainingParameters())
+                    System.out.print(" " + remnant);
                 System.out.println();
             }
 
@@ -168,7 +208,7 @@ public class SchemaAnalyzer {
                 stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasImplied = stats.wroteImplied();
-                Set excludedColumns = stats.getExcludedColumns();
+                Set<TableColumn> excludedColumns = stats.getExcludedColumns();
                 stats = new WriteStats(stats);
                 out.close();
                 if (hasImplied) {
@@ -213,9 +253,7 @@ public class SchemaAnalyzer {
                 out.close();
 
                 System.out.print(".");
-                Iterator iter = HtmlColumnsPage.getInstance().getColumnInfos().iterator();
-                while (iter.hasNext()) {
-                    HtmlColumnsPage.ColumnInfo columnInfo = (HtmlColumnsPage.ColumnInfo)iter.next();
+                for (HtmlColumnsPage.ColumnInfo columnInfo : HtmlColumnsPage.getInstance().getColumnInfos()) {
                     out = new LineWriter(new File(outputDir, columnInfo.getLocation()), 16 * 1024, config.getCharset());
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
                     stats = new WriteStats(stats);
@@ -228,9 +266,8 @@ public class SchemaAnalyzer {
                 System.out.print("Writing/graphing results");
 
                 HtmlTablePage tableFormatter = HtmlTablePage.getInstance();
-                for (iter = tables.iterator(); iter.hasNext(); ) {
+                for (Table table : tables) { 
                     System.out.print('.');
-                    Table table = (Table)iter.next();
                     out = new LineWriter(new File(outputDir, "tables/" + table.getName() + ".html"), 24 * 1024, config.getCharset());
                     tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
                     stats = new WriteStats(stats);
@@ -329,7 +366,7 @@ public class SchemaAnalyzer {
         System.out.println();
         System.out.println();
         System.out.println("No tables or views were found in schema '" + schema + "'.");
-        List schemas = DbAnalyzer.getSchemas(meta);
+        List<String> schemas = DbAnalyzer.getSchemas(meta);
         if (schema == null || schemas.contains(schema)) {
             System.out.println("The schema exists in the database, but the user you specified (" + user + ')');
             System.out.println("  might not have rights to read its contents.");
@@ -348,17 +385,15 @@ public class SchemaAnalyzer {
         System.out.println(schemas.size() + " schema" + (plural ? "s" : "") + " exist" + (plural ? "" : "s") + " in this database.");
         System.out.println("Some of these \"schemas\" may be users or system schemas.");
         System.out.println();
-        Iterator iter = schemas.iterator();
-        while (iter.hasNext()) {
-            System.out.print(iter.next() + " ");
+        for (String unknown : schemas) {
+            System.out.print(unknown + " ");
         }
 
         System.out.println();
         System.out.println("These schemas contain tables/views that user '" + user + "' can see:");
         System.out.println();
-        iter = DbAnalyzer.getPopulatedSchemas(meta).iterator();
-        while (iter.hasNext()) {
-            System.out.print(iter.next() + " ");
+        for (String populated : DbAnalyzer.getPopulatedSchemas(meta)) {
+            System.out.print(populated + " ");
         }
     }
 
@@ -510,7 +545,7 @@ public class SchemaAnalyzer {
     }
     */
 
-    private static void yankParam(List args, String paramId) {
+    private static void yankParam(List<String> args, String paramId) {
         int paramIndex = args.indexOf(paramId);
         if (paramIndex >= 0) {
             args.remove(paramIndex);

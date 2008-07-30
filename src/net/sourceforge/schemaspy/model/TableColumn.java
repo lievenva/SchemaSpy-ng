@@ -1,8 +1,15 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.*;
-import java.util.*;
-import java.util.regex.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 public class TableColumn {
     private final Table table;
@@ -97,7 +104,7 @@ public class TableColumn {
     public boolean isUnique() {
         for (TableIndex index : table.getIndexes()) {
             if (index.isUnique()) {
-                List indexColumns = index.getColumns();
+                List<TableColumn> indexColumns = index.getColumns();
                 if (indexColumns.size() == 1 && indexColumns.contains(this)) {
                     return true;
                 }
@@ -144,8 +151,7 @@ public class TableColumn {
     }
 
     public void unlinkParents() {
-        for (Iterator iter = parents.keySet().iterator(); iter.hasNext(); ) {
-            TableColumn parent = (TableColumn)iter.next();
+        for (TableColumn parent : parents.keySet()) {
             parent.removeChild(this);
         }
         parents.clear();
@@ -231,6 +237,7 @@ public class TableColumn {
         return regex.matcher(getTable().getName() + '.' + getName()).matches();
     }
 
+    @Override
     public String toString() {
         return getName();
     }
