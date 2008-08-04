@@ -1,5 +1,6 @@
 package net.sourceforge.schemaspy.view;
 
+import net.sourceforge.schemaspy.view.StyleSheet;
 import java.io.IOException;
 import java.util.Set;
 import net.sourceforge.schemaspy.Config;
@@ -165,7 +166,29 @@ public class HtmlFormatter {
     }
 
     protected void writeFeedMe(LineWriter html) throws IOException {
-        html.write("Please <a href='http://sourceforge.net/donate/index.php?group_id=137197' target='_blank' title='Please help keep SchemaSpy alive'>support</a> this project");
+        if (Config.getInstance().isAdsEnabled()) {
+            StyleSheet css = StyleSheet.getInstance();
+            
+            html.writeln("<script type=\"text/javascript\"><!--");
+            html.writeln("google_ad_client = \"pub-9598353634003340\";");
+            html.writeln("google_ad_slot = \"1796553895\";");
+            html.writeln("google_ad_channel =\"SchemaSpy-generated\";");
+            html.writeln("google_ad_width = 234;");
+            html.writeln("google_ad_height = 60;");
+            html.writeln("google_ad_format = \"234x60_as\";");
+            html.writeln("google_ad_type = \"text\";");
+            html.writeln("google_color_border = \"" + css.getBodyBackground() + "\";");
+            html.writeln("google_color_bg = \"" + css.getBodyBackground() + "\";");
+            html.writeln("google_color_link = \"0000FF\";");
+            html.writeln("google_color_url = \"008000\";");
+            html.writeln("google_color_text = \"000000\";");
+            
+            html.writeln("//-->");
+            html.writeln("</script>");
+            html.writeln("<script type=\"text/javascript\"");
+            html.writeln("src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">");
+            html.writeln("</script>");
+        }
     }
 
     protected void writeExcludedColumns(Set<TableColumn> excludedColumns, LineWriter html) throws IOException {
