@@ -75,6 +75,7 @@ public class Config
     private Boolean meterEnabled;
     private Boolean evaluteAll;
     private Boolean highQuality;
+    private Boolean adsEnabled;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
     public static final String DOT_CHARSET = "UTF-8"; 
@@ -129,25 +130,25 @@ public class Config
     }
 
     public void setHtmlGenerationEnabled(boolean generateHtml) {
-        this.generateHtml = Boolean.valueOf(generateHtml);
+        this.generateHtml = generateHtml;
     }
     
     public boolean isHtmlGenerationEnabled() {
         if (generateHtml == null)
-            generateHtml = Boolean.valueOf(!options.remove("-nohtml"));
+            generateHtml = !options.remove("-nohtml");
 
-        return generateHtml.booleanValue();
+        return generateHtml;
     }
     
     public void setImpliedConstraintsEnabled(boolean includeImpliedConstraints) {
-        this.includeImpliedConstraints = Boolean.valueOf(includeImpliedConstraints);
+        this.includeImpliedConstraints = includeImpliedConstraints;
     }
     
     public boolean isImpliedConstraintsEnabled() {
         if (includeImpliedConstraints == null)
-            includeImpliedConstraints = Boolean.valueOf(!options.remove("-noimplied"));
+            includeImpliedConstraints = !options.remove("-noimplied");
 
-        return includeImpliedConstraints.booleanValue();
+        return includeImpliedConstraints;
     }
     
     public void setOutputDir(String outputDirName) {
@@ -460,9 +461,9 @@ public class Config
     
     public boolean isLogoEnabled() {
         if (logoEnabled == null)
-            logoEnabled = Boolean.valueOf(!options.remove("-nologo"));
+            logoEnabled = !options.remove("-nologo");
         
-        return logoEnabled.booleanValue();
+        return logoEnabled;
     }
     
     /**
@@ -471,7 +472,7 @@ public class Config
      * @param enabled
      */
     public void setRankDirBugEnabled(boolean enabled) {
-        this.rankDirBugEnabled = Boolean.valueOf(enabled);
+        this.rankDirBugEnabled = enabled;
     }
 
     /**
@@ -479,16 +480,16 @@ public class Config
      */
     public boolean isRankDirBugEnabled() {
         if (rankDirBugEnabled == null)
-            rankDirBugEnabled = Boolean.valueOf(options.remove("-rankdirbug"));
+            rankDirBugEnabled = options.remove("-rankdirbug");
         
-        return rankDirBugEnabled.booleanValue();
+        return rankDirBugEnabled;
     }
     
     /**
      * Allow Html In Comments - encode them unless otherwise specified
      */
     public void setEncodeCommentsEnabled(boolean enabled) {
-        this.encodeCommentsEnabled = Boolean.valueOf(enabled);
+        this.encodeCommentsEnabled = enabled;
     }
 
     /**
@@ -496,9 +497,9 @@ public class Config
      */
     public boolean isEncodeCommentsEnabled() {
         if (encodeCommentsEnabled == null)
-            encodeCommentsEnabled = Boolean.valueOf(!options.remove("-ahic"));
+            encodeCommentsEnabled = !options.remove("-ahic");
         
-        return encodeCommentsEnabled.booleanValue();
+        return encodeCommentsEnabled;
     }
 
     /**
@@ -506,7 +507,7 @@ public class Config
      * @param enabled
      */
     public void setDisplayCommentsIntiallyEnabled(boolean enabled) {
-        this.displayCommentsInitiallyEnabled = Boolean.valueOf(enabled);
+        this.displayCommentsInitiallyEnabled = enabled;
     }
     
     /**
@@ -514,9 +515,9 @@ public class Config
      */
     public boolean isDisplayCommentsIntiallyEnabled() {
         if (displayCommentsInitiallyEnabled == null)
-            displayCommentsInitiallyEnabled = Boolean.valueOf(options.remove("-cid"));
+            displayCommentsInitiallyEnabled = options.remove("-cid");
         
-        return displayCommentsInitiallyEnabled.booleanValue();
+        return displayCommentsInitiallyEnabled;
     }
 
     /**
@@ -527,7 +528,7 @@ public class Config
      * @param enabled
      */
     public void setTableCommentsEnabled(boolean enabled) {
-        this.tableCommentsEnabled = Boolean.valueOf(enabled);
+        this.tableCommentsEnabled = enabled;
     }
 
     /**
@@ -535,27 +536,27 @@ public class Config
      */
     public boolean isTableCommentsEnabled() {
         if (tableCommentsEnabled == null)
-            tableCommentsEnabled = Boolean.valueOf(!options.remove("-notablecomments"));
+            tableCommentsEnabled = !options.remove("-notablecomments");
         
-        return tableCommentsEnabled.booleanValue();
+        return tableCommentsEnabled;
     }
 
     public void setNumRowsEnabled(boolean enabled) {
-        this.numRowsEnabled = Boolean.valueOf(enabled);
+        this.numRowsEnabled = enabled;
     }
     
     public boolean isNumRowsEnabled() {
         if (numRowsEnabled == null)
-            numRowsEnabled = Boolean.valueOf(!options.remove("-norows"));
+            numRowsEnabled = !options.remove("-norows");
         
-        return numRowsEnabled.booleanValue();
+        return numRowsEnabled;
     }
 
     public boolean isMeterEnabled() {
         if (meterEnabled == null)
-            meterEnabled = Boolean.valueOf(options.remove("-meter"));
+            meterEnabled = options.remove("-meter");
         
-        return meterEnabled.booleanValue();
+        return meterEnabled;
     }
 
     public void setColumnExclusions(String columnExclusions) {
@@ -591,13 +592,13 @@ public class Config
     }
     
     public void setEvaluateAllEnabled(boolean enabled) {
-        this.evaluteAll = Boolean.valueOf(enabled);
+        this.evaluteAll = enabled;
     }
     
     public boolean isEvaluateAllEnabled() {
         if (evaluteAll == null)
-            evaluteAll = Boolean.valueOf(options.remove("-all"));
-        return evaluteAll.booleanValue();
+            evaluteAll = options.remove("-all");
+        return evaluteAll;
     }
 
     /**
@@ -666,7 +667,7 @@ public class Config
      * larger image files (which take longer to download / display), but it looks better.
      */
     public void setHighQuality(boolean highQuality) {
-        this.highQuality = Boolean.valueOf(highQuality);
+        this.highQuality = highQuality;
         Dot.getInstance().setHighQuality(highQuality);
     }
     
@@ -675,11 +676,36 @@ public class Config
      */
     public boolean isHighQuality() {
         if (highQuality == null) {
-            highQuality = Boolean.valueOf(options.remove("-hq"));
-            Dot.getInstance().setHighQuality(highQuality.booleanValue());
+            highQuality = options.remove("-hq");
+            Dot.getInstance().setHighQuality(highQuality);
         }
 
         return Dot.getInstance().isHighQuality();
+    }
+
+    /**
+     * <code>true</code> if we should display advertisements.  
+     * Defaults to <code>true</code>.<p/>
+     * <b>Please do not disable ads unless absolutely necessary</b>.
+     * 
+     * @return
+     */
+    public void setAdsEnabled(boolean enabled) {
+        this.adsEnabled = enabled;
+    }
+    
+    /**
+     * Returns <code>true</code> if we should display advertisements.<p/>
+     * <b>Please do not disable ads unless absolutely necessary</b>.
+     * 
+     * @return
+     */
+    public boolean isAdsEnabled() {
+        if (adsEnabled == null) {
+            adsEnabled = !options.remove("-noads");
+        }
+        
+        return adsEnabled ;
     }
     
     /**
