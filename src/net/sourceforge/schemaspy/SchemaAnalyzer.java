@@ -85,6 +85,8 @@ public class SchemaAnalyzer {
 
             String driverClass = properties.getProperty("driver");
             String driverPath = properties.getProperty("driverPath");
+            if (driverPath == null)
+                driverPath = "";
             if (config.getClasspath() != null)
                 driverPath = config.getClasspath() + File.pathSeparator + driverPath;
 
@@ -286,6 +288,11 @@ public class SchemaAnalyzer {
             XmlTableFormatter.getInstance().appendTables(rootNode, tables);
             
             String xmlName = dbName;
+            if (xmlName.indexOf('/') != -1)
+                xmlName = xmlName.substring(xmlName.lastIndexOf('/'));
+            if (xmlName.indexOf('\\') != -1)
+                xmlName = xmlName.substring(xmlName.lastIndexOf('\\'));
+            
             if (schema != null)
                 xmlName += '.' + schema;
             
