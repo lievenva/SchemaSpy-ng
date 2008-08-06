@@ -294,7 +294,6 @@ public class SchemaAnalyzer {
             
             if (schema != null)
                 xmlName += '.' + schema;
-            System.err.println(new File(outputDir, xmlName + ".xml"));            
             
             out = new LineWriter(new File(outputDir, xmlName + ".xml"), Config.DOT_CHARSET);
             document.getDocumentElement().normalize();
