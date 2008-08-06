@@ -171,7 +171,7 @@ public class HtmlFormatter {
             
             html.writeln("<script type=\"text/javascript\"><!--");
             html.writeln("google_ad_client = \"pub-9598353634003340\";");
-            html.writeln("google_ad_slot = \"1796553895\";");
+            //html.writeln("google_ad_slot = \"1796553895\";");
             html.writeln("google_ad_channel =\"SchemaSpy-generated\";");
             html.writeln("google_ad_width = 234;");
             html.writeln("google_ad_height = 60;");
