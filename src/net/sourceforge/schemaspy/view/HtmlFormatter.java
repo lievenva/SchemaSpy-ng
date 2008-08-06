@@ -167,6 +167,7 @@ public class HtmlFormatter {
 
     protected void writeFeedMe(LineWriter html) throws IOException {
         if (Config.getInstance().isAdsEnabled()) {
+            /*
             StyleSheet css = StyleSheet.getInstance();
             
             html.writeln("<script type=\"text/javascript\"><!--");
@@ -188,6 +189,7 @@ public class HtmlFormatter {
             html.writeln("<script type=\"text/javascript\"");
             html.writeln("src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">");
             html.writeln("</script>");
+            */
         }
     }
 
