@@ -288,13 +288,13 @@ public class SchemaAnalyzer {
             XmlTableFormatter.getInstance().appendTables(rootNode, tables);
             
             String xmlName = dbName;
-            if (xmlName.indexOf('/') != -1)
-                xmlName = xmlName.substring(xmlName.lastIndexOf('/'));
-            if (xmlName.indexOf('\\') != -1)
-                xmlName = xmlName.substring(xmlName.lastIndexOf('\\'));
+
+            // some dbNames have path info in the name...strip it
+            xmlName = new File(xmlName).getName();
             
             if (schema != null)
                 xmlName += '.' + schema;
+            System.err.println(new File(outputDir, xmlName + ".xml"));            
             
             out = new LineWriter(new File(outputDir, xmlName + ".xml"), Config.DOT_CHARSET);
             document.getDocumentElement().normalize();
