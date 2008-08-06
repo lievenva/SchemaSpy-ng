@@ -3,6 +3,7 @@ package net.sourceforge.schemaspy.model;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class View extends Table {
     private final String viewSql;
@@ -31,7 +32,8 @@ public class View extends Table {
         return viewSql;
     }
 
-    protected int fetchNumRows(Database database) {
+    @Override
+    protected int fetchNumRows(Database database, Properties properties) {
         return 0;
     }
 
