@@ -87,8 +87,8 @@ public class SchemaAnalyzer {
             String driverPath = properties.getProperty("driverPath");
             if (driverPath == null)
                 driverPath = "";
-            if (config.getClasspath() != null)
-                driverPath = config.getClasspath() + File.pathSeparator + driverPath;
+            if (config.getDriverPath() != null)
+                driverPath = config.getDriverPath() + File.pathSeparator + driverPath;
 
             Connection connection = getConnection(config, urlBuilder.getConnectionURL(), driverClass, driverPath);
             if (connection == null)
@@ -442,9 +442,8 @@ public class SchemaAnalyzer {
             System.err.println("one of the .properties from the jar, put it on your file");
             System.err.println("system and point to it with -t [databasePropertiesFile].");
             System.err.println();
-            System.err.println("For many people it's easiest to use the -cp option to directly specify");
+            System.err.println("For many people it's easiest to use the -dp option to directly specify");
             System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
-            System.err.println("Note that the -cp option must be specified AFTER " + Config.getLoadedFromJar());
             System.err.println();
             return null;
         }

@@ -57,7 +57,7 @@ public class Config
     private Properties userConnectionProperties;
     private Integer maxDbThreads;
     private Integer maxDetailedTables;
-    private String classpath;
+    private String driverPath;
     private String css;
     private String charset;
     private String font;
@@ -297,14 +297,19 @@ public class Config
         return userConnectionProperties;
     }
     
-    public void setClasspath(String classpath) {
-        this.classpath = classpath;
+    public void setDriverPath(String driverPath) {
+        this.driverPath = driverPath;
     }
     
-    public String getClasspath() {
-        if (classpath == null)
-            classpath = pullParam("-cp");
-        return classpath;
+    public String getDriverPath() {
+        if (driverPath == null)
+            driverPath = pullParam("-dp");
+        
+        // was previously -cp:
+        if (driverPath == null)
+            driverPath = pullParam("-cp");
+        
+        return driverPath;
     }
 
     /**
@@ -971,9 +976,8 @@ public class Config
             System.out.println("   -s schema             defaults to the specified user");
             System.out.println("   -p password           defaults to no password");
             System.out.println("   -o outputDirectory    directory to place the generated output in");
-            System.out.println("   -cp pathToDrivers     optional - looks for JDBC drivers here before looking");
+            System.out.println("   -dp pathToDrivers     optional - looks for JDBC drivers here before looking");
             System.out.println("                           in driverPath in [databaseType].properties.");
-            System.out.println("                           must be specified after " + getLoadedFromJar());
             System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description"); 
             System.out.println(" of additional parameters.");
             System.out.println();
@@ -1064,9 +1068,9 @@ public class Config
         if (!isTableCommentsEnabled())
             list.add("-notablecomments");
         
-        String value = getClasspath();
+        String value = getDriverPath();
         if (value != null) {
-            list.add("-cp");
+            list.add("-dp");
             list.add(value);
         }
         list.add("-css");
