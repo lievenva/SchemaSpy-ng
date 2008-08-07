@@ -542,7 +542,7 @@ public class Database {
                     System.out.print('.');
                     
                     try {
-                        View view = new View(this, rs, properties.getProperty("selectViewSql"));
+                        View view = new View(this, rs);
                         
                         if (include.matcher(view.getName()).matches())
                             views.put(view.getName(), view);
@@ -558,6 +558,36 @@ public class Database {
         } finally {
             if (rs != null)
                 rs.close();
+            rs = null;
+        }
+
+        String selectViewSql = properties.getProperty("selectViewSql"); 
+        if (selectViewSql != null) {
+            PreparedStatement stmt = null;
+
+            try {
+                stmt = prepareStatement(selectViewSql, null);
+                rs = stmt.executeQuery();
+                while (rs.next()) {
+                    String viewName = rs.getString("view_name");
+                    String viewSql = rs.getString("view_text");
+                    
+                    View view = views.get(viewName);
+                    if (view != null) {
+                        view.setViewSql(viewSql);
+                    }
+                }
+            } catch (SQLException sqlException) {
+                System.out.flush();
+                System.err.println();
+                System.err.println("Failed to retrieve view details: " + sqlException);
+                System.err.println(selectViewSql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
         }
     }
 
