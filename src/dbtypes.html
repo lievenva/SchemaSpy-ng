@@ -17,7 +17,7 @@
 One goal of SchemaSpy is to support a wide range of JDBC-complaint databases.  
 It uses the concept of "database types", as specified by .properties files, to
 achieve that goal.  
-"Out of the box" SchemaSpy supports a multitude of databases.  
+Out of the box SchemaSpy supports a multitude of databases.  
 If your database isn't currently supported or needs to be customized then continue reading.
 
 <p>For SchemaSpy to support your database it must:
@@ -28,7 +28,7 @@ If your database isn't currently supported or needs to be customized then contin
 
 The vast majority of relational databases have JDBC drivers that provide appropriate metadata.
 
-<h4>Database Type .property Files</h4>
+<h4>Database Type .properties Files</h4>
 <p>The -t command-line parameter specified which type of database you're dealing with.
 For example: <code>-t mysql</code> says to use the MySQL-specific database type file
 named <code>mysql.properties</code>.  
@@ -69,8 +69,8 @@ The basic file looks like this:
  </div>
 <div class='entry'>host and db</div>
  <div class='def'>
-  These entries provide documentation for the names surrounded by &lt; and &gt; 
-  in <code>connectionSpec</code>.
+  These will vary for each type of database and provide documentation for the 
+  names surrounded by &lt; and &gt; in <code>connectionSpec</code>.
   For example, if you forget to specify -host on the command line then you will
   get an error message that includes the text:
    <p><code>hostname[:port] host where database resides with optional port</code>
@@ -78,29 +78,17 @@ The basic file looks like this:
   database-specific parameters.
  </div>
 
-<h4>Remaining entries</h4>
+<h4>Custom SQL</h4>
 The remaining entries in the .properties file are <b>not required</b> for most databases.
 They're typically used to provide functionality that either isn't provided by the 
 JDBC metadata services or when those services are in some way inappropriate 
 (performance, incorrect results, etc.).
 
-<p>For the SQL-based entries you can use any of the following optional
-"named parameters" in the SQL.  
+<p>For these SQL-based entries you can use optional "named parameters" in the SQL.  
+These named parameters are 
+<code>:schema</code>, <code>:owner</code>, <code>:table</code> and <code>:view</code>.  
 They will be substituted with appropriate values at runtime.
-<code><ul>
-<li>:schema</li>
-<li>:owner</li>
-<li>:table</li>
-<li>:view</li>
-</ul></code>
-
-<div class='entry'>dbThreads</div>
- <div class='def'>
-  If your driver returns failures like "stream already closed" then its metadata
-  services probably aren't thread safe and you'll have to specify a value of 1 or
-  or specify "-dbThreads 1" on the command line.
- </div>
-
+<p>
 <table class="sqlQueries" border="1" cellpadding="0" cellspacing="1">
  <tr>
   <th>Name</th>
@@ -109,22 +97,48 @@ They will be substituted with appropriate values at runtime.
   <th>Scope of query</th>
  </tr>
  <tr>
-  <td>selectViewSql</td>
-  <td>text</td>
-  <td>Returns the details of a specific view, usually the SQL used to create the view.</td>
-  <td>Single view</td>
+  <td>selectIndexesSql</td>
+  <td>index_name, column_name, type, asc_or_desc (<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String,%20java.lang.String,%20java.lang.String,%20boolean,%20boolean)">docs</a>)</td>
+  <td>Information about indexes in a specific table.
+  <td>Single table</td>
+ </tr>
+ <tr>
+  <td>selectRowCountSql</td>
+  <td>row_count</td>
+  <td>Number of rows in a specific table.
+  <td>Single table</td>
+ </tr>
+ <tr>
+  <td>selectTableCommentsSql</td>
+  <td>table_name, comments</td>
+  <td>Comments associated with tables.  
+  Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
+  <td>Database</td>
+ </tr>
+ <tr>
+  <td>selectColumnCommentsSql</td>
+  <td>table_name, column_name, comments</td>
+  <td>Comments associated with table columns.
+  Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
+  <td>Database</td>
  </tr>
  <tr>
   <td>selectCheckConstraintsSql</td>
   <td>constraint_name, table_name, text</td>
-  <td>Returns check constraint details of all check contraints, where 'text' is usually 
+  <td>Check constraint details of all check contraints, where 'text' is usually 
   the SQL used to create the constraint.</td>
   <td>Database</td>
  </tr>
  <tr>
+  <td>selectViewSql</td>
+  <td>text</td>
+  <td>Details of a specific view, usually the SQL used to create the view.</td>
+  <td>Single view</td>
+ </tr>
+ <tr>
   <td>selectTableIdsSql</td>
   <td>table_id, table_name</td>
-  <td>Returns a unique ID for each table.  
+  <td>Unique ID for each table.  
   This is useful for databases (such as DB2) that may give error messages with just 
   table IDs instead of names.</td>
   <td>Database</td>
@@ -132,35 +146,28 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectIndexIdsSql</td>
   <td>index_id, index_name, table_name</td>
-  <td>Returns a unique ID for each table index.  
+  <td>Unique ID for each table index.  
   This is useful for databases (such as DB2) that may give error messages with just 
   index IDs instead of names.</td>
   <td>Database</td>
  </tr>
- <tr>
-  <td>selectTableCommentsSql</td>
-  <td>table_name, comments</td>
-  <td>Returns comments associated with tables.  
-  Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
-  <td>Database</td>
- </tr>
- <tr>
-  <td>selectColumnCommentsSql</td>
-  <td>table_name, column_name, comments</td>
-  <td>Returns comments associated with table columns.  
-  Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
-  <td>Database</td>
- </tr>
 </table>
 
-selectCheckConstraintsSql
-selectColumnCommentsSql
-selectIndexIdsSql
-selectTableCommentsSql
-selectTableIdsSql
-selectViewSql
-selectRowCountSql
-selectIndexesSql
+<h4>Reusing Configurations</h4>
+For those instances where you have two almost identical configurations you can
+use the <code>extends</code> entry, specifying another .properties file to be "extended."
+Interaction with DB2 through its "type 4 network driver", for example, is almost identical
+to the the DB2 "app driver".  
+<code>db2net.properties</code> therefore has a line that reads 
+<code>extends=db2</code> and only includes those configuration options that 
+deviate from <code>db2.properties</code>.
+
+<h4>Single-Threaded Drivers</h4>
+There's one remaining database configuration entry named <code>dbThreads</code>.
+It is used for database drivers whose metadata queries aren't thread safe.
+If your driver returns failures like "stream already closed" then you'll need 
+to specify either <code>dbThreads=1</code> in your .properties or "-dbThreads 1" 
+on the command line.
 
 </body>
 </html>
