@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
 
 public class TableColumn {
     private final Table table;
@@ -235,6 +236,18 @@ public class TableColumn {
 
     public boolean matches(Pattern regex) {
         return regex.matcher(getTable().getName() + '.' + getName()).matches();
+    }
+
+    /**
+     * @param colMeta
+     */
+    public void update(TableColumnMeta colMeta) {
+        String newComments = colMeta.getComments();
+        if (newComments != null)
+            setComments(newComments);
+        
+        if (colMeta.isPrimary() && !isPrimary())
+            table.getPrimaryColumns().add(this);
     }
 
     @Override

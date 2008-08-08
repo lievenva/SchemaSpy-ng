@@ -51,6 +51,7 @@ public class Config
     private String host;
     private Integer port;
     private String server;
+    private File meta;
     private Pattern tableInclusions;
     private Pattern columnExclusions;
     private String userConnectionPropertiesFile;
@@ -168,6 +169,14 @@ public class Config
         }
         
         return outputDir;
+    }
+
+    public void setMeta(File meta) {
+        this.meta = meta;
+    }
+    
+    public File getMeta() {
+        return meta;
     }
     
     public void setDbType(String dbType) {

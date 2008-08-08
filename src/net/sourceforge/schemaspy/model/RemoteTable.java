@@ -34,7 +34,9 @@ public class RemoteTable extends Table {
             while (rs.next()) {
                 String otherSchema = rs.getString("PKTABLE_SCHEM");
                 if (otherSchema != null && otherSchema.equals(baseSchema))
-                    addForeignKey(rs, tables, db, properties);
+                    addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"), 
+                            rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
+                            rs.getString("PKCOLUMN_NAME"), tables, db, properties);
             }
         } finally {
             if (rs != null)

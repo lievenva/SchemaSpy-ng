@@ -1,5 +1,6 @@
 package net.sourceforge.schemaspy;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -19,8 +20,8 @@ import net.sourceforge.schemaspy.model.Table;
 public class SchemaSpy {
     private final Database database;
 
-    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, String description, Properties properties, Pattern include, int maxThreads) throws SQLException {
-        database = new Database(connection, meta, dbName, schema, description, properties, include, maxThreads);
+    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, String description, Properties properties, Pattern include, int maxThreads, File xmlMeta) throws SQLException {
+        database = new Database(connection, meta, dbName, schema, description, properties, include, maxThreads, xmlMeta);
     }
 
     public Database getDatabase() {

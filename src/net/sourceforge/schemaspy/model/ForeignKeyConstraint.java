@@ -1,7 +1,5 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,11 +13,8 @@ public class ForeignKeyConstraint {
     private final char deleteRule;
     private final char updateRule;
 
-    ForeignKeyConstraint(Table child, ResultSet rs) throws SQLException {
-        if (rs != null)
-            name = rs.getString("FK_NAME");
-        else
-            name = null; // implied constraints will have a null rs and override getName()
+    ForeignKeyConstraint(Table child, String name) {
+        this.name = name; // implied constraints will have a null name and override getName()
         childTable = child;
         deleteRule = 'D';
         updateRule = 'U';

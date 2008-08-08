@@ -1,5 +1,6 @@
 package net.sourceforge.schemaspy.model;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -21,6 +22,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.model.xml.SchemaMeta;
+import net.sourceforge.schemaspy.model.xml.TableMeta;
 import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 
 public class Database {
@@ -36,7 +39,7 @@ public class Database {
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads) throws SQLException, MissingResourceException {
+    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, File xmlMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         this.databaseName = name;
@@ -44,6 +47,7 @@ public class Database {
         this.description = description;
         initTables(schema, meta, properties, include, maxThreads);
         initViews(schema, meta, properties, include);
+        updateFromXmlMetadata(xmlMeta);
         connectTables(properties);
     }
 
@@ -561,6 +565,19 @@ public class Database {
         }
     }
 
+    private void updateFromXmlMetadata(File xmlMeta) {
+        if (xmlMeta != null) {
+            SchemaMeta schemaMeta = new SchemaMeta(xmlMeta);
+            
+            for (TableMeta tableMeta : schemaMeta.getTables()) {
+                Table table = tables.get(tableMeta.getName());
+                if (table != null) {
+                    table.update(tableMeta);
+                }
+            }
+        }
+    }
+    
     private void connectTables(Properties properties) throws SQLException {
         Iterator<Table> iter = tables.values().iterator();
         while (iter.hasNext()) {

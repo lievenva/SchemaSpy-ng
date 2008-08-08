@@ -141,7 +141,7 @@ public class SchemaAnalyzer {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads());
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), config.getMeta());
             Database db = spy.getDatabase();
 
             LineWriter out;

@@ -17,6 +17,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.xml.ForeignKeyMeta;
+import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
+import net.sourceforge.schemaspy.model.xml.TableMeta;
 import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 
 public class Table implements Comparable<Table> {
@@ -49,8 +52,11 @@ public class Table implements Comparable<Table> {
         try {
             rs = db.getMetaData().getImportedKeys(null, getSchema(), getName());
 
-            while (rs.next())
-                addForeignKey(rs, tables, db, properties);
+            while (rs.next()) {
+                addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
+                        rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
+                        rs.getString("PKCOLUMN_NAME"), tables, db, properties);
+            }
         } finally {
             if (rs != null)
                 rs.close();
@@ -88,49 +94,51 @@ public class Table implements Comparable<Table> {
     }
 
     /**
-     *
      * @param rs ResultSet from {@link DatabaseMetaData#getImportedKeys(String, String, String)}
+     * rs.getString("FK_NAME");
+     * rs.getString("FKCOLUMN_NAME");
+     * rs.getString("PKTABLE_SCHEM");
+     * rs.getString("PKTABLE_NAME");
+     * rs.getString("PKCOLUMN_NAME");
      * @param tables Map
      * @param db 
      * @throws SQLException
      */
-    protected void addForeignKey(ResultSet rs, Map<String, Table> tables, Database db, Properties properties) throws SQLException {
-        String name = rs.getString("FK_NAME");
-
+    protected void addForeignKey(String name, String fkColName, String pkTableSchema, String pkTableName, String pkColName, Map<String, Table> tables, Database db, Properties properties) throws SQLException {
         if (name == null)
             return;
 
         ForeignKeyConstraint foreignKey = getForeignKey(name);
 
         if (foreignKey == null) {
-            foreignKey = new ForeignKeyConstraint(this, rs);
+            foreignKey = new ForeignKeyConstraint(this, name);
 
             foreignKeys.put(foreignKey.getName(), foreignKey);
         }
 
-        TableColumn childColumn = getColumn(rs.getString("FKCOLUMN_NAME"));
+        TableColumn childColumn = getColumn(fkColName);
         foreignKey.addChildColumn(childColumn);
 
-        Table parentTable = tables.get(rs.getString("PKTABLE_NAME"));
+        Table parentTable = tables.get(pkTableName);
         if (parentTable == null) {
-            String otherSchema = rs.getString("PKTABLE_SCHEM");
+            String otherSchema = pkTableSchema;
             if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
-                parentTable = db.addRemoteTable(otherSchema, rs.getString("PKTABLE_NAME"), getSchema(), properties);
+                parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties);
             }
         }
         
         if (parentTable != null) {
-            TableColumn parentColumn = parentTable.getColumn(rs.getString("PKCOLUMN_NAME"));
+            TableColumn parentColumn = parentTable.getColumn(pkColName);
             if (parentColumn != null) {
                 foreignKey.addParentColumn(parentColumn);
     
                 childColumn.addParent(parentColumn, foreignKey);
                 parentColumn.addChild(childColumn, foreignKey);
             } else {
-                System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + rs.getString("PKCOLUMN_NAME") + "'");
+                System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + pkColName + "'");
             }
         } else {
-            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Table '" + rs.getString("PKTABLE_NAME") + "'");
+            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Table '" + pkTableName + "'");
         }
     }
 
@@ -379,7 +387,8 @@ public class Table implements Comparable<Table> {
     }
 
     public List<TableColumn> getPrimaryColumns() {
-        return Collections.unmodifiableList(primaryKeys);
+        //return Collections.unmodifiableList(primaryKeys);
+        return primaryKeys;
     }
     
     /**
@@ -676,6 +685,32 @@ public class Table implements Comparable<Table> {
         }
     }
 
+    /**
+     * @param tableMeta
+     */
+    public void update(TableMeta tableMeta) {
+        String newComments = tableMeta.getComments();
+        if (newComments != null) {
+            comments = newComments;
+        }
+        
+        for (TableColumnMeta colMeta : tableMeta.getColumns()) {
+            TableColumn col = getColumn(colMeta.getName());
+            if (col == null) {
+                System.err.println("Unrecognized column " + colMeta.getName() + " for table " + getName());
+                continue;
+            }
+
+            col.update(colMeta);
+
+            //TODO
+//            for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
+//                addForeignKey(fkName, col.getName(), getSchema(), fk.getTableName(), 
+//                        fk.getColumnName(), tables, db, properties);
+//            }
+        }
+    }
+    
     @Override
     public String toString() {
         return getName();

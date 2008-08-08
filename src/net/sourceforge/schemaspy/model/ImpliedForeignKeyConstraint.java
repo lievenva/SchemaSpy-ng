@@ -1,14 +1,11 @@
 package net.sourceforge.schemaspy.model;
 
-import java.sql.SQLException;
-
 public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
     /**
      * @param parentColumn
      * @param childColumn
-     * @throws java.sql.SQLException
      */
-    public ImpliedForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) throws SQLException {
+    public ImpliedForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) {
         super(childColumn.getTable(), null);
 
         addChildColumn(childColumn);

@@ -23,7 +23,7 @@ import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.model.TableIndex;
 
 public class DbAnalyzer {
-    public static List<ImpliedForeignKeyConstraint> getImpliedConstraints(Collection<Table> tables) throws SQLException {
+    public static List<ImpliedForeignKeyConstraint> getImpliedConstraints(Collection<Table> tables) {
         List<TableColumn> columnsWithoutParents = new ArrayList<TableColumn>();
         Map<TableColumn, Table> allPrimaries = new TreeMap<TableColumn, Table>(new Comparator<TableColumn>() {
             public int compare(TableColumn column1, TableColumn column2) {
