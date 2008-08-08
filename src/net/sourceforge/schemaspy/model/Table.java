@@ -390,7 +390,23 @@ public class Table implements Comparable<Table> {
     }
 
     public void setComments(String comments) {
-        this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
+        String cmts = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
+        
+        // MySQL's InnoDB engine does some insane crap of storing erroneous details in 
+        // with table comments.  Here I attempt to strip the "crap" out without impacting
+        // other databases.  Ideally this should happen in selectColumnCommentsSql (and
+        // therefore isolate it to MySQL), but it's a bit too complex to do cleanly.
+        if (cmts != null) {
+            int crapIndex = cmts.indexOf("; InnoDB free: ");
+            if (crapIndex == -1)
+                crapIndex = cmts.startsWith("InnoDB free: ") ? 0 : -1;
+            if (crapIndex != -1) {
+                cmts = cmts.substring(0, crapIndex).trim();
+                cmts = cmts.length() == 0 ? null : cmts;
+            }
+        }
+        
+        this.comments = cmts;
     }
 
     public TableColumn getColumn(String columnName) {
