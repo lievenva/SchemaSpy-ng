@@ -44,12 +44,16 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
         writeHeader(database, byName.size() - numViews, numViews, showIds, showOrphansGraph, html);
 
+        int numCols = 0;
         int numRows = 0;
         for (Table table : byName) {
-            numRows += writeLineItem(table, showIds, html);
+            writeLineItem(table, showIds, html);
+
+            numCols += table.getColumns().size();
+            numRows += table.getNumRows();
         }
 
-        writeFooter(numRows, html);
+        writeFooter(numCols, numRows, html);
     }
 
     private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, LineWriter html) throws IOException {
@@ -95,7 +99,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         }
         html.writeln(":</b>");
         html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
-        int numGroups = 3 + (showIds ? 1 : 0) + (displayTableComments ? 1 : 0) + (displayNumRows ? 1 : 0);
+        int numGroups = 4 + (showIds ? 1 : 0) + (displayTableComments ? 1 : 0) + (displayNumRows ? 1 : 0);
         for (int i = 0; i < numGroups; ++i)
             html.writeln("<colgroup>");
         html.writeln("<thead align='left'>");
@@ -105,6 +109,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.writeln("  <th align='center' valign='bottom'>ID</th>");
         html.writeln("  <th align='right' valign='bottom'>Children</th>");
         html.writeln("  <th align='right' valign='bottom'>Parents</th>");
+        html.writeln("  <th align='right' valign='bottom'>Columns</th>");
         if (displayNumRows)
             html.writeln("  <th align='right' valign='bottom'>Rows</th>");
         if (displayTableComments)
@@ -114,7 +119,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("<tbody>");
     }
 
-    private int writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
+    private void writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
         html.writeln(" <tr valign='top'>");
         html.write("  <td class='detail'><a href='tables/");
         html.write(table.getName());
@@ -139,6 +144,10 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.write(String.valueOf(integerFormatter.format(numRelatives)));
         html.writeln("</td>");
 
+        html.write("  <td class='detail' align='right'>");
+        html.write(String.valueOf(integerFormatter.format(table.getColumns().size())));
+        html.writeln("</td>");
+
         if (displayNumRows) {
             html.write("  <td class='detail' align='right'>");
             if (!table.isView())
@@ -160,14 +169,14 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.writeln("</td>");
         }
         html.writeln("  </tr>");
-
-        return table.getNumRows();
     }
 
-    protected void writeFooter(int numRows, LineWriter html) throws IOException {
+    protected void writeFooter(int numCols, int numRows, LineWriter html) throws IOException {
         html.writeln("</TABLE>");
+        html.write("<p/>Columns: ");
+        html.write(String.valueOf(integerFormatter.format(numCols)));
         if (displayNumRows) {
-            html.write("<p/>Total rows: ");
+            html.write("&nbsp;&nbsp;&nbsp;Rows: ");
             html.write(String.valueOf(integerFormatter.format(numRows)));
         }
         html.writeln("</div>");
