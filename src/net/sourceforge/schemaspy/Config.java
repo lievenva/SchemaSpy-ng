@@ -1058,6 +1058,8 @@ public class Config
             list.add("-rankdirbug");
         if (!isTableCommentsEnabled())
             list.add("-notablecomments");
+        if (!isAdsEnabled())
+            list.add("-noads");
         
         String value = getDriverPath();
         if (value != null) {
