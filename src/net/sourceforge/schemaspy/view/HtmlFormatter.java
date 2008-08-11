@@ -166,12 +166,11 @@ public class HtmlFormatter {
 
     protected void writeFeedMe(LineWriter html) throws IOException {
         if (Config.getInstance().isAdsEnabled()) {
-            /*
             StyleSheet css = StyleSheet.getInstance();
             
+            html.writeln("<div style=\"margin-right: 2pt;\">");
             html.writeln("<script type=\"text/javascript\"><!--");
             html.writeln("google_ad_client = \"pub-9598353634003340\";");
-            //html.writeln("google_ad_slot = \"1796553895\";");
             html.writeln("google_ad_channel =\"SchemaSpy-generated\";");
             html.writeln("google_ad_width = 234;");
             html.writeln("google_ad_height = 60;");
@@ -188,7 +187,7 @@ public class HtmlFormatter {
             html.writeln("<script type=\"text/javascript\"");
             html.writeln("src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">");
             html.writeln("</script>");
-            */
+            html.writeln("</div>");
         }
     }
 
