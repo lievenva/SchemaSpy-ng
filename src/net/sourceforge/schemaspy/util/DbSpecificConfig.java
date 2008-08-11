@@ -62,8 +62,8 @@ public class DbSpecificConfig {
                 inParam = false;
             } else {
                 if (inParam) {
-                    String description = properties.getProperty(token);
-                    options.add(new DbSpecificOption(token, description));
+                    String desc = properties.getProperty(token);
+                    options.add(new DbSpecificOption(token, desc));
                 }
             }
         }

@@ -100,9 +100,9 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * This method initializes buttonBar	
-     * 	
-     * @return javax.swing.JPanel	
+     * This method initializes buttonBar
+     *
+     * @return javax.swing.JPanel
      */
     private JPanel getButtonBar() {
         if (buttonBar == null) {
@@ -129,9 +129,9 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * This method initializes launchButton	
-     * 	
-     * @return javax.swing.JButton	
+     * This method initializes launchButton
+     *
+     * @return javax.swing.JButton
      */
     private JButton getLaunchButton() {
         if (launchButton == null) {
