@@ -1,6 +1,5 @@
 package net.sourceforge.schemaspy.model;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -39,7 +38,7 @@ public class Database {
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, File xmlMeta) throws SQLException, MissingResourceException {
+    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, String xmlMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         this.databaseName = name;
@@ -47,8 +46,8 @@ public class Database {
         this.description = description;
         initTables(schema, meta, properties, include, maxThreads);
         initViews(schema, meta, properties, include);
-        updateFromXmlMetadata(xmlMeta);
         connectTables(properties);
+        updateFromXmlMetadata(xmlMeta);
     }
 
     public String getName() {
@@ -98,9 +97,11 @@ public class Database {
         }
     }
 
-    private void initTables(String schema, final DatabaseMetaData metadata, final Properties properties, final Pattern include, final int maxThreads) throws SQLException {
+    private void initTables(@SuppressWarnings("hiding") String schema, 
+                            final DatabaseMetaData metadata, 
+                            final Properties properties, final Pattern include, 
+                            final int maxThreads) throws SQLException {
         String[] types = {"TABLE"};
-        ResultSet rs = null;
 
         // "macro" to validate that a table is somewhat valid
         final class TableValidator {
@@ -122,6 +123,7 @@ public class Database {
             }
         }
         TableValidator tableValidator = new TableValidator();
+        ResultSet rs = null;
         
         try {
             // creating tables takes a LONG time (based on JProbe analysis).
@@ -508,6 +510,7 @@ public class Database {
      */
     private List<String> getSqlParams(StringBuffer sql, String tableName) {
         Map<String, String> namedParams = new HashMap<String, String>();
+        @SuppressWarnings("hiding")
         String schema = getSchema();
         if (schema == null)
             schema = getName(); // some 'schema-less' db's treat the db name like a schema (unusual case)
@@ -533,8 +536,7 @@ public class Database {
         return sqlParams;
     }
 
-
-    private void initViews(String schema, DatabaseMetaData metadata, Properties properties, Pattern include) throws SQLException {
+    private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata, Properties properties, Pattern include) throws SQLException {
         String[] types = {"VIEW"};
         ResultSet rs = null;
 
@@ -565,14 +567,14 @@ public class Database {
         }
     }
 
-    private void updateFromXmlMetadata(File xmlMeta) {
+    private void updateFromXmlMetadata(String xmlMeta) {
         if (xmlMeta != null) {
             SchemaMeta schemaMeta = new SchemaMeta(xmlMeta);
             
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 Table table = tables.get(tableMeta.getName());
                 if (table != null) {
-                    table.update(tableMeta);
+                    table.update(tableMeta, tables);
                 }
             }
         }

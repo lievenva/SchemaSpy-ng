@@ -69,8 +69,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
             return getLocation(columnName);
         }
         
-        public String getLocation(String columnName) {
-            return "columns.by" + columnName + ".html";
+        public String getLocation(String colName) {
+            return "columns.by" + colName + ".html";
         }
 
         private Comparator<TableColumn> getComparator() {

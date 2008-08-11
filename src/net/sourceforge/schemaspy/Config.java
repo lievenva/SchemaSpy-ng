@@ -51,7 +51,7 @@ public class Config
     private String host;
     private Integer port;
     private String server;
-    private File meta;
+    private String meta;
     private Pattern tableInclusions;
     private Pattern columnExclusions;
     private String userConnectionPropertiesFile;
@@ -171,11 +171,14 @@ public class Config
         return outputDir;
     }
 
-    public void setMeta(File meta) {
+    // TODO allow wildcards
+    public void setMeta(String meta) {
         this.meta = meta;
     }
     
-    public File getMeta() {
+    public String getMeta() {
+        if (meta == null)
+            meta = pullParam("-meta");
         return meta;
     }
     
@@ -742,25 +745,25 @@ public class Config
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
     }
 
-    public Properties getDbProperties(String dbType) throws IOException {
+    public Properties getDbProperties(String type) throws IOException {
         ResourceBundle bundle = null;
 
         try {
-            File propertiesFile = new File(dbType);
+            File propertiesFile = new File(type);
             bundle = new PropertyResourceBundle(new FileInputStream(propertiesFile));
             dbPropertiesLoadedFrom = propertiesFile.getAbsolutePath();
         } catch (FileNotFoundException notFoundOnFilesystemWithoutExtension) {
             try {
-                File propertiesFile = new File(dbType + ".properties");
+                File propertiesFile = new File(type + ".properties");
                 bundle = new PropertyResourceBundle(new FileInputStream(propertiesFile));
                 dbPropertiesLoadedFrom = propertiesFile.getAbsolutePath();
             } catch (FileNotFoundException notFoundOnFilesystemWithExtensionTackedOn) {
                 try {
-                    bundle = ResourceBundle.getBundle(dbType);
-                    dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]" + File.separator + dbType + ".properties";
+                    bundle = ResourceBundle.getBundle(type);
+                    dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]" + File.separator + type + ".properties";
                 } catch (Exception notInJarWithoutPath) {
                     try {
-                        String path = SchemaSpy.class.getPackage().getName() + ".dbTypes." + dbType;
+                        String path = SchemaSpy.class.getPackage().getName() + ".dbTypes." + type;
                         path = path.replace('.', '/');
                         bundle = ResourceBundle.getBundle(path);
                         dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]/" + path + ".properties";
@@ -994,8 +997,8 @@ public class Config
 
         if (detailedDb) {
             System.out.println("Built-in database types and their required connection parameters:");
-            for (String dbType : getBuiltInDatabaseTypes(getLoadedFromJar())) {
-                new DbSpecificConfig(dbType).dumpUsage();
+            for (String type : getBuiltInDatabaseTypes(getLoadedFromJar())) {
+                new DbSpecificConfig(type).dumpUsage();
             }
             System.out.println();
         }

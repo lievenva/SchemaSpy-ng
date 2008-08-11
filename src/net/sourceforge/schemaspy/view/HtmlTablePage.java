@@ -26,7 +26,6 @@ import net.sourceforge.schemaspy.util.LineWriter;
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set<String> keywords = null;
-    private final boolean encodeComments = Config.getInstance().isEncodeCommentsEnabled();
     private final boolean commentsInitiallyDisplayed = Config.getInstance().isDisplayCommentsIntiallyEnabled();
 
     private Map<String, String> defaultValueAliases = new HashMap<String, String>();
@@ -398,6 +397,7 @@ public class HtmlTablePage extends HtmlFormatter {
             out.writeln(" <tr>");
             out.write("  <td class='detail'>");
 
+            @SuppressWarnings("hiding")
             Set<String> keywords = getKeywords(db.getMetaData());
             StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.,", true);
             while (tokenizer.hasMoreTokens()) {

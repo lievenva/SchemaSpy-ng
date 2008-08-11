@@ -429,7 +429,11 @@ public class SchemaAnalyzer {
         } catch (Exception exc) {
             System.err.println(exc); // people don't want to see a stack trace...
             System.err.println();
-            System.err.println("Failed to load driver '" + driverClass + "' from: " + classpath);
+            System.err.print("Failed to load driver '" + driverClass + "'");
+            if (classpath.isEmpty())
+                System.err.println();
+            else
+                System.err.println("from: " + classpath);
             if (!invalidClasspathEntries.isEmpty()) {
                 if (invalidClasspathEntries.size() == 1)
                     System.err.print("This entry doesn't point to a valid file/directory: ");
@@ -438,12 +442,8 @@ public class SchemaAnalyzer {
                 System.err.println(invalidClasspathEntries);
             }
             System.err.println();
-            System.err.println("Use -t [databaseType] to specify what drivers to use or modify");
-            System.err.println("one of the .properties from the jar, put it on your file");
-            System.err.println("system and point to it with -t [databasePropertiesFile].");
-            System.err.println();
-            System.err.println("For many people it's easiest to use the -dp option to directly specify");
-            System.err.println("where the database drivers exist (usually in a .jar or .zip/.Z).");
+            System.err.println("Use the -dp option to specify the location of the database");
+            System.err.println("drivers for your database (usually in a .jar or .zip/.Z).");
             System.err.println();
             return null;
         }

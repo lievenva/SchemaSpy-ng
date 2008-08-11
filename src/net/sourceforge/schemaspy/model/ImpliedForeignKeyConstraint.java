@@ -6,13 +6,7 @@ public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
      * @param childColumn
      */
     public ImpliedForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) {
-        super(childColumn.getTable(), null);
-
-        addChildColumn(childColumn);
-        addParentColumn(parentColumn);
-
-        childColumn.addParent(parentColumn, this);
-        parentColumn.addChild(childColumn, this);
+        super(parentColumn, childColumn);
     }
 
     /**

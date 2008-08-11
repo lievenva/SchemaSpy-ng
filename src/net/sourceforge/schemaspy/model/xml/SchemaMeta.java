@@ -19,12 +19,15 @@ import org.xml.sax.SAXException;
 public class SchemaMeta {
     private final List<TableMeta> tables = new ArrayList<TableMeta>();
     
-    public SchemaMeta(File file) {
-        Document doc = parse(file);
+    public SchemaMeta(String xmlMeta) {
+        Document doc = parse(new File(xmlMeta));
+        if (doc == null) {
+            System.exit(1);
+            return; // bogus return to avoid warnings
+        }
         
         NodeList tablesNode = ((Element)doc.getElementsByTagName("tables").item(0)).getElementsByTagName("table");
 
-        System.out.println("numTables: " + tablesNode.getLength());        
         for (int i = 0; i < tablesNode.getLength(); ++i) {
             Node tableNode = tablesNode.item(i);
             TableMeta meta = new TableMeta(tableNode);
@@ -37,7 +40,6 @@ public class SchemaMeta {
     }
     
     private Document parse(File file) {
-        System.out.println("Parsing XML file... " + file);
         DocumentBuilder docBuilder;
         Document doc = null;
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -57,13 +59,7 @@ public class SchemaMeta {
         } catch (IOException e) {
             System.out.println("Could not read source file: " + e.getMessage());
         }
-        
-        System.out.println("XML file parsed");
+
         return doc;
-    }
-    
-    public static void main(String args[]) throws Exception
-    {
-        new SchemaMeta(new File("mangosMetadata.xml"));
     }
 }

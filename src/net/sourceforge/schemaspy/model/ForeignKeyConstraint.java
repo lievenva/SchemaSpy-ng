@@ -19,6 +19,24 @@ public class ForeignKeyConstraint {
         deleteRule = 'D';
         updateRule = 'U';
     }
+    
+    /**
+     * This constructor is intended for use <b>after</b> all of the tables have been
+     * found in the system.  One impact of using this constructor is that it will
+     * "glue" the two tables together through their columns.
+     * 
+     * @param parentColumn
+     * @param childColumn
+     */
+    public ForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) {
+        this(childColumn.getTable(), null);
+
+        addChildColumn(childColumn);
+        addParentColumn(parentColumn);
+
+        childColumn.addParent(parentColumn, this);
+        parentColumn.addChild(childColumn, this);
+    }
 
     void addParentColumn(TableColumn column) {
         if (column != null) {

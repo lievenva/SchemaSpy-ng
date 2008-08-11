@@ -25,21 +25,19 @@ public class TableColumnMeta {
         if (commentNode != null) {
             tmp = commentNode.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
-        }
-        else {
+        } else {
             comments = null;
         }
         
         Node primaryKeyNode = attribs.getNamedItem("primaryKey");
         if (primaryKeyNode != null) {
-            tmp = primaryKeyNode.getNodeName().trim().toLowerCase();
+            tmp = primaryKeyNode.getNodeValue().trim().toLowerCase();
             isPrimary = tmp.equals("true") || tmp.equals("yes") || tmp.equals("1");
         } else {
             isPrimary = false;
         }
         
         NodeList fkNodes = ((Element)colNode.getChildNodes()).getElementsByTagName("foreignKey");
-        System.out.println(" " + name + " has " + fkNodes.getLength() + " fks");
         
         for (int i = 0; i < fkNodes.getLength(); ++i) {
             Node fkNode = fkNodes.item(i);

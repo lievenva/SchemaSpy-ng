@@ -89,8 +89,8 @@ public class Table implements Comparable<Table> {
         return Collections.unmodifiableCollection(foreignKeys.values());
     }
 
-    public void addCheckConstraint(String name, String text) {
-        checkConstraints.put(name, text);
+    public void addCheckConstraint(String constraintName, String text) {
+        checkConstraints.put(constraintName, text);
     }
 
     /**
@@ -104,14 +104,14 @@ public class Table implements Comparable<Table> {
      * @param db 
      * @throws SQLException
      */
-    protected void addForeignKey(String name, String fkColName, String pkTableSchema, String pkTableName, String pkColName, Map<String, Table> tables, Database db, Properties properties) throws SQLException {
-        if (name == null)
+    protected void addForeignKey(String fkName, String fkColName, String pkTableSchema, String pkTableName, String pkColName, Map<String, Table> tables, Database db, Properties properties) throws SQLException {
+        if (fkName == null)
             return;
 
-        ForeignKeyConstraint foreignKey = getForeignKey(name);
+        ForeignKeyConstraint foreignKey = getForeignKey(fkName);
 
         if (foreignKey == null) {
-            foreignKey = new ForeignKeyConstraint(this, name);
+            foreignKey = new ForeignKeyConstraint(this, fkName);
 
             foreignKeys.put(foreignKey.getName(), foreignKey);
         }
@@ -149,26 +149,30 @@ public class Table implements Comparable<Table> {
             rs = meta.getPrimaryKeys(null, getSchema(), getName());
 
             while (rs.next())
-                addPrimaryKey(rs);
+                setPrimaryColumn(rs);
         } finally {
             if (rs != null)
                 rs.close();
         }
     }
 
-    private void addPrimaryKey(ResultSet rs) throws SQLException {
-        String name = rs.getString("PK_NAME");
-        if (name == null)
+    private void setPrimaryColumn(ResultSet rs) throws SQLException {
+        String pkName = rs.getString("PK_NAME");
+        if (pkName == null)
             return;
 
-        TableIndex index = getIndex(name);
+        TableIndex index = getIndex(pkName);
         if (index != null) {
             index.setIsPrimaryKey(true);
         }
 
         String columnName = rs.getString("COLUMN_NAME");
 
-        primaryKeys.add(getColumn(columnName));
+        setPrimaryColumn(getColumn(columnName));
+    }
+    
+    void setPrimaryColumn(TableColumn primaryColumn) {
+        primaryKeys.add(primaryColumn);
     }
 
     private void initColumns(Database db) throws SQLException {
@@ -554,6 +558,7 @@ public class Table implements Comparable<Table> {
     }
 
     public ForeignKeyConstraint removeAForeignKeyConstraint() {
+        @SuppressWarnings("hiding")
         final List<TableColumn> columns = getColumns();
         int numParents = 0;
         int numChildren = 0;
@@ -688,7 +693,7 @@ public class Table implements Comparable<Table> {
     /**
      * @param tableMeta
      */
-    public void update(TableMeta tableMeta) {
+    public void update(TableMeta tableMeta, Map<String, Table> tables) {
         String newComments = tableMeta.getComments();
         if (newComments != null) {
             comments = newComments;
@@ -701,13 +706,28 @@ public class Table implements Comparable<Table> {
                 continue;
             }
 
+            // update the column with the changes
             col.update(colMeta);
 
-            //TODO
-//            for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
-//                addForeignKey(fkName, col.getName(), getSchema(), fk.getTableName(), 
-//                        fk.getColumnName(), tables, db, properties);
-//            }
+            // go thru the new foreign key defs and associate them with our columns
+            for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
+                Table parent = tables.get(fk.getTableName());
+                if (parent != null) {
+                    TableColumn parentColumn = parent.getColumn(fk.getColumnName());
+
+                    if (parentColumn == null) {
+                        System.err.println();
+                        System.err.println(parent.getName() + '.' + fk.getColumnName() + " doesn't exist");
+                    } else {
+                        new ForeignKeyConstraint(parentColumn, col) {
+                            @Override
+                            public String getName() {
+                                return "Defined in XML";
+                            }
+                        };
+                    }
+                }
+            }
         }
     }
     

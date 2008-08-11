@@ -23,13 +23,11 @@ public class TableMeta {
         if (commentNode != null) {
             String tmp = commentNode.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
-        }
-        else {
+        } else {
             comments = null;
         }
         
         NodeList columnNodes = ((Element)tableNode.getChildNodes()).getElementsByTagName("column");
-        System.out.println(name + " has " + columnNodes.getLength() + " cols");
         
         for (int i = 0; i < columnNodes.getLength(); ++i) {
             Node colNode = columnNodes.item(i);

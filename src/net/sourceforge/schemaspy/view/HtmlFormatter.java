@@ -1,6 +1,5 @@
 package net.sourceforge.schemaspy.view;
 
-import net.sourceforge.schemaspy.view.StyleSheet;
 import java.io.IOException;
 import java.util.Set;
 import net.sourceforge.schemaspy.Config;

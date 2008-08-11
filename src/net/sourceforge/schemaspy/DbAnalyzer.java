@@ -65,7 +65,7 @@ public class DbAnalyzer {
         List<ImpliedForeignKeyConstraint> impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
         for (TableColumn childColumn : columnsWithoutParents) {
             Table primaryTable = allPrimaries.get(childColumn);
-            if (primaryTable != null && primaryTable != childColumn.getTable()) {
+            if (primaryTable != null && primaryTable != childColumn.getTable() && childColumn.allowsImpliedParents()) {
                 TableColumn parentColumn = primaryTable.getColumn(childColumn.getName());
                 // make sure the potential child->parent relationships isn't already a
                 // parent->child relationship
