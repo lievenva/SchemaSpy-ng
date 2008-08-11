@@ -44,7 +44,7 @@ public class Dot {
                 System.err.println("   " + versionLine);
             }
         } catch (Exception validDotDoesntExist) {
-            validDotDoesntExist.printStackTrace();
+            System.err.println("Failed to query Graphviz version information: " + validDotDoesntExist);
         }
 
         version = new Version(versionText);
@@ -157,7 +157,8 @@ public class Dot {
      * @param warnIfNotSupported 
      * @return
      */
-    public boolean supportsRenderer(String renderer, boolean warnIfNotSupported) {
+    public boolean supportsRenderer(@SuppressWarnings("hiding") String renderer, 
+                                    boolean warnIfNotSupported) {
         if (!exists())
             return false;
         
