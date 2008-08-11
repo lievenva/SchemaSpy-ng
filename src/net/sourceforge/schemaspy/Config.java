@@ -70,7 +70,6 @@ public class Config
     private Boolean logoEnabled;
     private Boolean rankDirBugEnabled;
     private Boolean encodeCommentsEnabled;
-    private Boolean displayCommentsInitiallyEnabled;
     private Boolean tableCommentsEnabled;
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
@@ -517,24 +516,6 @@ public class Config
             encodeCommentsEnabled = !options.remove("-ahic");
         
         return encodeCommentsEnabled;
-    }
-
-    /**
-     * Specifies whether comments are initially displayed or initially hidden (default).
-     * @param enabled
-     */
-    public void setDisplayCommentsIntiallyEnabled(boolean enabled) {
-        this.displayCommentsInitiallyEnabled = enabled;
-    }
-    
-    /**
-     * @see #setDisplayCommentsIntiallyEnabled(boolean)
-     */
-    public boolean isDisplayCommentsIntiallyEnabled() {
-        if (displayCommentsInitiallyEnabled == null)
-            displayCommentsInitiallyEnabled = options.remove("-cid");
-        
-        return displayCommentsInitiallyEnabled;
     }
 
     /**
@@ -1059,8 +1040,6 @@ public class Config
                 list.add(value);
             }
         }
-        if (isDisplayCommentsIntiallyEnabled())
-            list.add("-cid");
         if (isEncodeCommentsEnabled())
             list.add("-ahic");
         if (isEvaluateAllEnabled())
@@ -1134,6 +1113,11 @@ public class Config
         value = getServer();
         if (value != null) {
             list.add("-server");
+            list.add(value);
+        }
+        value = getMeta();
+        if (value != null) {
+            list.add("-meta");
             list.add(value);
         }
         list.add("-i");

@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
@@ -87,7 +86,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         Set<TableColumn> columns = new TreeSet<TableColumn>(columnInfo.getComparator());
         Set<TableColumn> primaryColumns = new HashSet<TableColumn>();
         Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
-
+        boolean showCommentsInitially = false;
+        
         for (Table table : tables) {
             columns.addAll(table.getColumns());
 
@@ -96,8 +96,13 @@ public class HtmlColumnsPage extends HtmlFormatter {
                 indexedColumns.addAll(index.getColumns());
             }
         }
+
+        for (TableColumn column : columns) {
+            showCommentsInitially |= column.getComments() != null;
+        }
+
         
-        writeHeader(database, columns.size(), showOrphansGraph, columnInfo, html);
+        writeHeader(database, columns.size(), showOrphansGraph, columnInfo, showCommentsInitially, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
@@ -108,7 +113,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, ColumnInfo selectedColumn, LineWriter html) throws IOException {
+    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, ColumnInfo selectedColumn, boolean showCommentsInitially, LineWriter html) throws IOException {
         writeHeader(db, null, "Columns", hasOrphans, html);
 
         html.writeln("<table width='100%' border='0'>");
@@ -120,7 +125,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         html.writeln("<p/>");
         StyleSheet css = StyleSheet.getInstance();
-        String commentStatus = Config.getInstance().isDisplayCommentsIntiallyEnabled() ? "checked " : "";
+        String commentStatus = showCommentsInitially ? "checked " : "";
         html.writeln("<form name='options' action=''>");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");

@@ -26,7 +26,6 @@ import net.sourceforge.schemaspy.util.LineWriter;
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set<String> keywords = null;
-    private final boolean commentsInitiallyDisplayed = Config.getInstance().isDisplayCommentsIntiallyEnabled();
 
     private Map<String, String> defaultValueAliases = new HashMap<String, String>();
     {
@@ -93,7 +92,17 @@ public class HtmlTablePage extends HtmlFormatter {
                 html.write(" checked");
             html.writeln(">Implied relationships");
         }
-        String commentStatus = commentsInitiallyDisplayed  ? "checked " : "";
+
+        // initially show comments if any of the columns contain comments
+        boolean showCommentsInitially = false;
+        for (TableColumn column : table.getColumns()) {
+            if (column.getComments() != null) {
+                showCommentsInitially = true;
+                break;
+            }
+        }
+        
+        String commentStatus = showCommentsInitially  ? "checked " : "";
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
         html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
         html.writeln(" <input type=checkbox " + commentStatus + "onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
