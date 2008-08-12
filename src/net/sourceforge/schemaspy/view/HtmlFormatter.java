@@ -176,10 +176,8 @@ public class HtmlFormatter {
             html.writeln("google_ad_height = 60;");
             html.writeln("google_ad_format = \"234x60_as\";");
             html.writeln("google_ad_type = \"text\";");
-            html.writeln("google_color_border = \"" + css.getBodyBackground() + "\";");
-            html.writeln("google_color_bg = \"" + css.getBodyBackground() + "\";");
-            html.writeln("google_color_link = \"0000FF\";");
-            html.writeln("google_color_url = \"008000\";");
+            html.writeln("google_color_border = \"" + css.getTableHeadBackground().substring(1) + "\";");
+            html.writeln("google_color_link = \"" + css.getLinkColor().substring(1) + "\";");
             html.writeln("google_color_text = \"000000\";");
             
             html.writeln("//-->");

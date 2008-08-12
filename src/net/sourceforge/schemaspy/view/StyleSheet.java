@@ -16,6 +16,8 @@ public class StyleSheet {
     private String bodyBackgroundColor;
     private String tableHeadBackgroundColor;
     private String tableBackgroundColor;
+    private String linkColor;
+    private String linkVisitedColor;
     private String primaryKeyBackgroundColor;
     private String indexedColumnBackgroundColor;
     private String selectedTableBackgroundColor;
@@ -64,6 +66,10 @@ public class StyleSheet {
                     selectedTableBackgroundColor = attribs.get("background");
                 else if (id.equals(".excludedcolumn"))
                     excludedColumnBackgroundColor = attribs.get("background");
+                else if (id.equals("a:link"))
+                    linkColor = attribs.get("color");
+                else if (id.equals("a:visited"))
+                    linkVisitedColor = attribs.get("color");
                 id = null;
             }
         }
@@ -126,6 +132,14 @@ public class StyleSheet {
 
     public String getExcludedColumnBackgroundColor() {
         return excludedColumnBackgroundColor;
+    }
+    
+    public String getLinkColor() {
+        return linkColor;
+    }
+    
+    public String getLinkVisitedColor() {
+        return linkVisitedColor;
     }
 
     public int getOffsetOf(String id) {
