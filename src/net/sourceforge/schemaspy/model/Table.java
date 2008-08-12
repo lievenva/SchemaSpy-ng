@@ -702,7 +702,7 @@ public class Table implements Comparable<Table> {
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
             if (col == null) {
-                System.err.println("Unrecognized column " + colMeta.getName() + " for table " + getName());
+                System.err.println("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
                 continue;
             }
 
