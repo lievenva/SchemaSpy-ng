@@ -117,9 +117,9 @@ public class DotFormatter {
         // now directly connect the loose ends to the title of the
         // 2nd degree of separation tables
         for (DotConnector connector : allCousinConnectors) {
-            if (allCousins.contains(connector.getParentTable()))
+            if (allCousins.contains(connector.getParentTable()) && !relatedTables.contains(connector.getParentTable()))
                 connector.connectToParentTitle();
-            if (allCousins.contains(connector.getChildTable()))
+            if (allCousins.contains(connector.getChildTable()) && !relatedTables.contains(connector.getChildTable()))
                 connector.connectToChildTitle();
         }
 

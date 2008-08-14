@@ -44,7 +44,7 @@ public class DotNode {
      * @param path String
      */
     public DotNode(Table table, boolean showColumns, String path) {
-        this(table, path, showColumns ? new DotNodeConfig(false, false) : new DotNodeConfig());
+        this(table, path, showColumns ? new DotNodeConfig(true, false) : new DotNodeConfig());
     }
 
     public void setShowImplied(boolean showImplied) {
