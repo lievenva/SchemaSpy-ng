@@ -31,7 +31,7 @@ public class DotNode {
     
     public DotNode(Table table, String path, DotNodeConfig config) {
         this.table = table;
-        this.path = path;
+        this.path = path + (table.isRemote() ? ("../../" + table.getSchema() + "/tables/") : "");
         this.config = config;
     }
 

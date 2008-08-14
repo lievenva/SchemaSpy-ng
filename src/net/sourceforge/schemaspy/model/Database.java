@@ -38,7 +38,7 @@ public class Database {
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, String xmlMeta) throws SQLException, MissingResourceException {
+    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         this.databaseName = name;
@@ -47,7 +47,7 @@ public class Database {
         initTables(schema, meta, properties, include, maxThreads);
         initViews(schema, meta, properties, include);
         connectTables(properties);
-        updateFromXmlMetadata(xmlMeta);
+        updateFromXmlMetadata(schemaMeta);
     }
 
     public String getName() {
@@ -567,10 +567,8 @@ public class Database {
         }
     }
 
-    private void updateFromXmlMetadata(String xmlMeta) throws SQLException {
-        if (xmlMeta != null) {
-            SchemaMeta schemaMeta = new SchemaMeta(xmlMeta);
-
+    private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
+        if (schemaMeta != null) {
             // add the newly defined remote tables first
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 if (tableMeta.getRemoteSchema() != null) {
@@ -582,7 +580,7 @@ public class Database {
                     table.update(tableMeta, tables, remoteTables);
                 }
             }
-
+    
             // then tie the tables together
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 if (tableMeta.getRemoteSchema() == null) {

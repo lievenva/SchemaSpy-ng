@@ -18,9 +18,26 @@ import org.xml.sax.SAXException;
  */
 public class SchemaMeta {
     private final List<TableMeta> tables = new ArrayList<TableMeta>();
+    private final File metaFile;
     
-    public SchemaMeta(String xmlMeta) {
-        Document doc = parse(new File(xmlMeta));
+    public SchemaMeta(String xmlMeta, String dbName, String schema) {
+        File meta = new File(xmlMeta);
+        if (meta.isDirectory()) {
+            String filename = (schema == null ? dbName : schema) + ".meta.xml";
+            meta = new File(meta, filename);
+            
+            if (!meta.exists()) {
+                System.err.println("Meta directory \"" + xmlMeta + "\" must contain a file named \"" + filename + '\"');
+                System.exit(2);
+            }
+        } else if (!meta.exists()) {
+            System.err.println("Specified meta file \"" + xmlMeta + "\" does not exist");
+            System.exit(2);
+        }
+        
+        this.metaFile = meta;
+        
+        Document doc = parse(metaFile);
         if (doc == null) {
             System.exit(1);
             return; // bogus return to avoid warnings
@@ -30,9 +47,13 @@ public class SchemaMeta {
 
         for (int i = 0; i < tablesNode.getLength(); ++i) {
             Node tableNode = tablesNode.item(i);
-            TableMeta meta = new TableMeta(tableNode);
-            tables.add(meta);
+            TableMeta tableMeta = new TableMeta(tableNode);
+            tables.add(tableMeta);
         }
+    }
+    
+    public File getFile() {
+        return metaFile;
     }
     
     public List<TableMeta> getTables() {

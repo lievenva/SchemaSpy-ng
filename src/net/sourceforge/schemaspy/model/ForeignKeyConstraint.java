@@ -115,8 +115,10 @@ public class ForeignKeyConstraint {
         buf.append(parentTable.getName());
         buf.append('.');
         buf.append(toString(parentColumns));
-        buf.append(" via ");
-        buf.append(name);
+        if (name != null) {
+            buf.append(" via ");
+            buf.append(name);
+        }
 
         return buf.toString();
     }

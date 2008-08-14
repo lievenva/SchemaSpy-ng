@@ -294,7 +294,7 @@ public class DotFormatter {
         }
 
         for (Table table : db.getRemoteTables()) {
-            nodes.put(table, new DotNode(table, "../" + table.getSchema() + "/tables/", nodeConfig));
+            nodes.put(table, new DotNode(table, "tables/", nodeConfig));
         }
 
         Set<DotConnector> connectors = new TreeSet<DotConnector>();

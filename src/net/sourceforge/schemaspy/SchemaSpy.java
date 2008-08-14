@@ -15,12 +15,13 @@ import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.xml.SchemaMeta;
 
 public class SchemaSpy {
     private final Database database;
 
-    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, String description, Properties properties, Pattern include, int maxThreads, String xmlMeta) throws SQLException {
-        database = new Database(connection, meta, dbName, schema, description, properties, include, maxThreads, xmlMeta);
+    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, String description, Properties properties, Pattern include, int maxThreads, SchemaMeta schemaMeta) throws SQLException {
+        database = new Database(connection, meta, dbName, schema, description, properties, include, maxThreads, schemaMeta);
     }
 
     public Database getDatabase() {

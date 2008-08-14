@@ -28,6 +28,7 @@ import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.model.xml.SchemaMeta;
 import net.sourceforge.schemaspy.util.ConnectionURLBuilder;
 import net.sourceforge.schemaspy.util.DOMUtil;
 import net.sourceforge.schemaspy.util.DbSpecificOption;
@@ -128,12 +129,16 @@ public class SchemaAnalyzer {
                 config.setSchema(schema);
             }
 
+            SchemaMeta schemaMeta = config.getMeta() == null ? null : new SchemaMeta(config.getMeta(), dbName, schema);
             if (config.isHtmlGenerationEnabled()) {
                 new File(outputDir, "tables").mkdirs();
                 new File(outputDir, "graphs/summary").mkdirs();
                 StyleSheet.init(new BufferedReader(getStyleSheet(config.getCss())));
 
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
+                if (schemaMeta != null) {
+                    System.out.println("Using additional metadata from " + schemaMeta.getFile());
+                }
                 System.out.println();
                 System.out.print("Gathering schema details");
             }
@@ -141,7 +146,7 @@ public class SchemaAnalyzer {
             //
             // create the spy
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), config.getMeta());
+            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), schemaMeta);
             Database db = spy.getDatabase();
 
             LineWriter out;
