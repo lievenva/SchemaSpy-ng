@@ -67,6 +67,24 @@ public class TableColumn {
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
     }
 
+    /**
+     * @param table
+     * @param colMeta
+     */
+    public TableColumn(Table table, TableColumnMeta colMeta) {
+        this.table = table;
+        name = colMeta.getName();
+        id = null;
+        type = "Unknown";
+        length = 0;
+        decimalDigits = 0;
+        detailedSize = "";
+        isNullable = false;
+        isAutoUpdated = false;
+        defaultValue = null;
+        comments = colMeta.getComments();
+    }
+
     public Table getTable() {
         return table;
     }
@@ -251,6 +269,7 @@ public class TableColumn {
             table.setPrimaryColumn(this);
         }
         
+        // TODO make this more explicit
         if (colMeta.isPrimary() || !colMeta.getForeignKeys().isEmpty()) {
             // we're explicitly setting the column's attributes,
             // so disable auto-associating parents with this column

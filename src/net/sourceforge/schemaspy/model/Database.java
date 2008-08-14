@@ -567,14 +567,29 @@ public class Database {
         }
     }
 
-    private void updateFromXmlMetadata(String xmlMeta) {
+    private void updateFromXmlMetadata(String xmlMeta) throws SQLException {
         if (xmlMeta != null) {
             SchemaMeta schemaMeta = new SchemaMeta(xmlMeta);
-            
+
+            // add the newly defined remote tables first
             for (TableMeta tableMeta : schemaMeta.getTables()) {
-                Table table = tables.get(tableMeta.getName());
-                if (table != null) {
-                    table.update(tableMeta, tables);
+                if (tableMeta.getRemoteSchema() != null) {
+                    Table table = remoteTables.get(tableMeta.getName());
+                    if (table == null) {
+                        table = addRemoteTable(tableMeta. getRemoteSchema(), tableMeta.getName(), getSchema(), null);
+                    }
+                    
+                    table.update(tableMeta, tables, remoteTables);
+                }
+            }
+
+            // then tie the tables together
+            for (TableMeta tableMeta : schemaMeta.getTables()) {
+                if (tableMeta.getRemoteSchema() == null) {
+                    Table table = tables.get(tableMeta.getName());
+                    if (table != null) {
+                        table.update(tableMeta, tables, remoteTables);
+                    }
                 }
             }
         }

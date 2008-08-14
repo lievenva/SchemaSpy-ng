@@ -242,6 +242,9 @@ public class HtmlTablePage extends HtmlFormatter {
             out.write("\">");
             out.write("<a href='");
             out.write(path);
+            if (column.getTable().isRemote()) {
+                out.write("../../" + column.getTable().getSchema() + "/tables/");
+            }
             out.write(columnTableName);
             out.write(".html'>");
             out.write(columnTableName);

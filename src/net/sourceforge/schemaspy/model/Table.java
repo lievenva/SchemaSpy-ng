@@ -42,7 +42,7 @@ public class Table implements Comparable<Table> {
         setComments(comments);
         initColumns(db);
         initIndexes(db, properties);
-        initPrimaryKeys(db.getMetaData());
+        initPrimaryKeys(db.getMetaData(), properties);
         numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db, properties) : -1;
     }
     
@@ -142,7 +142,10 @@ public class Table implements Comparable<Table> {
         }
     }
 
-    private void initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
+    private void initPrimaryKeys(DatabaseMetaData meta, Properties properties) throws SQLException {
+        if (properties == null)
+            return;
+        
         ResultSet rs = null;
 
         try {
@@ -266,6 +269,20 @@ public class Table implements Comparable<Table> {
 
             columns.put(column.getName(), column);
         }
+    }
+    
+    /**
+     * Add a column that's defined in xml metadata.
+     * Assumes that a column named colMeta.getName() doesn't already exist in <code>columns</code>.
+     * @param colMeta
+     * @return
+     */
+    protected TableColumn addColumn(TableColumnMeta colMeta) {
+        TableColumn column = new TableColumn(this, colMeta);
+
+        columns.put(column.getName(), column);
+        
+        return column;
     }
 
     /**
@@ -693,7 +710,7 @@ public class Table implements Comparable<Table> {
     /**
      * @param tableMeta
      */
-    public void update(TableMeta tableMeta, Map<String, Table> tables) {
+    public void update(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
         String newComments = tableMeta.getComments();
         if (newComments != null) {
             comments = newComments;
@@ -702,8 +719,13 @@ public class Table implements Comparable<Table> {
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
             if (col == null) {
-                System.err.println("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
-                continue;
+                if (tableMeta.getRemoteSchema() == null) {
+                    System.err.println();
+                    System.err.print("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
+                    continue;
+                }
+                
+                col = addColumn(colMeta);
             }
 
             // update the column with the changes
@@ -711,7 +733,8 @@ public class Table implements Comparable<Table> {
 
             // go thru the new foreign key defs and associate them with our columns
             for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
-                Table parent = tables.get(fk.getTableName());
+                Table parent = fk.getRemoteSchema() == null ? tables.get(fk.getTableName())
+                                                            : remoteTables.get(fk.getRemoteSchema() + '.' + fk.getTableName());
                 if (parent != null) {
                     TableColumn parentColumn = parent.getColumn(fk.getColumnName());
 
@@ -726,6 +749,9 @@ public class Table implements Comparable<Table> {
                             }
                         };
                     }
+                } else {
+                    System.err.println();
+                    System.err.print("Undefined table '" + fk.getTableName() + "' referenced by '" + getName() + '.' + col.getName() + '\'');
                 }
             }
         }

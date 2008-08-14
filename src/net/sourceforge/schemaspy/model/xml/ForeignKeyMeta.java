@@ -9,12 +9,14 @@ import org.w3c.dom.Node;
 public class ForeignKeyMeta {
     private final String tableName;
     private final String columnName;
+    private final String remoteSchema;
     
     ForeignKeyMeta(Node foreignKeyNode) {
         NamedNodeMap attribs = foreignKeyNode.getAttributes();
         
         tableName = attribs.getNamedItem("table").getNodeValue();
         columnName = attribs.getNamedItem("column").getNodeValue();
+        remoteSchema = attribs.getNamedItem("remoteSchema") == null ? null : attribs.getNamedItem("remoteSchema").getNodeValue();
     }
     
     public String getTableName() {
@@ -23,6 +25,10 @@ public class ForeignKeyMeta {
     
     public String getColumnName() {
         return columnName;
+    }
+    
+    public String getRemoteSchema() {
+        return remoteSchema;
     }
     
     @Override

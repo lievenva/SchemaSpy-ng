@@ -14,6 +14,7 @@ public class TableMeta {
     private final String name;
     private final String comments;
     private final List<TableColumnMeta> columns = new ArrayList<TableColumnMeta>();
+    private final String remoteSchema;
     
     TableMeta(Node tableNode) {
         NamedNodeMap attribs = tableNode.getAttributes();
@@ -26,6 +27,8 @@ public class TableMeta {
         } else {
             comments = null;
         }
+        Node remoteSchemaNode = attribs.getNamedItem("remoteSchema");
+        remoteSchema = remoteSchemaNode == null ? null : remoteSchemaNode.getNodeValue().trim();
         
         NodeList columnNodes = ((Element)tableNode.getChildNodes()).getElementsByTagName("column");
         
@@ -45,5 +48,9 @@ public class TableMeta {
     
     public List<TableColumnMeta> getColumns() {
         return columns;
+    }
+    
+    public String getRemoteSchema() {
+        return remoteSchema;
     }
 }
