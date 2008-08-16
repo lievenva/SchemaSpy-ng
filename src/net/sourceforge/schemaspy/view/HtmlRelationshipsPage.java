@@ -39,7 +39,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
                 return false;
             }
 
-            writeHeader(db, compactRelationshipsGraphFile, largeRelationshipsGraphFile, compactImpliedGraphFile, largeImpliedGraphFile, "Relationships Graph", hasOrphans, hasRealRelationships, hasImpliedRelationships, html);
+            writeHeader(db, "Relationships Graph", hasOrphans, hasRealRelationships, hasImpliedRelationships, html);
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
             if (hasRealRelationships)
                 html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
@@ -91,7 +91,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         }
     }
 
-    private void writeHeader(Database db, File compactRelationshipsGraphFile, File largeRelationshipsGraphFile, File compactImpliedGraphFile, File largeImpliedGraphFile, String title, boolean hasOrphans, boolean hasRealRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
+    private void writeHeader(Database db, String title, boolean hasOrphans, boolean hasRealRelationships, boolean hasImpliedRelationships, LineWriter html) throws IOException {
         writeHeader(db, null, title, hasOrphans, html);
         html.writeln("<table class='container' width='100%'>");
         html.writeln("<tr><td class='container'>");
@@ -116,46 +116,13 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         html.writeln("<form name='options' action=''>");
         if (hasRealRelationships && hasImpliedRelationships) {
             html.write("  <span title=\"Show relationships implied by column name and type matching another table's primary key\">");
-            html.write("<input type='checkbox' id='implied' onclick=\"");
-            html.write("if (this.checked) {");
-            html.write(" if (!document.options.showNonKeys.checked)");
-            html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph');");
-            html.write(" else ");
-            html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
-            html.write("} else {");
-            html.write(" if (!document.options.showNonKeys.checked)");
-            html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
-            html.write(" else ");
-            html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
-            html.write("}\">");
-            html.writeln("Implied relationships</span>");
+            html.write("<label><input type='checkbox' id='implied'>");
+            html.writeln("Implied relationships</label></span>");
         }
-        // more butt-ugly 'code' follows
         if (hasRealRelationships || hasImpliedRelationships) {
             html.write("  <span title=\"By default only columns that are primary keys, foreign keys or indexes are shown\">");
-            html.write("<input type='checkbox' id='showNonKeys' onclick=\"");
-            html.write("if (!this.checked) {");
-            if (hasImpliedRelationships) {
-                if (hasRealRelationships)
-                    html.write(" if (document.options.implied.checked)");
-                html.write(" selectGraph('graphs/summary/" + compactImpliedGraphFile.getName() + "', '#compactImpliedRelationshipsGraph'); ");
-                if (hasRealRelationships)
-                    html.write("else");
-            }
-            if (hasRealRelationships)
-                html.write(" selectGraph('graphs/summary/" + compactRelationshipsGraphFile.getName() + "', '#compactRelationshipsGraph'); ");
-            html.write("} else {");
-            if (hasImpliedRelationships) {
-                if (hasRealRelationships)
-                    html.write(" if (document.options.implied.checked) ");
-                html.write(" selectGraph('graphs/summary/" + largeImpliedGraphFile.getName() + "', '#largeImpliedRelationshipsGraph'); ");
-                if (hasRealRelationships)
-                    html.write(" else");
-            }
-            if (hasRealRelationships)
-                html.write(" selectGraph('graphs/summary/" + largeRelationshipsGraphFile.getName() + "', '#largeRelationshipsGraph'); ");
-            html.write("}\">");
-            html.writeln("All columns</span>");
+            html.write("<label><input type='checkbox' id='showNonKeys'>");
+            html.writeln("All columns</label></span>");
         }
         html.writeln("</form>");
 

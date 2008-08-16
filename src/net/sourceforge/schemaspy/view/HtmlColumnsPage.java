@@ -124,13 +124,11 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("</td></tr>");
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         html.writeln("<p/>");
-        StyleSheet css = StyleSheet.getInstance();
-        String commentStatus = showCommentsInitially ? "checked " : "";
         html.writeln("<form name='options' action=''>");
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
-        html.writeln(" <input type=checkbox " + commentStatus + "onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
-        html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
+        html.writeln(" <label><input type=checkbox id=showRelatedCols>Related columns</label>");
+        html.writeln(" <label><input type=checkbox id=showConstNames>Constraint names</label>");
+        html.writeln(" <label><input type=checkbox " + (showCommentsInitially ? "checked " : "") + " id=showComments>Comments</label>");
+        html.writeln(" <label><input type=checkbox checked id=showLegend>Legend</label>");
         html.writeln("</form>");
         html.writeln("</table>");
 

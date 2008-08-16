@@ -31,9 +31,15 @@ public class HtmlFormatter {
             out.write("../");
         out.writeln("schemaSpy.css' type='text/css'>");
         out.writeln("  <meta HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=" + Config.getInstance().getCharset() + "'>");
+        out.writeln("  <SCRIPT LANGUAGE='JavaScript' TYPE='text/javascript' SRC='" + (table == null ? "" : "../") + "jquery.js'></SCRIPT>");
         out.writeln("  <SCRIPT LANGUAGE='JavaScript' TYPE='text/javascript' SRC='" + (table == null ? "" : "../") + "schemaSpy.js'></SCRIPT>");
+        if (table != null) {
+            out.writeln("  <SCRIPT LANGUAGE='JavaScript'>");
+            out.writeln("    table='" + table + "';");
+            out.writeln("  </SCRIPT>");
+        }
         out.writeln("</head>");
-        out.writeln("<body onload='syncOptions()'>");
+        out.writeln("<body'>");
         writeTableOfContents(showOrphans, out);
         out.writeln("<div class='content' style='clear:both;'>");
         out.writeln("<table width='100%' border='0' cellpadding='0'>");

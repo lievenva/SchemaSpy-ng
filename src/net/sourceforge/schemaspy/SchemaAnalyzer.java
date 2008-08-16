@@ -34,6 +34,7 @@ import net.sourceforge.schemaspy.util.DOMUtil;
 import net.sourceforge.schemaspy.util.DbSpecificOption;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.LineWriter;
+import net.sourceforge.schemaspy.util.ResourceWriter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesPage;
 import net.sourceforge.schemaspy.view.HtmlColumnsPage;
@@ -43,7 +44,6 @@ import net.sourceforge.schemaspy.view.HtmlOrphansPage;
 import net.sourceforge.schemaspy.view.HtmlRelationshipsPage;
 import net.sourceforge.schemaspy.view.HtmlTablePage;
 import net.sourceforge.schemaspy.view.ImageWriter;
-import net.sourceforge.schemaspy.view.JavaScriptFormatter;
 import net.sourceforge.schemaspy.view.StyleSheet;
 import net.sourceforge.schemaspy.view.TextFormatter;
 import net.sourceforge.schemaspy.view.WriteStats;
@@ -175,6 +175,8 @@ public class SchemaAnalyzer {
                 System.out.print("Writing/graphing summary");
                 System.out.print(".");
                 ImageWriter.getInstance().writeImages(outputDir);
+                ResourceWriter.getInstance().writeResource("/jquery.js", new File(outputDir, "/jquery.js"));
+                ResourceWriter.getInstance().writeResource("/schemaSpy.js", new File(outputDir, "/schemaSpy.js"));
                 System.out.print(".");
 
                 boolean showDetailedTables = tables.size() <= config.getMaxDetailedTables();
@@ -283,9 +285,6 @@ public class SchemaAnalyzer {
 
                 out = new LineWriter(new File(outputDir, "schemaSpy.css"), config.getCharset());
                 StyleSheet.getInstance().write(out);
-                out.close();
-                out = new LineWriter(new File(outputDir, "schemaSpy.js"), config.getCharset());
-                JavaScriptFormatter.getInstance().write(out);
                 out.close();
             }
 

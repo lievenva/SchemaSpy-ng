@@ -34,18 +34,8 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
             html.write("<br/><form action='get'><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
                 html.writeln("</b><span class='degrees' id='degrees' title='Detail diminishes with increased separation from " + table.getName() + "'>");
-                html.write("&nbsp;within <input type='radio' name='degrees' id='oneDegree' onclick=\"");
-                html.write("if (!this.checked)");
-                html.write(" selectGraph('../graphs/" + twoDegreesGraphFile.getName() + "', '#twoDegreesRelationshipsGraph');");
-                html.write("else");
-                html.write(" selectGraph('../graphs/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
-                html.writeln("\" checked>one");
-                html.write("  <input type='radio' name='degrees' id='twoDegrees' onclick=\"");
-                html.write("if (this.checked)");
-                html.write(" selectGraph('../graphs/" + twoDegreesGraphFile.getName() + "', '#twoDegreesRelationshipsGraph');");
-                html.write("else");
-                html.write(" selectGraph('../graphs/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
-                html.writeln("\">two degrees of separation");
+                html.write("&nbsp;within <label><input type='radio' name='degrees' id='oneDegree' checked>one</label>");
+                html.write("  <input type='radio' name='degrees' id='twoDegrees'>two degrees</label> of separation");
                 html.write("</span><b>:</b>");
                 html.writeln("</form>");
             } else {

@@ -53,7 +53,7 @@ public class HtmlTablePage extends HtmlFormatter {
         writeHeader(db, table, null, hasOrphans, out);
         out.writeln("<table width='100%' border='0'>");
         out.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
-        writeHeader(table, stats, graphDir, out);
+        writeHeader(table, stats, out);
         out.writeln("</td><td class='container' rowspan='2' align='right' valign='top'>");
         writeLegend(true, out);
         out.writeln("</td><tr valign='top'><td class='container' align='left' valign='top'>");
@@ -69,28 +69,13 @@ public class HtmlTablePage extends HtmlFormatter {
         return stats;
     }
 
-    private void writeHeader(Table table, WriteStats stats, File graphDir, LineWriter html) throws IOException {
-        StyleSheet css = StyleSheet.getInstance();
+    private void writeHeader(Table table, WriteStats stats, LineWriter html) throws IOException {
         html.writeln("<form name='options' action=''>");
         if (stats.wroteImplied()) {
-            File oneDegreeGraphFile = new File(graphDir, table.getName() + ".1degree.png");
-            File twoDegreesGraphFile = new File(graphDir, table.getName() + ".2degrees.png");
-            File impliedGraphFile = new File(graphDir, table.getName() + ".implied2degrees.png");
-            html.write(" <input type=checkbox id='implied' onclick=\"");
-            html.write("if (!this.checked)");
-            if (stats.wroteTwoDegrees()) {
-                html.write(" selectGraph('../graphs/" + twoDegreesGraphFile.getName() + "', '#twoDegreesRelationshipsGraph'); ");
-            } else {
-                html.write(" selectGraph('../graphs/" + oneDegreeGraphFile.getName() + "', '#oneDegreeRelationshipsGraph'); ");
-            }
-            html.write("else");
-            html.write(" selectGraph('../graphs/" + impliedGraphFile.getName() + "', '#impliedTwoDegreesRelationshipsGraph'); ");
-            html.write("toggle(" + css.getOffsetOf(".impliedRelationship") + ");");
-            html.write("toggle(" + css.getOffsetOf(".degrees") + ");");
-            html.write("syncDegrees();\"");
+            html.write(" <label><input type=checkbox id='implied'");
             if (table.isOrphan(false))
                 html.write(" checked");
-            html.writeln(">Implied relationships");
+            html.writeln(">Implied relationships</label>");
         }
 
         // initially show comments if any of the columns contain comments
@@ -102,11 +87,10 @@ public class HtmlTablePage extends HtmlFormatter {
             }
         }
         
-        String commentStatus = showCommentsInitially  ? "checked " : "";
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".relatedKey") + ");\" id=showRelatedCols>Related columns");
-        html.writeln(" <input type=checkbox onclick=\"toggle(" + css.getOffsetOf(".constraint") + ");\" id=showConstNames>Constraint names");
-        html.writeln(" <input type=checkbox " + commentStatus + "onclick=\"toggle(" + css.getOffsetOf(".comment") + ");\" id=showComments>Comments");
-        html.writeln(" <input type=checkbox checked onclick=\"toggle(" + css.getOffsetOf(".legend") + ");\" id=showLegend>Legend");
+        html.writeln(" <label><input type=checkbox id=showRelatedCols>Related columns</label>");
+        html.writeln(" <label><input type=checkbox id=showConstNames>Constraint names</label>");
+        html.writeln(" <label><input type=checkbox " + (showCommentsInitially  ? "checked " : "") + "id=showComments>Comments</label>");
+        html.writeln(" <label><input type=checkbox checked id=showLegend>Legend</label>");
         html.writeln("</form>");
     }
 

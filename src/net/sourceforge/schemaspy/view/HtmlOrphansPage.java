@@ -83,8 +83,8 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         html.writeln("<tr><td class='container' align='left' valign='top'>");
         if (hasImpliedRelationships) {
             html.writeln("<form action=''>");
-            html.writeln(" <input type=checkbox onclick=\"toggle(" + StyleSheet.getInstance().getOffsetOf(".impliedNotOrphan") + ");\" id=removeImpliedOrphans>");
-            html.writeln("  Hide tables with implied relationships");
+            html.writeln(" <label><input type=checkbox id=removeImpliedOrphans>");
+            html.writeln("  Hide tables with implied relationships</label>");
             html.writeln("</form>");
         }
         html.writeln("</td></tr></table>");
