@@ -257,9 +257,9 @@ public class HtmlTablePage extends HtmlFormatter {
 
     private void writeNumRows(Database db, Table table, LineWriter out) throws IOException {
         if (displayNumRows && !table.isView())
-            out.write("<p/>Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at ");
+            out.write("<p>Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at ");
         else
-            out.write("<p/>Analyzed at ");
+            out.write("<p>Analyzed at ");
         out.writeln(db.getConnectTime());
     }
 
@@ -286,7 +286,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.writeln("</td>");
                 out.writeln(" </tr>");
             }
-            out.writeln("</table></div><p/>");
+            out.writeln("</table></div><p>");
         }
     }
 
@@ -543,7 +543,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 html.writeln("</td></tr></table>");
                 writeExcludedColumns(stats.getExcludedColumns(), html);
             } else {
-                html.writeln("</td></tr></table><p/>");
+                html.writeln("</td></tr></table><p>");
                 writeInvalidGraphvizInstallation(html);
             }
         }

@@ -123,7 +123,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         writeLegend(false, false, html);
         html.writeln("</td></tr>");
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
-        html.writeln("<p/>");
+        html.writeln("<p>");
         html.writeln("<form name='options' action=''>");
         html.writeln(" <label><input type=checkbox id=showRelatedCols>Related columns</label>");
         html.writeln(" <label><input type=checkbox id=showConstNames>Constraint names</label>");

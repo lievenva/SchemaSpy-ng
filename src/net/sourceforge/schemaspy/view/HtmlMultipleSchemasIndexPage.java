@@ -66,14 +66,14 @@ public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
         html.writeln("  <td class='container' align='right' valign='top' rowspan='3'>");
         if (sourceForgeLogoEnabled())
             html.writeln("    <a href='http://sourceforge.net' target='_blank'><img src='http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1' alt='SourceForge.net' border='0' height='31' width='88'></a><br>");
-        html.write("    <br/>");
+        html.write("    <br>");
         writeFeedMe(html);
         html.writeln("  </td>");
         html.writeln(" </tr>");
         html.writeln("</table>");
 
         html.writeln("<div class='indent'>");
-        html.write("<p/><b>");
+        html.write("<p><b>");
         html.write(String.valueOf(numberOfSchemas));
         html.write(" Schema" + (numberOfSchemas == 1 ? "" : "s"));
         html.writeln(":</b>");

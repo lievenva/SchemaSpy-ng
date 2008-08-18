@@ -103,7 +103,7 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
         if (!hasRealRelationships) {
             html.writeln("<tr><td class='container' align='left' valign='top'>");
             if (hasImpliedRelationships) {
-                html.writeln("No 'real' Foreign Key relationships were detected in the schema.<br/>");
+                html.writeln("No 'real' Foreign Key relationships were detected in the schema.<br>");
                 html.writeln("These relationships are implied by a column's name and type matching another table's primary key.");
             }                
             else

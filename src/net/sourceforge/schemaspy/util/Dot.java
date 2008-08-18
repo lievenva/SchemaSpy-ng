@@ -96,7 +96,7 @@ public class Dot {
     /**
      * Returns true if the installed dot requires specifying :gd as a renderer.
      * This was added when Win 2.15 came out because it defaulted to Cairo, which produces
-     * better quality output, but at a significant speed and size penalty.<p/>
+     * better quality output, but at a significant speed and size penalty.<p>
      * 
      * The intent of this property is to determine if it's ok to tack ":gd" to
      * the format specifier.  Earlier versions didn't require it and didn't know
@@ -112,7 +112,7 @@ public class Dot {
      * Set the renderer to use for the -Tformat[:renderer[:formatter]] dot option as specified
      * at <a href='http://www.graphviz.org/doc/info/command.html'>
      * http://www.graphviz.org/doc/info/command.html</a> where "format" is specified by
-     * {@link #setFormat(String)}<p/>
+     * {@link #setFormat(String)}<p>
      * Note that the leading ":" is required while :formatter is optional.
      * 
      * @param renderer

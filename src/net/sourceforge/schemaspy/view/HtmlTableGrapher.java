@@ -31,7 +31,7 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
 
             String map = dot.generateGraph(oneDegreeDotFile, oneDegreeGraphFile);
 
-            html.write("<br/><form action='get'><b>Close relationships");
+            html.write("<br><form action='get'><b>Close relationships");
             if (stats.wroteTwoDegrees()) {
                 html.writeln("</b><span class='degrees' id='degrees' title='Detail diminishes with increased separation from " + table.getName() + "'>");
                 html.write("&nbsp;within <label><input type='radio' name='degrees' id='oneDegree' checked>one</label>");

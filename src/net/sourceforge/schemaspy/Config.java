@@ -631,8 +631,8 @@ public class Config
 //    /**
 //     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
 //     * at <a href='http://www.graphviz.org/doc/info/command.html'>
-//     * http://www.graphviz.org/doc/info/command.html</a>.<p/>
-//     * Note that the leading ":" is required while :formatter is optional.<p/>
+//     * http://www.graphviz.org/doc/info/command.html</a>.<p>
+//     * Note that the leading ":" is required while :formatter is optional.<p>
 //     * The default renderer is typically GD. 
 //     */
 //    public void setRenderer(String renderer) {
@@ -660,7 +660,7 @@ public class Config
      * Note that the default is intended to be "lower quality", 
      * but various installations of Graphviz may have have different abilities.
      * That is, some might not have the "lower quality" libraries and others might
-     * not have the "higher quality" libraries.<p/>
+     * not have the "higher quality" libraries.<p>
      * Higher quality output takes longer to generate and results in significantly
      * larger image files (which take longer to download / display), but it looks better.
      */
@@ -683,7 +683,7 @@ public class Config
 
     /**
      * <code>true</code> if we should display advertisements.  
-     * Defaults to <code>true</code>.<p/>
+     * Defaults to <code>true</code>.<p>
      * <b>Please do not disable ads unless absolutely necessary</b>.
      * 
      * @return
@@ -693,7 +693,7 @@ public class Config
     }
     
     /**
-     * Returns <code>true</code> if we should display advertisements.<p/>
+     * Returns <code>true</code> if we should display advertisements.<p>
      * <b>Please do not disable ads unless absolutely necessary</b>.
      * 
      * @return

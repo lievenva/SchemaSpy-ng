@@ -106,14 +106,14 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</table>");
         }
         writeSummary(numDetected, out);
-        out.writeln("<p/></li>");
+        out.writeln("<p></li>");
     }
 
     private void writeUniqueNullables(List<TableColumn> uniqueNullables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Columns that are flagged as both 'nullable' and 'must be unique':</b>");
         writeColumnBasedAnomaly(uniqueNullables, out);
-        out.writeln("<p/></li>");
+        out.writeln("<p></li>");
     }
 
     private void writeTablesWithoutIndexes(List<Table> unindexedTables, LineWriter out) throws IOException {
@@ -156,7 +156,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</table>");
         }
         writeSummary(unindexedTables.size(), out);
-        out.writeln("<p/></li>");
+        out.writeln("<p></li>");
     }
 
     private void writeTablesWithIncrementingColumnNames(List<Table> tables, LineWriter out) throws IOException {
@@ -187,7 +187,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</table>");
         }
         writeSummary(tables.size(), out);
-        out.writeln("<p/></li>");
+        out.writeln("<p></li>");
     }
 
     private void writeTablesWithOneColumn(List<Table> tables, LineWriter out) throws IOException {
@@ -222,14 +222,14 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</table>");
         }
         writeSummary(tables.size(), out);
-        out.writeln("<p/></li>");
+        out.writeln("<p></li>");
     }
 
     private void writeDefaultNullStrings(List<TableColumn> uniqueNullables, LineWriter out) throws IOException {
         out.writeln("<li>");
         out.writeln("<b>Columns whose default value is the word 'NULL' or 'null', but the SQL NULL value may have been intended:</b>");
         writeColumnBasedAnomaly(uniqueNullables, out);
-        out.writeln("<p/></li>");
+        out.writeln("<p></li>");
     }
 
     private void writeColumnBasedAnomaly(List<TableColumn> columns, LineWriter out) throws IOException {

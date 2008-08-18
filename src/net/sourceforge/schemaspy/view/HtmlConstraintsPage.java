@@ -74,7 +74,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         writeFeedMe(html);
         html.writeln("</td></tr></table>");
         html.writeln("</td></tr>");
-        html.writeln("</table><br/>");
+        html.writeln("</table><br>");
         html.writeln("<table class='dataTable' border='1' rules='groups'>");
         html.writeln("<colgroup>");
         html.writeln("<colgroup>");
@@ -150,7 +150,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
      * @throws IOException
      */
     public void writeCheckConstraints(Collection<Table> tables, LineWriter html) throws IOException {
-        html.writeln("<a name='checkConstraints'></a><p/>");
+        html.writeln("<a name='checkConstraints'></a><p>");
         html.writeln("<b>Check Constraints:</b>");
         html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
         html.writeln("<colgroup>");

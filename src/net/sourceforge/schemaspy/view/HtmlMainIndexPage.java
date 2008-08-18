@@ -69,7 +69,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  <td class='container' align='right' valign='top' rowspan='3'>");
         if (sourceForgeLogoEnabled())
             html.writeln("    <a href='http://sourceforge.net' target='_blank'><img src='http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1' alt='SourceForge.net' border='0' height='31' width='88'></a><br>");
-        html.write("    <br/>");
+        html.write("    <br>");
         writeFeedMe(html);
         html.writeln("  </td>");
         html.writeln(" </tr>");
@@ -78,8 +78,8 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         String xmlName = db.getName();
         if (db.getSchema() != null)
             xmlName += '.' + db.getSchema();
-        html.write("<br/><a href='" + xmlName + ".xml' title='XML Representation'>XML Representation</a>");
-        html.write("<br/><a href='insertionOrder.txt' title='Useful for loading data into a database'>Insertion Order</a>&nbsp;");
+        html.write("<br><a href='" + xmlName + ".xml' title='XML Representation'>XML Representation</a>");
+        html.write("<br><a href='insertionOrder.txt' title='Useful for loading data into a database'>Insertion Order</a>&nbsp;");
         html.write("<a href='deletionOrder.txt' title='Useful for purging data from a database'>Deletion Order</a>");
         html.write("&nbsp;(for database loading/purging scripts)");
         html.writeln("</td>");
@@ -87,7 +87,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("</table>");
 
         html.writeln("<div class='indent'>");
-        html.write("<p/><b>");
+        html.write("<p><b>");
         html.write(String.valueOf(numberOfTables));
         html.write(" Tables");
         if (numberOfViews > 0) {
@@ -173,7 +173,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
     protected void writeFooter(int numCols, int numRows, LineWriter html) throws IOException {
         html.writeln("</TABLE>");
-        html.write("<p/>Columns: ");
+        html.write("<p>Columns: ");
         html.write(String.valueOf(integerFormatter.format(numCols)));
         if (displayNumRows) {
             html.write("&nbsp;&nbsp;&nbsp;Rows: ");
