@@ -41,24 +41,19 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             writeHeader(db, "Relationships Graph", hasOrphans, hasRealRelationships, hasImpliedRelationships, html);
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
-            if (hasRealRelationships)
-                html.writeln("  <a name='graph'><img src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' id='relationships' border='0' alt=''></a>");
-            else if (hasImpliedRelationships)
-                html.writeln("  <a name='graph'><img src='graphs/summary/" + compactImpliedGraphFile.getName() + "' usemap='#compactImpliedRelationshipsGraph' id='relationships' border='0' alt=''></a>");
-            html.writeln("</td></tr></table>");
-            writeExcludedColumns(excludedColumns, html);
-
+            
             if (hasRealRelationships) {
                 System.out.print(".");
-                html.write(dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile));
-                System.out.print(".");
-                
+                html.writeln(dot.generateGraph(compactRelationshipsDotFile, compactRelationshipsGraphFile));
+                html.writeln("  <a name='graph'><img id='realCompactImg' src='graphs/summary/" + compactRelationshipsGraphFile.getName() + "' usemap='#compactRelationshipsGraph' class='graph' border='0' alt=''></a>");
+
                 // we've run into instances where the first graphs get generated, but then
                 // dot fails on the second one...try to recover from that scenario 'somewhat'
                 // gracefully
                 try {
-                    html.write(dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile));
                     System.out.print(".");
+                    html.writeln(dot.generateGraph(largeRelationshipsDotFile, largeRelationshipsGraphFile));
+                    html.writeln("  <a name='graph'><img id='realLargeImg' src='graphs/summary/" + largeRelationshipsGraphFile.getName() + "' usemap='#largeRelationshipsGraph' class='graph' border='0' alt=''></a>");
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println("dot failed to generate all of the relationships graphs:");
                     System.err.println(dotFailure);
@@ -68,18 +63,24 @@ public class HtmlRelationshipsPage extends HtmlGraphFormatter {
 
             try {
                 if (hasImpliedRelationships) {
-                    html.write(dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile));
                     System.out.print(".");
+                    html.writeln(dot.generateGraph(compactImpliedDotFile, compactImpliedGraphFile));
+                    html.writeln("  <a name='graph'><img id='impliedCompactImg' src='graphs/summary/" + compactImpliedGraphFile.getName() + "' usemap='#compactImpliedRelationshipsGraph' class='graph' border='0' alt=''></a>");
     
-                    html.write(dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile));
                     System.out.print(".");
+                    html.writeln(dot.generateGraph(largeImpliedDotFile, largeImpliedGraphFile));
+                    html.writeln("  <a name='graph'><img id='impliedLargeImg' src='graphs/summary/" + largeImpliedGraphFile.getName() + "' usemap='#largeImpliedRelationshipsGraph' class='graph' border='0' alt=''></a>");
                 }
             } catch (Dot.DotFailure dotFailure) {
                 System.err.println("dot failed to generate all of the relationships graphs:");
                 System.err.println(dotFailure);
                 System.err.println("...but the relationships page may still be usable.");
             }
-
+            
+            System.out.print(".");
+            html.writeln("</td></tr></table>");
+            writeExcludedColumns(excludedColumns, html);
+            
             writeFooter(html);
             return true;
         } catch (Dot.DotFailure dotFailure) {

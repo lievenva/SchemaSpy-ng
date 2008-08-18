@@ -36,47 +36,40 @@ function associate(cb, target) {
 // select the appropriate image based on the options selected
 function syncImage() {
   var implied   = $('#implied').attr('checked');
-  var img;
-  var map;
 
-  if (table) {  
-    if (implied) {
-      map = '#impliedTwoDegreesRelationshipsGraph';
-      img = '../graphs/' + table + '.implied2degrees.png';
+  $('.graph').hide();
+
+  if (table) {
+    if (implied && $('#impliedTwoDegreesImg').size() > 0) {
+      $('#impliedTwoDegreesImg').show();
     } else {
       var oneDegree = $('#oneDegree').attr('checked');
 
-      if (oneDegree) {
-        map = '#oneDegreeRelationshipsGraph';
-        img = '../graphs/' + table + '.1degree.png';
+      if (oneDegree || $('#twoDegreesImg').size() == 0) {
+        $('#oneDegreeImg').show();
       } else {
-        map = '#twoDegreesRelationshipsGraph';
-        img = '../graphs/' + table + '.2degrees.png';
+        $('#twoDegreesImg').show();
       }
     }
   } else {
     var showNonKeys = $('#showNonKeys').attr('checked');
+
     if (implied) {
-      if (showNonKeys) {
-        map = '#largeImpliedRelationshipsGraph';
-        img = 'graphs/summary/relationships.implied.large.png'
+      if (showNonKeys && $('#impliedLargeImg').size() > 0) {
+        $('#impliedLargeImg').show();
+      } else if ($('#impliedCompactImg').size() > 0) {
+        $('#impliedCompactImg').show();
       } else {
-        map = '#compactImpliedRelationshipsGraph';
-        img = 'graphs/summary/relationships.implied.compact.png'
+        $('#realCompactImg').show();
       }
     } else {
-      if (showNonKeys) {
-        map = '#largeRelationshipsGraph';
-        img = 'graphs/summary/relationships.real.large.png'
+      if (showNonKeys && $('#realLargeImg').size() > 0) {
+        $('#realLargeImg').show();
       } else {
-        map = '#compactRelationshipsGraph';
-        img = 'graphs/summary/relationships.real.compact.png'
+        $('#realCompactImg').show();
       }
     }
   }
-
-  $('#relationships').attr('useMap', map);
-  $('#relationships').attr('src', img);
 }
 
 // our 'ready' handler makes the page consistent
@@ -86,7 +79,7 @@ $(function(){
   associate($('#showLegend'),      $('.legend'));
   associate($('#showRelatedCols'), $('.relatedKey'));
   associate($('#showConstNames'),  $('.constraint'));
-  
+
   syncImage();
   $('#implied,#oneDegree,#twoDegrees,#showNonKeys').click(function() {
     syncImage();
@@ -96,6 +89,7 @@ $(function(){
   $('#implied').click(function() {
     unsync($('#implied'), $('.degrees'));
   });
+
   unsync($('#removeImpliedOrphans'), $('.impliedNotOrphan'));
   $('#removeImpliedOrphans').click(function() {
     unsync($('#removeImpliedOrphans'), $('.impliedNotOrphan'));

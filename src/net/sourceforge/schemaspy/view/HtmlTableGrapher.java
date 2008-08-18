@@ -19,10 +19,10 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
     public boolean write(Table table, File graphDir, WriteStats stats, LineWriter html) {
         File oneDegreeDotFile = new File(graphDir, table.getName() + ".1degree.dot");
         File oneDegreeGraphFile = new File(graphDir, table.getName() + ".1degree.png");
-        File impliedDotFile = new File(graphDir, table.getName() + ".implied2degrees.dot");
-        File impliedGraphFile = new File(graphDir, table.getName() + ".implied2degrees.png");
         File twoDegreesDotFile = new File(graphDir, table.getName() + ".2degrees.dot");
         File twoDegreesGraphFile = new File(graphDir, table.getName() + ".2degrees.png");
+        File impliedDotFile = new File(graphDir, table.getName() + ".implied2degrees.dot");
+        File impliedGraphFile = new File(graphDir, table.getName() + ".implied2degrees.png");
 
         try {
             Dot dot = getDot();
@@ -41,17 +41,20 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
             } else {
                 html.write(":</b></form>");
             }
-            html.writeln("  <a name='graph'><img src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='#oneDegreeRelationshipsGraph' id='relationships' border='0' alt='' align='left'></a>");
             html.write(map);
+            map = null;
+            html.writeln("  <a name='graph'><img id='oneDegreeImg' src='../graphs/" + oneDegreeGraphFile.getName() + "' usemap='#oneDegreeRelationshipsGraph' class='graph' border='0' alt='' align='left'></a>");
             
             if (stats.wroteImplied()) {
-                html.write(dot.generateGraph(impliedDotFile, impliedGraphFile));
+                html.writeln(dot.generateGraph(impliedDotFile, impliedGraphFile));
+                html.writeln("  <a name='graph'><img id='impliedTwoDegreesImg' src='../graphs/" + impliedGraphFile.getName() + "' usemap='#impliedTwoDegreesRelationshipsGraph' class='graph' border='0' alt='' align='left'></a>");
             } else {
                 impliedDotFile.delete();
                 impliedGraphFile.delete();
             }
             if (stats.wroteTwoDegrees()) {
-                html.write(dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile));
+                html.writeln(dot.generateGraph(twoDegreesDotFile, twoDegreesGraphFile));
+                html.writeln("  <a name='graph'><img id='twoDegreesImg' src='../graphs/" + twoDegreesGraphFile.getName() + "' usemap='#twoDegreesRelationshipsGraph' class='graph' border='0' alt='' align='left'></a>");
             } else {
                 twoDegreesDotFile.delete();
                 twoDegreesGraphFile.delete();

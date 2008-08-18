@@ -105,6 +105,7 @@ table {
 }
 
 .legend {
+  display: none;
   text-align: left;
 }
 
@@ -145,6 +146,11 @@ table {
 }
 
 .degrees {
+}
+
+/* don't display the graphs until we know what to display */
+.graph {
+  display: none;
 }
 
 .indent {
