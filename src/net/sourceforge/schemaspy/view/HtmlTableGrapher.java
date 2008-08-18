@@ -35,7 +35,7 @@ public class HtmlTableGrapher extends HtmlGraphFormatter {
             if (stats.wroteTwoDegrees()) {
                 html.writeln("</b><span class='degrees' id='degrees' title='Detail diminishes with increased separation from " + table.getName() + "'>");
                 html.write("&nbsp;within <label><input type='radio' name='degrees' id='oneDegree' checked>one</label>");
-                html.write("  <input type='radio' name='degrees' id='twoDegrees'>two degrees</label> of separation");
+                html.write("  <label><input type='radio' name='degrees' id='twoDegrees'>two degrees</label> of separation");
                 html.write("</span><b>:</b>");
                 html.writeln("</form>");
             } else {
