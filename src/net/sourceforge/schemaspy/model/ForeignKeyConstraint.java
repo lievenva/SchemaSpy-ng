@@ -115,6 +115,10 @@ public class ForeignKeyConstraint {
         buf.append(parentTable.getName());
         buf.append('.');
         buf.append(toString(parentColumns));
+        if (parentTable.isRemote()) {
+            buf.append(" in ");
+            buf.append(parentTable.getSchema());
+        }
         if (name != null) {
             buf.append(" via ");
             buf.append(name);

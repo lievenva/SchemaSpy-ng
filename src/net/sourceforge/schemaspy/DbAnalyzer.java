@@ -43,13 +43,14 @@ public class DbAnalyzer {
             List<TableColumn> tablePrimaries = table.getPrimaryColumns();
             if (tablePrimaries.size() == 1) { // can't match up multiples...yet...
                 for (TableColumn primary : tablePrimaries) {
-                    if (allPrimaries.put(primary, table) != null)
+                    if (primary.allowsImpliedChildren() && 
+                        allPrimaries.put(primary, table) != null)
                         ++duplicatePrimaries;
                 }
             }
 
             for (TableColumn column : table.getColumns()) {
-                if (!column.isForeignKey())
+                if (!column.isForeignKey() && column.allowsImpliedParents())
                     columnsWithoutParents.add(column);
             }
         }
@@ -65,7 +66,7 @@ public class DbAnalyzer {
         List<ImpliedForeignKeyConstraint> impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
         for (TableColumn childColumn : columnsWithoutParents) {
             Table primaryTable = allPrimaries.get(childColumn);
-            if (primaryTable != null && primaryTable != childColumn.getTable() && childColumn.allowsImpliedParents()) {
+            if (primaryTable != null && primaryTable != childColumn.getTable()) {
                 TableColumn parentColumn = primaryTable.getColumn(childColumn.getName());
                 // make sure the potential child->parent relationships isn't already a
                 // parent->child relationship

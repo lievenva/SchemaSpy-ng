@@ -27,6 +27,7 @@ public class TableColumn {
     private final Map<TableColumn, ForeignKeyConstraint> parents = new HashMap<TableColumn, ForeignKeyConstraint>();
     private final Map<TableColumn, ForeignKeyConstraint> children = new TreeMap<TableColumn, ForeignKeyConstraint>(new ColumnComparator());
     private boolean allowImpliedParents = true;
+    private boolean allowImpliedChildren = true;
 
     /**
      * Create a column associated with a table.
@@ -268,13 +269,9 @@ public class TableColumn {
         if (!isPrimary() && colMeta.isPrimary()) {
             table.setPrimaryColumn(this);
         }
-        
-        // TODO make this more explicit
-        if (colMeta.isPrimary() || !colMeta.getForeignKeys().isEmpty()) {
-            // we're explicitly setting the column's attributes,
-            // so disable auto-associating parents with this column
-            allowImpliedParents = false;
-        }
+  
+        allowImpliedParents  = !colMeta.isImpliedParentsDisabled();
+        allowImpliedChildren = !colMeta.isImpliedChildrenDisabled();
     }
 
     @Override
@@ -292,6 +289,10 @@ public class TableColumn {
     }
 
     public boolean allowsImpliedParents() {
-        return allowImpliedParents ;
+        return allowImpliedParents;
+    }
+    
+    public boolean allowsImpliedChildren() {
+        return allowImpliedChildren;
     }
 }
