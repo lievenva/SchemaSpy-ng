@@ -368,7 +368,11 @@ public class Database {
         String fullName = remoteSchema + "." + remoteTableName;
         Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
-            remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties);
+            if (properties != null)
+                remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties);
+            else
+                remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
+            
             remoteTable.connectForeignKeys(tables, this, properties);
             remoteTables.put(fullName, remoteTable);
         }
@@ -574,7 +578,7 @@ public class Database {
                 if (tableMeta.getRemoteSchema() != null) {
                     Table table = remoteTables.get(tableMeta.getName());
                     if (table == null) {
-                        table = addRemoteTable(tableMeta. getRemoteSchema(), tableMeta.getName(), getSchema(), null);
+                        table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null);
                     }
                     
                     table.update(tableMeta, tables, remoteTables);
