@@ -38,18 +38,24 @@ public class TableColumnMeta {
             isPrimary = false;
         }
 
-        node = attribs.getNamedItem("disableImpliedParents");
+        node = attribs.getNamedItem("disableImpliedKeys");
         if (node != null) {
-            isImpliedParentsDisabled = evalBoolean(node.getNodeValue());
+            tmp = node.getNodeValue().trim().toLowerCase();
+            if (tmp.equals("to")) {
+                isImpliedChildrenDisabled = true;
+                isImpliedParentsDisabled  = false;
+            } else if (tmp.equals("from")) {
+                isImpliedParentsDisabled  = true;
+                isImpliedChildrenDisabled = false;
+            } else if (tmp.equals("all")) {
+                isImpliedChildrenDisabled = isImpliedParentsDisabled = true;
+            } else {
+                System.err.println("Unrecognized value for " + node.getNodeName() + ": '" + tmp + '\'');
+                System.err.println("  Valid values include 'to', 'from' and 'all'");
+                isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
+            }
         } else {
-            isImpliedParentsDisabled = false;
-        }
-        
-        node = attribs.getNamedItem("disableImpliedChildren");
-        if (node != null) {
-            isImpliedChildrenDisabled = evalBoolean(node.getNodeValue());
-        } else {
-            isImpliedChildrenDisabled = false;
+            isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
         }
         
         NodeList fkNodes = ((Element)colNode.getChildNodes()).getElementsByTagName("foreignKey");
