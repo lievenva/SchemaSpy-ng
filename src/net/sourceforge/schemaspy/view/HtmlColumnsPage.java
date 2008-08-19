@@ -229,18 +229,18 @@ public class HtmlColumnsPage extends HtmlFormatter {
     
     private class ByColumnComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = column1.getName().compareTo(column2.getName());
+            int rc = column1.getName().compareToIgnoreCase(column2.getName());
             if (rc == 0)
-                rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+                rc = column1.getTable().getName().compareToIgnoreCase(column2.getTable().getName());
             return rc;
         }
     }
     
     private class ByTableComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            int rc = column1.getTable().getName().compareToIgnoreCase(column2.getTable().getName());
             if (rc == 0)
-                rc = column1.getName().compareTo(column2.getName());
+                rc = column1.getName().compareToIgnoreCase(column2.getName());
             return rc;
         }
     }
@@ -249,7 +249,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         private Comparator<TableColumn> bySize = new BySizeComparator();
         
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = column1.getType().compareTo(column2.getType());
+            int rc = column1.getType().compareToIgnoreCase(column2.getType());
             if (rc == 0) {
                 rc = bySize.compare(column1, column2);
             }
@@ -297,7 +297,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         private Comparator<TableColumn> byColumn = new ByColumnComparator();
 
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = String.valueOf(column1.getDefaultValue()).compareTo(String.valueOf(column2.getDefaultValue()));
+            int rc = String.valueOf(column1.getDefaultValue()).compareToIgnoreCase(String.valueOf(column2.getDefaultValue()));
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;
@@ -321,7 +321,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
                     childTables2.add(column.getTable().getName());
             }
             
-            int rc = childTables1.toString().compareTo(childTables2.toString());
+            int rc = childTables1.toString().compareToIgnoreCase(childTables2.toString());
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;
@@ -345,7 +345,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
                     parentTables2.add(column.getTable().getName());
             }
             
-            int rc = parentTables1.toString().compareTo(parentTables2.toString());
+            int rc = parentTables1.toString().compareToIgnoreCase(parentTables2.toString());
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;
