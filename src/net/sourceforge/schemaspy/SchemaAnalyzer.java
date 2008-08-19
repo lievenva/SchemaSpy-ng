@@ -113,11 +113,11 @@ public class SchemaAnalyzer {
                         args.add(option.getValue().toString());
                     }
                 }
-                    
+
                 yankParam(args, "-o");  // param will be replaced by something appropriate
                 yankParam(args, "-s");  // param will be replaced by something appropriate
                 args.remove("-all");    // param will be replaced by something appropriate
-                
+
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
