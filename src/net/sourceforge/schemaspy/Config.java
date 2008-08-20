@@ -45,6 +45,7 @@ public class Config
     private File outputDir;
     private String dbType;
     private String schema;
+    private List<String> schemas;
     private String user;
     private String password;
     private String db;
@@ -587,6 +588,29 @@ public class Config
         }
 
         return tableInclusions;
+    }
+
+
+    /**
+     * @return
+     */
+    public List<String> getSchemas() {
+        if (schemas == null) {
+            String tmp = pullParam("-schemas");
+            if (tmp == null)
+                tmp = pullParam("-schemata");
+            if (tmp != null) {
+                schemas = new ArrayList<String>();
+                
+                for (String name : tmp.split("[ ,\"]"))
+                    schemas.add(name);
+                
+                if (schemas.isEmpty())
+                    schemas = null;
+            }
+        }
+        
+        return schemas;
     }
     
     public void setEvaluateAllEnabled(boolean enabled) {

@@ -71,6 +71,29 @@ public class SchemaAnalyzer {
             long startGraphingDetails = start;
             long startSummarizing = start;
 
+            File outputDir = config.getOutputDir();
+            if (!outputDir.isDirectory()) {
+                if (!outputDir.mkdirs()) {
+                    throw new IOException("Failed to create directory '" + outputDir + "'");
+                }
+            }
+            
+            List<String> schemas = config.getSchemas();
+            if (schemas != null) {
+                List<String> args = config.asList();
+                
+                // following params will be replaced by something appropriate
+                yankParam(args, "-o");
+                yankParam(args, "-s");
+                args.remove("-all");
+                args.remove("-schemas");
+                args.remove("-schemata");
+                
+                String dbName = config.getDb();
+                
+                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+            }
+            
             Properties properties = config.getDbProperties(config.getDbType());
 
             ConnectionURLBuilder urlBuilder = new ConnectionURLBuilder(config, properties);
@@ -98,12 +121,6 @@ public class SchemaAnalyzer {
             DatabaseMetaData meta = connection.getMetaData();
             String dbName = config.getDb();
             String schema = config.getSchema();
-            File outputDir = config.getOutputDir();
-            if (!outputDir.isDirectory()) {
-                if (!outputDir.mkdirs()) {
-                    throw new IOException("Failed to create directory '" + outputDir + "'");
-                }
-            }
 
             if (config.isEvaluateAllEnabled()) {
                 List<String> args = config.asList();
@@ -121,7 +138,7 @@ public class SchemaAnalyzer {
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
-                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
             }
 
             if (schema == null && meta.supportsSchemasInTableDefinitions()) {

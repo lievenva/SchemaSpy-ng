@@ -29,7 +29,7 @@ public final class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
+    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas, List<String> args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
         List<String> genericCommand = new ArrayList<String>();
         genericCommand.add("java");
@@ -50,9 +50,16 @@ public final class MultipleSchemaAnalyzer {
                 genericCommand.add("\"" + next + "\"");
         }
 
-        System.out.println("Analyzing schemas that match regular expression '" + schemaSpec + "':");
-        System.out.println("(use -schemaSpec on command line or in .properties to exclude other schemas)");
-        List<String> populatedSchemas = getPopulatedSchemas(meta, schemaSpec, user);
+        List<String> populatedSchemas;
+        if (schemas == null) {
+            System.out.println("Analyzing schemas that match regular expression '" + schemaSpec + "':");
+            System.out.println("(use -schemaSpec on command line or in .properties to exclude other schemas)");
+            populatedSchemas = getPopulatedSchemas(meta, schemaSpec, user);
+        } else {
+            System.out.println("Analyzing schemas:");
+            populatedSchemas = schemas;
+        }
+        
         for (String populatedSchema : populatedSchemas)
             System.out.print(" " + populatedSchema);
         System.out.println();
@@ -61,7 +68,10 @@ public final class MultipleSchemaAnalyzer {
 
         for (String schema : populatedSchemas) {
             List<String> command = new ArrayList<String>(genericCommand);
-            command.add("-s");
+            if (dbName == null)
+                command.add("-db");
+            else
+                command.add("-s");
             command.add(schema);
             command.add("-o");
             command.add(new File(outputDir, schema).toString());
@@ -91,7 +101,12 @@ public final class MultipleSchemaAnalyzer {
         return 0;
     }
 
-    private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
+    public int analyze(String dbName, List<String> schemas, List<String> args,
+            String user, File outputDir, String charset, String loadedFromJar) throws SQLException, IOException {
+        return analyze(dbName, null, null, schemas, args, user, outputDir, charset, loadedFromJar);
+    }
+    
+   private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
         if (populatedSchemas.size() > 0) {
             LineWriter index = new LineWriter(new File(outputDir, "index.html"), charset);
             HtmlMultipleSchemasIndexPage.getInstance().write(dbName, populatedSchemas, meta, index);
