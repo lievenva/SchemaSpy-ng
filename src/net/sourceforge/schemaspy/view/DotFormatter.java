@@ -1,16 +1,12 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
@@ -60,8 +56,6 @@ public class DotFormatter {
      * Write relationships associated with the given table
      */
     private void writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
-        Pattern regex = getRegexWithoutTable(table, stats);
-        Pattern originalRegex = stats.setExclusionPattern(regex);
         Set<Table> tablesWritten = new HashSet<Table>();
 
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
@@ -112,8 +106,6 @@ public class DotFormatter {
             }
         }
 
-        markExcludedColumns(nodes, stats.getExcludedColumns());
-
         // now directly connect the loose ends to the title of the
         // 2nd degree of separation tables
         for (DotConnector connector : allCousinConnectors) {
@@ -125,6 +117,8 @@ public class DotFormatter {
 
         // include the table itself
         nodes.put(table, new DotNode(table, ""));
+
+        markExcludedColumns(nodes, stats.getExcludedColumns());
 
         connectors.addAll(allCousinConnectors);
         for (DotConnector connector : connectors) {
@@ -145,42 +139,6 @@ public class DotFormatter {
         }
 
         dot.writeln("}");
-        stats.setExclusionPattern(originalRegex);
-    }
-
-    private Pattern getRegexWithoutTable(Table table, WriteStats stats) {
-        Set<String> pieces = new HashSet<String>();
-        List<String> regexes = Arrays.asList(stats.getExclusionPattern().pattern().split("\\)\\|\\("));
-        for (int i = 0; i < regexes.size(); ++i) {
-            String regex = regexes.get(i).toString();
-            if (!regex.startsWith("("))
-                regex = "(" + regex;
-            if (!regex.endsWith(")"))
-                regex = regex + ")";
-            pieces.add(regex);
-        }
-
-        // now removed the pieces that match some of the columns of this table
-        Iterator<String> iter = pieces.iterator();
-        while (iter.hasNext()) {
-            String regex = iter.next();
-            for (TableColumn column : table.getColumns()) {
-                Pattern columnPattern = Pattern.compile(regex);
-                if (column.matches(columnPattern)) {
-                    iter.remove();
-                    break;
-                }
-            }
-        }
-
-        StringBuffer pattern = new StringBuffer();
-        for (String piece : pieces) {
-            if (pattern.length() > 0)
-                pattern.append("|");
-            pattern.append(piece);
-        }
-
-        return Pattern.compile(pattern.toString());
     }
 
     private Set<Table> getImmediateRelatives(Table table, WriteStats stats) {

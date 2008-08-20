@@ -85,16 +85,4 @@ public class WriteStats {
         this.includeImplied = includeImplied;
         return oldValue;
     }
-
-    /**
-     * setExclusionPattern
-     *
-     * @param exclusionPattern Pattern
-     * @return Pattern
-     */
-    public Pattern setExclusionPattern(Pattern exclusionPattern) {
-        Pattern orig = this.exclusionPattern;
-        this.exclusionPattern = exclusionPattern;
-        return orig;
-    }
 }
