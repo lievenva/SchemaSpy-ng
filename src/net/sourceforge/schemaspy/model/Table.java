@@ -236,7 +236,10 @@ public class Table implements Comparable<Table> {
             ResultSetMetaData rsMeta = rs.getMetaData();
             for (int i = rsMeta.getColumnCount(); i > 0; --i) {
                 TableColumn column = getColumn(rsMeta.getColumnName(i));
-                column.setIsAutoUpdated(rsMeta.isAutoIncrement(i));
+                if (column == null) // sometimes happens with AS400 databases!
+                    System.err.println("Inconsistent metadata for " + getName() + '.' + rsMeta.getColumnName(i));
+                else
+                    column.setIsAutoUpdated(rsMeta.isAutoIncrement(i));
             }
         } catch (SQLException exc) {
             if (forceQuotes) {
