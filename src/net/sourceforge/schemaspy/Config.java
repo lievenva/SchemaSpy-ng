@@ -327,7 +327,7 @@ public class Config
     /**
      * The filename of the cascading style sheet to use.  
      * Note that this file is parsed and used to determine characteristics
-     * of the generated graphs, so it must contain specific settings that
+     * of the generated diagrams, so it must contain specific settings that
      * are documented within schemaSpy.css.<p>
      * 
      * Defaults to <code>"schemaSpy.css"</code>.
@@ -348,7 +348,7 @@ public class Config
     }
     
     /**
-     * The font to use within graphs.  Modify the .css to specify HTML fonts.
+     * The font to use within diagrams.  Modify the .css to specify HTML fonts.
      * 
      * @param font
      */
@@ -369,8 +369,8 @@ public class Config
     }
 
     /**
-     * The font size to use within graphs.  This is the size of the font used for
-     * 'large' (e.g. not 'compact') graphs.<p>
+     * The font size to use within diagrams.  This is the size of the font used for
+     * 'large' (e.g. not 'compact') diagrams.<p>
      *   
      * Modify the .css to specify HTML font sizes.<p>
      * 
@@ -679,7 +679,7 @@ public class Config
 //    }
     
     /**
-     * If <code>true</code> then generate graphical output of "higher quality"
+     * If <code>true</code> then generate output of "higher quality"
      * than the default ("lower quality").  
      * Note that the default is intended to be "lower quality", 
      * but various installations of Graphviz may have have different abilities.

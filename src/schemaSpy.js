@@ -37,7 +37,7 @@ function associate(cb, target) {
 function syncImage() {
   var implied   = $('#implied').attr('checked');
 
-  $('.graph').hide();
+  $('.diagram').hide();
 
   if (table) {
     if (implied && $('#impliedTwoDegreesImg').size() > 0) {

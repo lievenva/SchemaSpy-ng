@@ -11,7 +11,7 @@ import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.LineWriter;
 
-public class HtmlOrphansPage extends HtmlGraphFormatter {
+public class HtmlOrphansPage extends HtmlDiagramFormatter {
     private static HtmlOrphansPage instance = new HtmlOrphansPage();
 
     private HtmlOrphansPage() {
@@ -21,7 +21,7 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
         return instance;
     }
 
-    public boolean write(Database db, List<Table> orphanTables, File graphDir, LineWriter html) throws IOException {
+    public boolean write(Database db, List<Table> orphanTables, File diagramDir, LineWriter html) throws IOException {
         Dot dot = getDot();
         if (dot == null)
             return false;
@@ -34,29 +34,29 @@ public class HtmlOrphansPage extends HtmlGraphFormatter {
             }
         }
 
-        writeHeader(db, "Utility Tables Graph", !orphansWithImpliedRelationships.isEmpty(), html);
+        writeHeader(db, "Utility Tables View", !orphansWithImpliedRelationships.isEmpty(), html);
 
-        html.writeln("<a name='graph'>");
+        html.writeln("<a name='diagram'>");
         try {
             StringBuffer maps = new StringBuffer(64 * 1024);
 
             for (Table table : orphanTables) {
                 String dotBaseFilespec = table.getName();
 
-                File dotFile = new File(graphDir, dotBaseFilespec + ".1degree.dot");
-                File graphFile = new File(graphDir, dotBaseFilespec + ".1degree.png");
+                File dotFile = new File(diagramDir, dotBaseFilespec + ".1degree.dot");
+                File imgFile = new File(diagramDir, dotBaseFilespec + ".1degree.png");
 
                 LineWriter dotOut = new LineWriter(dotFile, Config.DOT_CHARSET);
                 DotFormatter.getInstance().writeOrphan(table, dotOut);
                 dotOut.close();
                 try {
-                    maps.append(dot.generateGraph(dotFile, graphFile));
+                    maps.append(dot.generateDiagram(dotFile, imgFile));
                 } catch (Dot.DotFailure dotFailure) {
                     System.err.println(dotFailure);
                     return false;
                 }
 
-                html.write("  <img src='graphs/summary/" + graphFile.getName() + "' usemap='#" + table + "' border='0' alt='' align='top'");
+                html.write("  <img src='diagrams/summary/" + imgFile.getName() + "' usemap='#" + table + "' border='0' alt='' align='top'");
                 if (orphansWithImpliedRelationships.contains(table))
                     html.write(" class='impliedNotOrphan'");
                 html.writeln(">");

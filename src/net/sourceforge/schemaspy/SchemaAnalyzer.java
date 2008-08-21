@@ -68,7 +68,7 @@ public class SchemaAnalyzer {
             }
 
             long start = System.currentTimeMillis();
-            long startGraphingDetails = start;
+            long startDiagrammingDetails = start;
             long startSummarizing = start;
 
             File outputDir = config.getOutputDir();
@@ -149,7 +149,7 @@ public class SchemaAnalyzer {
             SchemaMeta schemaMeta = config.getMeta() == null ? null : new SchemaMeta(config.getMeta(), dbName, schema);
             if (config.isHtmlGenerationEnabled()) {
                 new File(outputDir, "tables").mkdirs();
-                new File(outputDir, "graphs/summary").mkdirs();
+                new File(outputDir, "diagrams/summary").mkdirs();
                 StyleSheet.init(new BufferedReader(getStyleSheet(config.getCss())));
 
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
@@ -199,9 +199,9 @@ public class SchemaAnalyzer {
                 boolean showDetailedTables = tables.size() <= config.getMaxDetailedTables();
                 final boolean includeImpliedConstraints = config.isImpliedConstraintsEnabled();
 
-                File graphsDir = new File(outputDir, "graphs/summary");
+                File diagramsDir = new File(outputDir, "diagrams/summary");
                 String dotBaseFilespec = "relationships";
-                out = new LineWriter(new File(graphsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
+                out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
                 WriteStats stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeRealRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
@@ -210,7 +210,7 @@ public class SchemaAnalyzer {
 
                 if (hasRealRelationships) {
                     System.out.print(".");
-                    out = new LineWriter(new File(graphsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
+                    out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
                     out.close();
@@ -229,7 +229,7 @@ public class SchemaAnalyzer {
 
                 System.out.print(".");
 
-                File impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.compact.dot");
+                File impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                 stats = new WriteStats(config.getColumnExclusions(), includeImpliedConstraints);
                 DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
@@ -238,7 +238,7 @@ public class SchemaAnalyzer {
                 stats = new WriteStats(stats);
                 out.close();
                 if (hasImplied) {
-                    impliedDotFile = new File(graphsDir, dotBaseFilespec + ".implied.large.dot");
+                    impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.large.dot");
                     out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeAllRelationships(db, tables, false, showDetailedTables, stats, out);
                     stats = new WriteStats(stats);
@@ -248,13 +248,13 @@ public class SchemaAnalyzer {
                 }
 
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
-                HtmlRelationshipsPage.getInstance().write(db, graphsDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
+                HtmlRelationshipsPage.getInstance().write(db, diagramsDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
                 out.close();
 
                 System.out.print(".");
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
-                HtmlOrphansPage.getInstance().write(db, orphans, graphsDir, out);
+                HtmlOrphansPage.getInstance().write(db, orphans, diagramsDir, out);
                 stats = new WriteStats(stats);
                 out.close();
 
@@ -287,9 +287,9 @@ public class SchemaAnalyzer {
                 }
 
 
-                startGraphingDetails = System.currentTimeMillis();
-                System.out.println("(" + (startGraphingDetails - startSummarizing) / 1000 + "sec)");
-                System.out.print("Writing/graphing results");
+                startDiagrammingDetails = System.currentTimeMillis();
+                System.out.println("(" + (startDiagrammingDetails - startSummarizing) / 1000 + "sec)");
+                System.out.print("Writing/diagramming results");
 
                 HtmlTablePage tableFormatter = HtmlTablePage.getInstance();
                 for (Table table : tables) { 
@@ -370,7 +370,7 @@ public class SchemaAnalyzer {
 
             if (config.isHtmlGenerationEnabled()) {
                 long end = System.currentTimeMillis();
-                System.out.println("(" + (end - startGraphingDetails) / 1000 + "sec)");
+                System.out.println("(" + (end - startDiagrammingDetails) / 1000 + "sec)");
                 System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
                 System.out.println("View the results by opening " + new File(config.getOutputDir(), "index.html"));
             }

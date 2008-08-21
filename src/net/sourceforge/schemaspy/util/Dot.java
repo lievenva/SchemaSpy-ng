@@ -127,7 +127,7 @@ public class Dot {
     }
     
     /**
-     * If <code>true</code> then generate graphical output of "higher quality"
+     * If <code>true</code> then generate output of "higher quality"
      * than the default ("lower quality").  
      * Note that the default is intended to be "lower quality", 
      * but various installations of Graphviz may have have different abilities.
@@ -197,12 +197,12 @@ public class Dot {
     /**
      * Using the specified .dot file generates an image returning the image's image map.
      */
-    public String generateGraph(File dotFile, File graphFile) throws DotFailure {
+    public String generateDiagram(File dotFile, File diagramFile) throws DotFailure {
         StringBuffer mapBuffer = new StringBuffer(1024);
         
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
-        String[] dotParams = new String[] {"dot", "-T" + getFormat() + getRenderer(), dotFile.toString(), "-o" + graphFile, "-Tcmapx"};
+        String[] dotParams = new String[] {"dot", "-T" + getFormat() + getRenderer(), dotFile.toString(), "-o" + diagramFile, "-Tcmapx"};
         // this one is for display purposes ONLY.
         String commandLine = getDisplayableCommand(dotParams);
 
@@ -218,7 +218,7 @@ public class Dot {
             int rc = process.waitFor();
             if (rc != 0)
                 throw new DotFailure("'" + commandLine + "' failed with return code " + rc);
-            if (!graphFile.exists())
+            if (!diagramFile.exists())
                 throw new DotFailure("'" + commandLine + "' failed to create output file");
 
             // dot generates post-HTML 4.0.1 output...convert trailing />'s to >'s
@@ -226,10 +226,10 @@ public class Dot {
         } catch (InterruptedException interrupted) {
             throw new RuntimeException(interrupted);
         } catch (DotFailure failed) {
-            graphFile.delete();
+            diagramFile.delete();
             throw failed;
         } catch (IOException failed) {
-            graphFile.delete();
+            diagramFile.delete();
             throw new DotFailure("'" + commandLine + "' failed with exception " + failed);
         } finally {
             if (mapReader != null) {

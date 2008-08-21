@@ -85,11 +85,11 @@ public class HtmlFormatter {
         if (Config.getInstance().isOneOfMultipleSchemas())
             html.writeln("  <li><a href='" + path + "../index.html' title='All Schemas Evaluated'>Schemas</a></li>");
         html.writeln("  <li" + (isMainIndex() ? " id='current'" : "") + "><a href='" + path + "index.html' title='All tables and views in the schema'>Tables</a></li>");
-        html.writeln("  <li" + (isRelationshipsPage() ? " id='current'" : "") + "><a href='" + path + "relationships.html' title='Graphical view of table relationships'>Relationships</a></li>");
+        html.writeln("  <li" + (isRelationshipsPage() ? " id='current'" : "") + "><a href='" + path + "relationships.html' title='Diagram of table relationships'>Relationships</a></li>");
         if (showOrphans)
-            html.writeln("  <li" + (isOrphansPage() ? " id='current'" : "") + "><a href='" + path + "utilities.html' title='Graphical view of tables with neither parents nor children'>Utility&nbsp;Tables</a></li>");
+            html.writeln("  <li" + (isOrphansPage() ? " id='current'" : "") + "><a href='" + path + "utilities.html' title='View of tables with neither parents nor children'>Utility&nbsp;Tables</a></li>");
         html.writeln("  <li" + (isConstraintsPage() ? " id='current'" : "") + "><a href='" + path + "constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a></li>");
-        html.writeln("  <li" + (isAnomaliesPage() ? " id='current'" : "") + "><a href='" + path + "anomalies.html' title=\"Things that aren't quite right\">Anomalies</a></li>");
+        html.writeln("  <li" + (isAnomaliesPage() ? " id='current'" : "") + "><a href='" + path + "anomalies.html' title=\"Things that might not be quite right\">Anomalies</a></li>");
         html.writeln("  <li" + (isColumnsPage() ? " id='current'" : "") + "><a href='" + path + HtmlColumnsPage.getInstance().getColumnInfos().get(0) + "' title=\"All of the columns in the schema\">Columns</a></li>");
         html.writeln("  <li><a href='http://sourceforge.net/donate/index.php?group_id=137197' title='Please help keep SchemaSpy alive' target='_blank'>Donate</a></li>");
         html.writeln(" </ul>");
@@ -142,7 +142,7 @@ public class HtmlFormatter {
         writeLegend(tableDetails, true, out);
     }
 
-    protected void writeLegend(boolean tableDetails, boolean graphDetails, LineWriter out) throws IOException {
+    protected void writeLegend(boolean tableDetails, boolean diagramDetails, LineWriter out) throws IOException {
         out.writeln(" <table class='legend' border='0'>");
         out.writeln("  <tr>");
         out.writeln("   <td class='dataTable' valign='bottom'>Legend:</td>");
@@ -158,7 +158,7 @@ public class HtmlFormatter {
             out.writeln("    <tr class='impliedRelationship'><td class='detail'><span class='impliedRelationship'>Implied relationships</span></td></tr>");
         // comment this out until I can figure out a clean way to embed image references
         //out.writeln("    <tr><td class='container'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
-        if (graphDetails) {
+        if (diagramDetails) {
             out.writeln("    <tr><td class='excludedColumn'>Excluded column relationships</td></tr>");
             out.writeln("    <tr class='impliedRelationship'><td class='legendDetail'>Dashed lines show" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
             out.writeln("    <tr><td class='legendDetail'>&lt; <em>n</em> &gt; number of related tables</td></tr>");
@@ -213,7 +213,7 @@ public class HtmlFormatter {
     }
     
     protected void writeInvalidGraphvizInstallation(LineWriter html) throws IOException {
-        html.writeln("<br>SchemaSpy was unable to generate a graphical representation of table relationships.");
+        html.writeln("<br>SchemaSpy was unable to generate a diagram of table relationships.");
         html.writeln("<br>SchemaSpy requires Graphviz " + Dot.getInstance().getSupportedVersions().substring(4) + " from <a href='http://www.graphviz.org' target='_blank'>www.graphviz.org</a>.");
     }
 

@@ -82,7 +82,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    public void write(Database database, Collection<Table> tables, ColumnInfo columnInfo, boolean showOrphansGraph, LineWriter html) throws IOException {
+    public void write(Database database, Collection<Table> tables, ColumnInfo columnInfo, boolean showOrphansDiagram, LineWriter html) throws IOException {
         Set<TableColumn> columns = new TreeSet<TableColumn>(columnInfo.getComparator());
         Set<TableColumn> primaryColumns = new HashSet<TableColumn>();
         Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
@@ -102,7 +102,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
 
         
-        writeHeader(database, columns.size(), showOrphansGraph, columnInfo, showCommentsInitially, html);
+        writeHeader(database, columns.size(), showOrphansDiagram, columnInfo, showCommentsInitially, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 

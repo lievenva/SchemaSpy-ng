@@ -18,7 +18,7 @@ public class DotNode {
     private final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
 
     /**
-     * Create a DotNode that is a focal point of a graph.
+     * Create a DotNode that is a focal point of a diagram.
      * That is, all of its columns are displayed in addition to the details
      * of those columns.
      *
@@ -149,7 +149,7 @@ public class DotNode {
         buf.append("</TD></TR>" + lineSeparator);
 
         buf.append("    </TABLE>>" + lineSeparator);
-        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + (path.length() == 0 && !config.showColumnDetails ? "#graph" : "#") + "\"" + lineSeparator);
+        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + (path.length() == 0 && !config.showColumnDetails ? "#diagram" : "#") + "\"" + lineSeparator);
         buf.append("    tooltip=\"" + toNCR(tableName) + "\"" + lineSeparator);
         buf.append("  ];");
 

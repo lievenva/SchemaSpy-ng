@@ -16,7 +16,7 @@ import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.view.DotNode.DotNodeConfig;
 
 /**
- * Format table data into .dot format to feed to GraphVis' dot program.
+ * Format table data into .dot format to feed to Graphvis' dot program.
  *
  * @author John Currier
  */
@@ -60,8 +60,8 @@ public class DotFormatter {
 
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
 
-        String graphName = stats.includeImplied() ? "impliedTwoDegreesRelationshipsGraph" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsGraph" : "oneDegreeRelationshipsGraph");
-        writeHeader(graphName, true, dot);
+        String diagramName = stats.includeImplied() ? "impliedTwoDegreesRelationshipsDiagram" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsDiagram" : "oneDegreeRelationshipsDiagram");
+        writeHeader(diagramName, true, dot);
 
         Set<Table> relatedTables = getImmediateRelatives(table, stats);
 
@@ -183,9 +183,9 @@ public class DotFormatter {
         return relatedTables;
     }
 
-    private void writeHeader(String graphName, boolean showLabel, LineWriter dot) throws IOException {
+    private void writeHeader(String diagramName, boolean showLabel, LineWriter dot) throws IOException {
         dot.writeln("// dot " + Dot.getInstance().getVersion() + " on " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
-        dot.writeln("digraph \"" + graphName + "\" {");
+        dot.writeln("digraph \"" + diagramName + "\" {");
         dot.writeln("  graph [");
         boolean rankdirbug = Config.getInstance().isRankDirBugEnabled();
         if (!rankdirbug)
@@ -229,19 +229,19 @@ public class DotFormatter {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         DotNodeConfig nodeConfig = showColumns ? new DotNodeConfig(!compact, false) : new DotNodeConfig();
         
-        String graphName;
+        String diagramName;
         if (stats.includeImplied()) {
             if (compact)
-                graphName = "compactImpliedRelationshipsGraph";
+                diagramName = "compactImpliedRelationshipsDiagram";
             else
-                graphName = "largeImpliedRelationshipsGraph";
+                diagramName = "largeImpliedRelationshipsDiagram";
         } else {
             if (compact)
-                graphName = "compactRelationshipsGraph";
+                diagramName = "compactRelationshipsDiagram";
             else
-                graphName = "largeRelationshipsGraph";
+                diagramName = "largeRelationshipsDiagram";
         }
-        writeHeader(graphName, true, dot);
+        writeHeader(diagramName, true, dot);
 
         Map<Table, DotNode> nodes = new TreeMap<Table, DotNode>();
 

@@ -7,7 +7,7 @@ import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 
 /**
- * Format table data into .dot format to feed to GraphVis' dot program.
+ * Format table data into .dot format to feed to Graphvis' dot program.
  *
  * @author John Currier
  */

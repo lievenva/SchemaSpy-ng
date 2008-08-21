@@ -47,8 +47,8 @@ public class HtmlTablePage extends HtmlFormatter {
     }
 
     public WriteStats write(Database db, Table table, boolean hasOrphans, File outputDir, WriteStats stats, LineWriter out) throws IOException {
-        File graphDir = new File(outputDir, "graphs");
-        generateDots(table, graphDir, stats);
+        File diagramsDir = new File(outputDir, "diagrams");
+        generateDots(table, diagramsDir, stats);
 
         writeHeader(db, table, null, hasOrphans, out);
         out.writeln("<table width='100%' border='0'>");
@@ -63,7 +63,7 @@ public class HtmlTablePage extends HtmlFormatter {
         writeCheckConstraints(table, out);
         writeIndexes(table, out);
         writeView(table, db, out);
-        writeGraph(table, stats, graphDir, out);
+        writeDiagram(table, stats, diagramsDir, out);
         writeFooter(onCascadeDelete, out);
 
         return stats;
@@ -509,19 +509,19 @@ public class HtmlTablePage extends HtmlFormatter {
      * two degrees of separation.
      *
      * @param table Table
-     * @param graphDir File
+     * @param diagramsDir File
      * @throws IOException
      * @return boolean <code>true</code> if the table has implied relatives within two
      *                 degrees of separation.
      */
-    private void generateDots(Table table, File graphDir, WriteStats stats) throws IOException {
+    private void generateDots(Table table, File diagramsDir, WriteStats stats) throws IOException {
         if (table.getMaxChildren() + table.getMaxParents() > 0) {
             DotFormatter formatter = DotFormatter.getInstance();
-            LineWriter dotOut = new LineWriter(new File(graphDir, table.getName() + ".1degree.dot"), Config.DOT_CHARSET);
+            LineWriter dotOut = new LineWriter(new File(diagramsDir, table.getName() + ".1degree.dot"), Config.DOT_CHARSET);
             formatter.writeRealRelationships(table, false, stats, dotOut);
             dotOut.close();
 
-            dotOut = new LineWriter(new File(graphDir, table.getName() + ".2degrees.dot"), Config.DOT_CHARSET);
+            dotOut = new LineWriter(new File(diagramsDir, table.getName() + ".2degrees.dot"), Config.DOT_CHARSET);
             WriteStats twoStats = new WriteStats(stats);
             formatter.writeRealRelationships(table, true, twoStats, dotOut);
             dotOut.close();
@@ -529,17 +529,17 @@ public class HtmlTablePage extends HtmlFormatter {
                 stats.setWroteTwoDegrees(true);
 
             if (stats.wroteImplied()) {
-                dotOut = new LineWriter(new File(graphDir, table.getName() + ".implied2degrees.dot"), Config.DOT_CHARSET);
+                dotOut = new LineWriter(new File(diagramsDir, table.getName() + ".implied2degrees.dot"), Config.DOT_CHARSET);
                 formatter.writeAllRelationships(table, true, stats, dotOut);
                 dotOut.close();
             }
         }
     }
 
-    private void writeGraph(Table table, WriteStats stats, File graphDir, LineWriter html) throws IOException {
+    private void writeDiagram(Table table, WriteStats stats, File diagramsDir, LineWriter html) throws IOException {
         if (table.getMaxChildren() + table.getMaxParents() > 0) {
             html.writeln("<table width='100%' border='0'><tr><td class='container'>");
-            if (HtmlTableGrapher.getInstance().write(table, graphDir, stats, html)) {
+            if (HtmlTableDiagrammer.getInstance().write(table, diagramsDir, stats, html)) {
                 html.writeln("</td></tr></table>");
                 writeExcludedColumns(stats.getExcludedColumns(), html);
             } else {
