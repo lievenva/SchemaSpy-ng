@@ -52,7 +52,13 @@ public class HtmlFormatter {
         out.write("</span>");
         if (table == null && db.getDescription() != null)
             out.write("<span class='description'>" + db.getDescription() + "</span>");
-        String comments = displayTableComments && table != null ? table.getComments() : null;
+        String comments;
+        if (table != null) {
+            comments = displayTableComments ? table.getComments() : null;
+        } else {
+            comments = db.getComments();
+        }
+        
         if (comments != null) {
             out.write("<div style='padding: 0px 4px;'>");
             if (encodeComments)

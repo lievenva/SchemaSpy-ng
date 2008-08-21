@@ -37,6 +37,7 @@ public class Database {
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
+    private String comments;
 
     public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
@@ -59,10 +60,22 @@ public class Database {
     }
     
     /**
+     * Details of the database type that's running under the covers.
+     * 
      * @return null if a description wasn't specified.
      */
     public String getDescription() {
         return description;
+    }
+    
+    /**
+     * Comments that describe the associated schema / database.  Specified
+     * through XML metadata.
+     * 
+     * @return
+     */
+    public String getComments() {
+        return comments;
     }
 
     public Collection<Table> getTables() {
@@ -573,6 +586,8 @@ public class Database {
 
     private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
         if (schemaMeta != null) {
+            comments = schemaMeta.getComments();
+            
             // add the newly defined remote tables first
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 if (tableMeta.getRemoteSchema() != null) {

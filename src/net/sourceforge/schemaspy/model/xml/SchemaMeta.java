@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import net.sourceforge.schemaspy.Config;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -18,8 +19,10 @@ import org.xml.sax.SAXException;
  */
 public class SchemaMeta {
     private final List<TableMeta> tables = new ArrayList<TableMeta>();
+    private final String comments;
     private final File metaFile;
     
+    @SuppressWarnings("null") // System.exit() results in compiler complaints about null doc refs
     public SchemaMeta(String xmlMeta, String dbName, String schema) {
         File meta = new File(xmlMeta);
         if (meta.isDirectory()) {
@@ -27,6 +30,14 @@ public class SchemaMeta {
             meta = new File(meta, filename);
             
             if (!meta.exists()) {
+                if (Config.getInstance().isOneOfMultipleSchemas()) {
+                    // don't force all of the "one of many" schemas to have metafiles
+                    System.out.println("Meta directory \"" + xmlMeta + "\" should contain a file named \"" + filename + '\"');
+                    comments = null;
+                    metaFile = null;
+                    return;
+                }
+
                 System.err.println("Meta directory \"" + xmlMeta + "\" must contain a file named \"" + filename + '\"');
                 System.exit(2);
             }
@@ -35,21 +46,36 @@ public class SchemaMeta {
             System.exit(2);
         }
         
-        this.metaFile = meta;
+        metaFile = meta;
         
         Document doc = parse(metaFile);
         if (doc == null) {
             System.exit(1);
-            return; // bogus return to avoid warnings
         }
-        
-        NodeList tablesNode = ((Element)doc.getElementsByTagName("tables").item(0)).getElementsByTagName("table");
+    
+        NodeList commentsNodes = doc.getElementsByTagName("comments");
+        if (commentsNodes != null)
+            comments = commentsNodes.item(0).getTextContent();
+        else
+            comments = null;
 
-        for (int i = 0; i < tablesNode.getLength(); ++i) {
-            Node tableNode = tablesNode.item(i);
-            TableMeta tableMeta = new TableMeta(tableNode);
-            tables.add(tableMeta);
+        NodeList tablesNodes = doc.getElementsByTagName("tables");
+        if (tablesNodes != null) {
+            NodeList tableNodes = ((Element)tablesNodes.item(0)).getElementsByTagName("table");
+    
+            for (int i = 0; i < tableNodes.getLength(); ++i) {
+                Node tableNode = tableNodes.item(i);
+                TableMeta tableMeta = new TableMeta(tableNode);
+                tables.add(tableMeta);
+            }
         }
+    }
+
+    /**
+     * Comments that describe the schema
+     */
+    public String getComments() {
+        return comments;
     }
     
     public File getFile() {

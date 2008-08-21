@@ -153,7 +153,7 @@ public class SchemaAnalyzer {
                 StyleSheet.init(new BufferedReader(getStyleSheet(config.getCss())));
 
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
-                if (schemaMeta != null) {
+                if (schemaMeta != null && schemaMeta.getFile() != null) {
                     System.out.println("Using additional metadata from " + schemaMeta.getFile());
                 }
                 System.out.println();

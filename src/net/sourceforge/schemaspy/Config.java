@@ -171,7 +171,16 @@ public class Config
         return outputDir;
     }
 
-    // TODO allow wildcards
+    /**
+     * Meta files are XML-based files that provide additional metadata
+     * about the schema being evaluated.<p>
+     * <code>meta</code> is either the name of an individual XML file or
+     * the directory that contains meta files.<p>  
+     * If a directory is specified then it is expected to contain files
+     * matching the pattern <code>[schema].meta.xml</code>.  
+     * For databases that don't have schema substitute database for schema.
+     * @param meta
+     */
     public void setMeta(String meta) {
         this.meta = meta;
     }
