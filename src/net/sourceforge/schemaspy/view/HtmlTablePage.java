@@ -26,6 +26,7 @@ import net.sourceforge.schemaspy.util.LineWriter;
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set<String> keywords = null;
+    private int columnCounter = 0;
 
     private Map<String, String> defaultValueAliases = new HashMap<String, String>();
     {
@@ -116,11 +117,25 @@ public class HtmlTablePage extends HtmlFormatter {
     }
 
     public boolean writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set<TableColumn> indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
-        out.writeln("<tr>");
+        if (tableName != null) {
+            if (++columnCounter % 2 == 0)
+                out.writeln("<tr class='odd'>");
+            else
+                out.writeln("<tr class='even'>");
+        } else {
+            out.writeln("<tr>");
+        }
         if (showIds) {
             out.write(" <td class='detail' align='right'>");
             out.write(String.valueOf(column.getId()));
             out.writeln("</td>");
+        }
+        if (tableName != null) {
+            out.write(" <td class='detail'><a href='tables/");
+            out.write(tableName);
+            out.write(".html'>");
+            out.write(tableName);
+            out.writeln("</a></td>");
         }
         if (primaries.contains(column))
             out.write(" <td class='primaryKey' title='Primary Key'>");
@@ -130,13 +145,6 @@ public class HtmlTablePage extends HtmlFormatter {
             out.write(" <td class='detail'>");
         out.write(column.getName());
         out.writeln("</td>");
-        if (tableName != null) {
-            out.write(" <td class='detail'><a href='tables/");
-            out.write(tableName);
-            out.write(".html'>");
-            out.write(tableName);
-            out.writeln("</a></td>");
-        }
         out.write(" <td class='detail'>");
         out.write(column.getType().toLowerCase());
         out.writeln("</td>");
@@ -172,16 +180,16 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.writeln("</td>");
             }
         } else {
-            out.writeln(" <td></td>");
+            out.writeln(" <td class='detail'></td>");
         }
-        out.write(" <td>");
+        out.write(" <td class='detail'>");
         String path = tableName == null ? "" : "tables/";
         onCascadeDelete |= writeRelatives(column, false, path, out);
         out.writeln("</td>");
-        out.write(" <td>");
+        out.write(" <td class='detail'>");
         onCascadeDelete |= writeRelatives(column, true, path, out);
         out.writeln(" </td>");
-        out.write(" <td class='comment'>");
+        out.write(" <td class='comment detail'>");
         String comments = column.getComments();
         if (comments != null) {
             if (encodeComments)
@@ -218,9 +226,9 @@ public class HtmlTablePage extends HtmlFormatter {
             String columnTableName = column.getTable().getName();
             ForeignKeyConstraint constraint = dumpParents ? column.getChildConstraint(baseRelative) : column.getParentConstraint(baseRelative);
             if (constraint.isImplied())
-                out.writeln("   <tr class='impliedRelationship' valign='top'>");
+                out.writeln("   <tr class='impliedRelationship relative' valign='top'>");
             else
-                out.writeln("   <tr valign='top'>");
+                out.writeln("   <tr class='relative' valign='top'>");
             out.write("    <td class='relatedTable' title=\"");
             out.write(constraint.toString());
             out.write("\">");

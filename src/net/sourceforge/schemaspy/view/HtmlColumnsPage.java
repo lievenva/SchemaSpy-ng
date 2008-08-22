@@ -36,8 +36,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
     {
         List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
         
-        columns.add(new ColumnInfo("Column", new ByColumnComparator()));
         columns.add(new ColumnInfo("Table", new ByTableComparator()));
+        columns.add(new ColumnInfo("Column", new ByColumnComparator()));
         columns.add(new ColumnInfo("Type", new ByTypeComparator()));
         columns.add(new ColumnInfo("Size", new BySizeComparator()));
         columns.add(new ColumnInfo("Nulls", new ByNullableComparator()));
@@ -151,7 +151,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
     public void writeMainTableHeader(boolean hasTableIds, ColumnInfo selectedColumn, LineWriter out) throws IOException {
         boolean showTableName = selectedColumn != null;
         out.writeln("<a name='columns'></a>");
-        out.writeln("<table class='dataTable' border='1' rules='groups'>");
+        out.writeln("<table id='columns' class='dataTable' border='1' rules='groups'>");
         int span = 6;
         if (hasTableIds || showTableName)
             ++span;
@@ -164,9 +164,9 @@ public class HtmlColumnsPage extends HtmlFormatter {
         out.writeln("<tr>");
         if (hasTableIds && !showTableName)
             out.writeln(getTH(selectedColumn, "ID", null, "right"));
-        out.writeln(getTH(selectedColumn, "Column", null, null));
         if (showTableName)
             out.writeln(getTH(selectedColumn, "Table", null, null));
+        out.writeln(getTH(selectedColumn, "Column", null, null));
         out.writeln(getTH(selectedColumn, "Type", null, null));
         out.writeln(getTH(selectedColumn, "Size", null, null));
         out.writeln(getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));

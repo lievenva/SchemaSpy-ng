@@ -57,7 +57,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
     }
 
     private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(db, null, null, hasOrphans, html);
+        writeHeader(db, null, null, hasOrphans, null, html);
         html.writeln("<table width='100%'>");
         html.writeln(" <tr><td class='container'>");
         writeGeneratedBy(db.getConnectTime(), html);

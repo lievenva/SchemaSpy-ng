@@ -28,6 +28,13 @@ td {
   background-color: #ffffff;
 }
 
+tr.even td.detail {
+}
+
+tr.odd td.detail {
+  background-color: #F7F7F7;
+}
+
 h1 {
   font-size: 125%;
 }
