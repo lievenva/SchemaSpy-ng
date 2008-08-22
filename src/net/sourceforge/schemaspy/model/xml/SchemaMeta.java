@@ -54,7 +54,7 @@ public class SchemaMeta {
         }
     
         NodeList commentsNodes = doc.getElementsByTagName("comments");
-        if (commentsNodes != null)
+        if (commentsNodes != null && commentsNodes.getLength() > 0)
             comments = commentsNodes.item(0).getTextContent();
         else
             comments = null;
