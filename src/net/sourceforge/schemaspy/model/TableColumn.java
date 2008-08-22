@@ -28,6 +28,7 @@ public class TableColumn {
     private final Map<TableColumn, ForeignKeyConstraint> children = new TreeMap<TableColumn, ForeignKeyConstraint>(new ColumnComparator());
     private boolean allowImpliedParents = true;
     private boolean allowImpliedChildren = true;
+    private final boolean isExcluded;
 
     /**
      * Create a column associated with a table.
@@ -36,7 +37,7 @@ public class TableColumn {
      * @param rs ResultSet returned from <code>java.sql.DatabaseMetaData.getColumns()</code>.
      * @throws SQLException
      */
-    TableColumn(Table table, ResultSet rs) throws SQLException {
+    TableColumn(Table table, ResultSet rs, Pattern excludeColumns) throws SQLException {
         this.table = table;
         
         // names and types are typically reused *many* times in a database,
@@ -66,6 +67,8 @@ public class TableColumn {
         defaultValue = rs.getString("COLUMN_DEF");
         setComments(rs.getString("REMARKS"));
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
+        
+        isExcluded = matches(excludeColumns);
     }
 
     /**
@@ -84,6 +87,7 @@ public class TableColumn {
         isAutoUpdated = false;
         defaultValue = null;
         comments = colMeta.getComments();
+        isExcluded = false;
     }
 
     public Table getTable() {
@@ -161,7 +165,18 @@ public class TableColumn {
     public void setComments(String comments) {
         this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
     }
-
+    
+    /**
+     * Returns <code>true</code> if this column is to be excluded from relationship diagrams.
+     * This is typically an attempt to reduce clutter that can be introduced when many tables
+     * reference a given column.
+     * 
+     * @return
+     */
+    public boolean isExcluded() {
+        return isExcluded;
+    }
+    
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {
         parents.put(parent, constraint);
         table.addedParent();

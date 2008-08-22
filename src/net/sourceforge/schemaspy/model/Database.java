@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.SchemaMeta;
 import net.sourceforge.schemaspy.model.xml.TableMeta;
 import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
@@ -377,16 +378,16 @@ public class Database {
         return stmt;
     }
     
-    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties) throws SQLException {
+    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties, Pattern excludeColumns) throws SQLException {
         String fullName = remoteSchema + "." + remoteTableName;
         Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
             if (properties != null)
-                remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties);
+                remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties, excludeColumns);
             else
                 remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
             
-            remoteTable.connectForeignKeys(tables, this, properties);
+            remoteTable.connectForeignKeys(tables, this, properties, excludeColumns);
             remoteTables.put(fullName, remoteTable);
         }
         
@@ -556,6 +557,7 @@ public class Database {
     private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata, Properties properties, Pattern include) throws SQLException {
         String[] types = {"VIEW"};
         ResultSet rs = null;
+        Pattern excludeColumns = Config.getInstance().getColumnExclusions();
 
         try {
             rs = metadata.getTables(null, schema, "%", types);
@@ -565,7 +567,7 @@ public class Database {
                     System.out.print('.');
                     
                     try {
-                        View view = new View(this, rs, properties.getProperty("selectViewSql"));
+                        View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeColumns);
                         
                         if (include.matcher(view.getName()).matches())
                             views.put(view.getName(), view);
@@ -586,6 +588,8 @@ public class Database {
 
     private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
         if (schemaMeta != null) {
+            final Pattern excludeNone = Pattern.compile("[^.]");
+            
             comments = schemaMeta.getComments();
             
             // add the newly defined remote tables first
@@ -593,7 +597,7 @@ public class Database {
                 if (tableMeta.getRemoteSchema() != null) {
                     Table table = remoteTables.get(tableMeta.getName());
                     if (table == null) {
-                        table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null);
+                        table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone);
                     }
                     
                     table.update(tableMeta, tables, remoteTables);
@@ -613,10 +617,10 @@ public class Database {
     }
     
     private void connectTables(Properties properties) throws SQLException {
-        Iterator<Table> iter = tables.values().iterator();
-        while (iter.hasNext()) {
-            Table table = iter.next();
-            table.connectForeignKeys(tables, this, properties);
+        Pattern excludeColumns = Config.getInstance().getColumnExclusions();
+        
+        for (Table table : tables.values()) {
+            table.connectForeignKeys(tables, this, properties, excludeColumns);
         }
     }
 
@@ -624,6 +628,8 @@ public class Database {
      * Single-threaded implementation of a class that creates tables
      */
     private class TableCreator {
+        private final Pattern excludeColumns = Config.getInstance().getColumnExclusions();
+        
         /**
          * Create a table and put it into <code>tables</code>
          */
@@ -632,7 +638,7 @@ public class Database {
         }
 
         protected void createImpl(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, schemaName, tableName, remarks, properties);
+            Table table = new Table(Database.this, schemaName, tableName, remarks, properties, excludeColumns);
             tables.put(table.getName(), table);
             System.out.print('.');
         }

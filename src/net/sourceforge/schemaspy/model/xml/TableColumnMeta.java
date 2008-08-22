@@ -15,6 +15,7 @@ public class TableColumnMeta {
     private final String comments;
     private final boolean isPrimary;
     private final List<ForeignKeyMeta> foreignKeys = new ArrayList<ForeignKeyMeta>();
+    private final boolean isExcluded;
     private final boolean isImpliedParentsDisabled;
     private final boolean isImpliedChildrenDisabled;
     
@@ -32,11 +33,7 @@ public class TableColumnMeta {
         }
         
         node = attribs.getNamedItem("primaryKey");
-        if (node != null) {
-            isPrimary = evalBoolean(node.getNodeValue());
-        } else {
-            isPrimary = false;
-        }
+        isPrimary = node != null && evalBoolean(node.getNodeValue());
 
         node = attribs.getNamedItem("disableImpliedKeys");
         if (node != null) {
@@ -57,6 +54,9 @@ public class TableColumnMeta {
         } else {
             isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
         }
+
+        node = attribs.getNamedItem("disableDiagramAssociations");
+        isExcluded = node != null && evalBoolean(node.getNodeValue());
         
         NodeList fkNodes = ((Element)colNode.getChildNodes()).getElementsByTagName("foreignKey");
         
@@ -88,6 +88,10 @@ public class TableColumnMeta {
     
     public List<ForeignKeyMeta> getForeignKeys() {
         return foreignKeys;
+    }
+    
+    public boolean isExcluded() {
+        return isExcluded;
     }
     
     public boolean isImpliedParentsDisabled() {

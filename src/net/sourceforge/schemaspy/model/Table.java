@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.ForeignKeyMeta;
 import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
@@ -36,17 +37,17 @@ public class Table implements Comparable<Table> {
     private int maxChildren;
     private int maxParents;
 
-    public Table(Database db, String schema, String name, String comments, Properties properties) throws SQLException {
+    public Table(Database db, String schema, String name, String comments, Properties properties, Pattern excludeColumns) throws SQLException {
         this.schema = schema;
         this.name = name;
         setComments(comments);
-        initColumns(db);
+        initColumns(db, excludeColumns);
         initIndexes(db, properties);
         initPrimaryKeys(db.getMetaData(), properties);
         numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db, properties) : -1;
     }
     
-    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties) throws SQLException {
+    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -55,7 +56,7 @@ public class Table implements Comparable<Table> {
             while (rs.next()) {
                 addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
                         rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
-                        rs.getString("PKCOLUMN_NAME"), tables, db, properties);
+                        rs.getString("PKCOLUMN_NAME"), tables, db, properties, excludeColumns);
             }
         } finally {
             if (rs != null)
@@ -72,7 +73,7 @@ public class Table implements Comparable<Table> {
                 while (rs.next()) {
                     String otherSchema = rs.getString("FKTABLE_SCHEM");
                     if (!getSchema().equals(otherSchema))
-                        db.addRemoteTable(otherSchema, rs.getString("FKTABLE_NAME"), getSchema(), properties);
+                        db.addRemoteTable(otherSchema, rs.getString("FKTABLE_NAME"), getSchema(), properties, excludeColumns);
                 }
             } finally {
                 if (rs != null)
@@ -104,7 +105,7 @@ public class Table implements Comparable<Table> {
      * @param db 
      * @throws SQLException
      */
-    protected void addForeignKey(String fkName, String fkColName, String pkTableSchema, String pkTableName, String pkColName, Map<String, Table> tables, Database db, Properties properties) throws SQLException {
+    protected void addForeignKey(String fkName, String fkColName, String pkTableSchema, String pkTableName, String pkColName, Map<String, Table> tables, Database db, Properties properties, Pattern excludeColumns) throws SQLException {
         if (fkName == null)
             return;
 
@@ -123,7 +124,7 @@ public class Table implements Comparable<Table> {
         if (parentTable == null) {
             String otherSchema = pkTableSchema;
             if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
-                parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties);
+                parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties, excludeColumns);
             }
         }
         
@@ -178,7 +179,7 @@ public class Table implements Comparable<Table> {
         primaryKeys.add(primaryColumn);
     }
 
-    private void initColumns(Database db) throws SQLException {
+    private void initColumns(Database db, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
         synchronized (Table.class) {
@@ -186,7 +187,7 @@ public class Table implements Comparable<Table> {
                 rs = db.getMetaData().getColumns(null, getSchema(), getName(), "%");
 
                 while (rs.next())
-                    addColumn(rs);
+                    addColumn(rs, excludeColumns);
             } catch (SQLException exc) {
                 class ColumnInitializationFailure extends SQLException {
                     private static final long serialVersionUID = 1L;
@@ -236,10 +237,7 @@ public class Table implements Comparable<Table> {
             ResultSetMetaData rsMeta = rs.getMetaData();
             for (int i = rsMeta.getColumnCount(); i > 0; --i) {
                 TableColumn column = getColumn(rsMeta.getColumnName(i));
-                if (column == null) // sometimes happens with AS400 databases!
-                    System.err.println("Inconsistent metadata for " + getName() + '.' + rsMeta.getColumnName(i));
-                else
-                    column.setIsAutoUpdated(rsMeta.isAutoIncrement(i));
+                column.setIsAutoUpdated(rsMeta.isAutoIncrement(i));
             }
         } catch (SQLException exc) {
             if (forceQuotes) {
@@ -261,14 +259,14 @@ public class Table implements Comparable<Table> {
      * @param rs - from {@link DatabaseMetaData#getColumns(String, String, String, String)}
      * @throws SQLException
      */
-    protected void addColumn(ResultSet rs) throws SQLException {
+    protected void addColumn(ResultSet rs, Pattern excludeColumns) throws SQLException {
         String columnName = rs.getString("COLUMN_NAME");
 
         if (columnName == null)
             return;
 
         if (getColumn(columnName) == null) {
-            TableColumn column = new TableColumn(this, rs);
+            TableColumn column = new TableColumn(this, rs, excludeColumns);
 
             columns.put(column.getName(), column);
         }

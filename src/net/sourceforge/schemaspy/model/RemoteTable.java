@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 /**
  * A table that's outside of the default schema but is referenced
@@ -14,8 +15,8 @@ import java.util.Properties;
 public class RemoteTable extends Table {
     private final String baseSchema;
 
-    public RemoteTable(Database db, String schema, String name, String baseSchema, Properties properties) throws SQLException {
-        super(db, schema, name, null, properties);
+    public RemoteTable(Database db, String schema, String name, String baseSchema, Properties properties, Pattern excludeColumns) throws SQLException {
+        super(db, schema, name, null, properties, excludeColumns);
         this.baseSchema = baseSchema;
     }
     
@@ -25,7 +26,7 @@ public class RemoteTable extends Table {
      * @param tables
      */
     @Override
-    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties) throws SQLException {
+    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -36,7 +37,7 @@ public class RemoteTable extends Table {
                 if (otherSchema != null && otherSchema.equals(baseSchema))
                     addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"), 
                             rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
-                            rs.getString("PKCOLUMN_NAME"), tables, db, properties);
+                            rs.getString("PKCOLUMN_NAME"), tables, db, properties, excludeColumns);
             }
         } finally {
             if (rs != null)

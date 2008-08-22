@@ -91,20 +91,21 @@ public class SchemaMeta {
         Document doc = null;
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setIgnoringElementContentWhitespace(true);
+        docBuilderFactory.setIgnoringComments(true);
+        
         try {
             docBuilder = docBuilderFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            System.out.println("Wrong parser configuration: " + e.getMessage());
+            System.err.println("Wrong parser configuration: " + e.getMessage());
             return null;
         }
         
         try {
             doc = docBuilder.parse(file);
         } catch (SAXException e) {
-            System.out.println("Wrong XML file structure: " + e.getMessage());
-            return null;
+            System.err.println("Wrong XML file structure: " + e.getMessage());
         } catch (IOException e) {
-            System.out.println("Could not read source file: " + e.getMessage());
+            System.err.println("Could not read source file: " + e.getMessage());
         }
 
         return doc;

@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class View extends Table {
     private final String viewSql;
@@ -14,8 +15,8 @@ public class View extends Table {
      * @param selectViewSql
      * @throws java.sql.SQLException
      */
-    public View(Database db, ResultSet rs, String selectViewSql) throws SQLException {
-        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), null);
+    public View(Database db, ResultSet rs, String selectViewSql, Pattern excludeColumns) throws SQLException {
+        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), null, excludeColumns);
         viewSql = getViewSql(db, selectViewSql);
     }
 
