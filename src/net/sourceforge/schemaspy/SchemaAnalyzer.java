@@ -202,7 +202,7 @@ public class SchemaAnalyzer {
                 File diagramsDir = new File(outputDir, "diagrams/summary");
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
-                WriteStats stats = new WriteStats(includeImpliedConstraints, tables);
+                WriteStats stats = new WriteStats(tables);
                 DotFormatter.getInstance().writeRealRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
                 stats = new WriteStats(stats);
@@ -231,7 +231,7 @@ public class SchemaAnalyzer {
 
                 File impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
-                stats = new WriteStats(includeImpliedConstraints, tables);
+                stats = new WriteStats(tables);
                 DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasImplied = stats.wroteImplied();
                 Set<TableColumn> excludedColumns = stats.getExcludedColumns();

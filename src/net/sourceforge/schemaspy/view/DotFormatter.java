@@ -38,32 +38,28 @@ public class DotFormatter {
      * Write all relationships (including implied) associated with the given table
      */
     public void writeRealRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
-        boolean origImplied = stats.setIncludeImplied(false);
-        writeRelationships(table, twoDegreesOfSeparation, stats, dot);
-        stats.setIncludeImplied(origImplied);
+        writeRelationships(table, twoDegreesOfSeparation, stats, false, dot);
     }
 
     /**
      * Write implied relationships associated with the given table
      */
     public void writeAllRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
-        boolean origImplied = stats.setIncludeImplied(true);
-        writeRelationships(table, twoDegreesOfSeparation, stats, dot);
-        stats.setIncludeImplied(origImplied);
+        writeRelationships(table, twoDegreesOfSeparation, stats, true, dot);
     }
 
     /**
      * Write relationships associated with the given table
      */
-    private void writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
+    private void writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, boolean includeImplied, LineWriter dot) throws IOException {
         Set<Table> tablesWritten = new HashSet<Table>();
 
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
 
-        String diagramName = stats.includeImplied() ? "impliedTwoDegreesRelationshipsDiagram" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsDiagram" : "oneDegreeRelationshipsDiagram");
+        String diagramName = includeImplied ? "impliedTwoDegreesRelationshipsDiagram" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsDiagram" : "oneDegreeRelationshipsDiagram");
         writeHeader(diagramName, true, dot);
 
-        Set<Table> relatedTables = getImmediateRelatives(table, stats, true);
+        Set<Table> relatedTables = getImmediateRelatives(table, stats, true, includeImplied);
 
         Set<DotConnector> connectors = new TreeSet<DotConnector>(finder.getRelatedConnectors(table));
         tablesWritten.add(table);
@@ -92,7 +88,7 @@ public class DotFormatter {
         // next write 'cousins' (2nd degree of separation)
         if (twoDegreesOfSeparation) {
             for (Table relatedTable : relatedTables) {
-                Set<Table> cousins = getImmediateRelatives(relatedTable, stats, false);
+                Set<Table> cousins = getImmediateRelatives(relatedTable, stats, false, includeImplied);
 
                 for (Table cousin : cousins) {
                     if (!tablesWritten.add(cousin))
@@ -141,7 +137,7 @@ public class DotFormatter {
         dot.writeln("}");
     }
 
-    private Set<Table> getImmediateRelatives(Table table, WriteStats stats, boolean includeExcluded) {
+    private Set<Table> getImmediateRelatives(Table table, WriteStats stats, boolean includeExcluded, boolean includeImplied) {
         Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
         boolean foundImplied = false;
         
@@ -156,7 +152,7 @@ public class DotFormatter {
                 }
                 boolean implied = column.getChildConstraint(childColumn).isImplied();
                 foundImplied |= implied;
-                if (!implied || stats.includeImplied())
+                if (!implied || includeImplied)
                     relatedColumns.add(childColumn);
             }
             
@@ -166,7 +162,7 @@ public class DotFormatter {
                 }
                 boolean implied = column.getParentConstraint(parentColumn).isImplied();
                 foundImplied |= implied;
-                if (!implied || stats.includeImplied())
+                if (!implied || includeImplied)
                     relatedColumns.add(parentColumn);
             }
         }
@@ -211,23 +207,19 @@ public class DotFormatter {
 }
 
     public void writeRealRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
-        boolean oldImplied = stats.setIncludeImplied(false);
-        writeRelationships(db, tables, compact, showColumns, stats, dot);
-        stats.setIncludeImplied(oldImplied);
+        writeRelationships(db, tables, compact, showColumns, false, stats, dot);
     }
 
     public void writeAllRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
-        boolean oldImplied = stats.setIncludeImplied(true);
-        writeRelationships(db, tables, compact, showColumns, stats, dot);
-        stats.setIncludeImplied(oldImplied);
+        writeRelationships(db, tables, compact, showColumns, true, stats, dot);
     }
 
-    private void writeRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
+    private void writeRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, boolean includeImplied, WriteStats stats, LineWriter dot) throws IOException {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         DotNodeConfig nodeConfig = showColumns ? new DotNodeConfig(!compact, false) : new DotNodeConfig();
         
         String diagramName;
-        if (stats.includeImplied()) {
+        if (includeImplied) {
             if (compact)
                 diagramName = "compactImpliedRelationshipsDiagram";
             else
@@ -243,7 +235,7 @@ public class DotFormatter {
         Map<Table, DotNode> nodes = new TreeMap<Table, DotNode>();
 
         for (Table table : tables) {
-            if (!table.isOrphan(stats.includeImplied())) {
+            if (!table.isOrphan(includeImplied)) {
                 nodes.put(table, new DotNode(table, "tables/", nodeConfig));
             }
         }
@@ -265,7 +257,7 @@ public class DotFormatter {
 
             dot.writeln(node.toString());
             stats.wroteTable(table);
-            if (stats.includeImplied() && table.isOrphan(!stats.includeImplied())) {
+            if (includeImplied && table.isOrphan(!includeImplied)) {
                 stats.setWroteImplied(true);
             }
         }

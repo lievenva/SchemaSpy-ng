@@ -12,13 +12,11 @@ import net.sourceforge.schemaspy.model.TableColumn;
 public class WriteStats {
     private int numTables;
     private int numViews;
-    private boolean includeImplied;
     private boolean wroteImplied;
     private boolean wroteTwoDegrees;
     private final Set<TableColumn> excludedColumns;
 
-    public WriteStats(boolean includeImplied, Collection<Table> tables) {
-        this.includeImplied = includeImplied;
+    public WriteStats(Collection<Table> tables) {
         this.excludedColumns = new HashSet<TableColumn>();
         
         for (Table table : tables) {
@@ -31,7 +29,6 @@ public class WriteStats {
     }
 
     public WriteStats(WriteStats stats) {
-        this.includeImplied = stats.includeImplied;
         this.excludedColumns = stats.excludedColumns;
     }
 
@@ -58,10 +55,6 @@ public class WriteStats {
         return numViews;
     }
 
-    public boolean includeImplied() {
-        return includeImplied;
-    }
-
     public boolean wroteImplied() {
         return wroteImplied;
     }
@@ -72,16 +65,5 @@ public class WriteStats {
 
     public Set<TableColumn> getExcludedColumns() {
         return excludedColumns;
-    }
-
-    /**
-     * setIncludeImplied
-     *
-     * @param includeImplied boolean
-     */
-    public boolean setIncludeImplied(boolean includeImplied) {
-        boolean oldValue = this.includeImplied;
-        this.includeImplied = includeImplied;
-        return oldValue;
     }
 }
