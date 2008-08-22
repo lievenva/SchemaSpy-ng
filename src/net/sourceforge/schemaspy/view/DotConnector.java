@@ -146,13 +146,4 @@ public class DotConnector implements Comparable<DotConnector> {
     public Table getChildTable() {
         return childTable;
     }
-
-    // this doesn't belong here, but not sure where...TableColumn shouldn't be dealing with this
-    static boolean isExcluded(TableColumn column, WriteStats stats) {
-        if (column.matches(stats.getExclusionPattern())) {
-            stats.addExcludedColumn(column);
-            return true;
-        }
-        return false;
-    }
 }

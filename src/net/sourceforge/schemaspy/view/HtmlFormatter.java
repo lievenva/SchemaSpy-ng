@@ -204,7 +204,7 @@ public class HtmlFormatter {
     protected void writeExcludedColumns(Set<TableColumn> excludedColumns, LineWriter html) throws IOException {
         if (excludedColumns.size() > 0) {
             html.writeln("<span class='excludedRelationship'>");
-            html.writeln("<br>These columns were excluded from relationship diagrams: ");
+            html.writeln("<br>These columns were not evaluated during analysis: ");
             for (TableColumn column : excludedColumns) {
                 html.write("<a href=\"" + getPathToRoot() + "tables/");
                 html.write(column.getTable().getName());

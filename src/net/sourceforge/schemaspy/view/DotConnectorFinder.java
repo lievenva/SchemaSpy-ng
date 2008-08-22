@@ -3,6 +3,7 @@ package net.sourceforge.schemaspy.view;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 
@@ -30,11 +31,11 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    public Set<DotConnector> getRelatedConnectors(Table table, WriteStats stats) {
+    public Set<DotConnector> getRelatedConnectors(Table table) {
         Set<DotConnector> relationships = new HashSet<DotConnector>();
 
         for (TableColumn column : table.getColumns()) {
-            relationships.addAll(getRelatedConnectors(column, null, stats));
+            relationships.addAll(getRelatedConnectors(column, null, false));
         }
 
         return relationships;
@@ -48,15 +49,15 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    public Set<DotConnector> getRelatedConnectors(Table table1, Table table2, WriteStats stats) {
+    public Set<DotConnector> getRelatedConnectors(Table table1, Table table2, boolean includeExcluded) {
         Set<DotConnector> relationships = new HashSet<DotConnector>();
 
         for (TableColumn column : table1.getColumns()) {
-            relationships.addAll(getRelatedConnectors(column, table2, stats));
+            relationships.addAll(getRelatedConnectors(column, table2, includeExcluded));
         }
 
         for (TableColumn column : table2.getColumns()) {
-            relationships.addAll(getRelatedConnectors(column, table1, stats));
+            relationships.addAll(getRelatedConnectors(column, table1, includeExcluded));
         }
 
         return relationships;
@@ -68,19 +69,21 @@ public class DotConnectorFinder {
      * @throws IOException
      * @return Set of <code>dot</code> relationships (as <code>DotEdge</code>s)
      */
-    private Set<DotConnector> getRelatedConnectors(TableColumn column, Table targetTable, WriteStats stats) {
+    private Set<DotConnector> getRelatedConnectors(TableColumn column, Table targetTable, boolean includeExcluded) {
         Set<DotConnector> relatedConnectors = new HashSet<DotConnector>();
-        if (DotConnector.isExcluded(column, stats))
+        if (!includeExcluded && column.isExcluded())
             return relatedConnectors;
 
+        boolean includeImplied = Config.getInstance().isImpliedConstraintsEnabled();
+        
         for (TableColumn parentColumn : column.getParents()) {
             Table parentTable = parentColumn.getTable();
             if (targetTable != null && parentTable != targetTable)
                 continue;
-            if (DotConnector.isExcluded(parentColumn, stats))
+            if (targetTable == null && !includeExcluded && parentColumn.isExcluded())
                 continue;
             boolean implied = column.getParentConstraint(parentColumn).isImplied();
-            if (stats.includeImplied() || !implied) {
+            if (!implied || includeImplied) {
                 relatedConnectors.add(new DotConnector(parentColumn, column, implied));
             }
         }
@@ -89,10 +92,10 @@ public class DotConnectorFinder {
             Table childTable = childColumn.getTable();
             if (targetTable != null && childTable != targetTable)
                 continue;
-            if (DotConnector.isExcluded(childColumn, stats))
+            if (targetTable == null && !includeExcluded && childColumn.isExcluded())
                 continue;
             boolean implied = column.getChildConstraint(childColumn).isImplied();
-            if (stats.includeImplied() || !implied) {
+            if (!implied || includeImplied) {
                 relatedConnectors.add(new DotConnector(column, childColumn, implied));
             }
         }

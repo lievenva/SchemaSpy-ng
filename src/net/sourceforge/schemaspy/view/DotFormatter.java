@@ -63,9 +63,9 @@ public class DotFormatter {
         String diagramName = stats.includeImplied() ? "impliedTwoDegreesRelationshipsDiagram" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsDiagram" : "oneDegreeRelationshipsDiagram");
         writeHeader(diagramName, true, dot);
 
-        Set<Table> relatedTables = getImmediateRelatives(table, stats);
+        Set<Table> relatedTables = getImmediateRelatives(table, stats, true);
 
-        Set<DotConnector> connectors = new TreeSet<DotConnector>(finder.getRelatedConnectors(table, stats));
+        Set<DotConnector> connectors = new TreeSet<DotConnector>(finder.getRelatedConnectors(table));
         tablesWritten.add(table);
 
         Map<Table, DotNode> nodes = new TreeMap<Table, DotNode>();
@@ -76,7 +76,7 @@ public class DotFormatter {
                 continue; // already written
 
             nodes.put(relatedTable, new DotNode(relatedTable, true, ""));
-            connectors.addAll(finder.getRelatedConnectors(relatedTable, table, stats));
+            connectors.addAll(finder.getRelatedConnectors(relatedTable, table, true));
         }
 
         // connect the edges that go directly to the target table
@@ -92,19 +92,21 @@ public class DotFormatter {
         // next write 'cousins' (2nd degree of separation)
         if (twoDegreesOfSeparation) {
             for (Table relatedTable : relatedTables) {
-                Set<Table> cousins = getImmediateRelatives(relatedTable, stats);
+                Set<Table> cousins = getImmediateRelatives(relatedTable, stats, false);
 
                 for (Table cousin : cousins) {
                     if (!tablesWritten.add(cousin))
                         continue; // already written
 
-                    allCousinConnectors.addAll(finder.getRelatedConnectors(cousin, relatedTable, stats));
+                    allCousinConnectors.addAll(finder.getRelatedConnectors(cousin, relatedTable, false));
                     nodes.put(cousin, new DotNode(cousin, false, ""));
                 }
 
                 allCousins.addAll(cousins);
             }
         }
+
+        markExcludedColumns(nodes, stats.getExcludedColumns());
 
         // now directly connect the loose ends to the title of the
         // 2nd degree of separation tables
@@ -117,8 +119,6 @@ public class DotFormatter {
 
         // include the table itself
         nodes.put(table, new DotNode(table, ""));
-
-        markExcludedColumns(nodes, stats.getExcludedColumns());
 
         connectors.addAll(allCousinConnectors);
         for (DotConnector connector : connectors) {
@@ -141,19 +141,17 @@ public class DotFormatter {
         dot.writeln("}");
     }
 
-    private Set<Table> getImmediateRelatives(Table table, WriteStats stats) {
+    private Set<Table> getImmediateRelatives(Table table, WriteStats stats, boolean includeExcluded) {
         Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
         boolean foundImplied = false;
         
         for (TableColumn column : table.getColumns()) {
-            if (DotConnector.isExcluded(column, stats)) {
-                stats.addExcludedColumn(column);
+            if (!includeExcluded && column.isExcluded()) {
                 continue;
             }
             
             for (TableColumn childColumn : column.getChildren()) {
-                if (DotConnector.isExcluded(childColumn, stats)) {
-                    stats.addExcludedColumn(childColumn);
+                if (!includeExcluded && childColumn.isExcluded()) {
                     continue;
                 }
                 boolean implied = column.getChildConstraint(childColumn).isImplied();
@@ -163,8 +161,7 @@ public class DotFormatter {
             }
             
             for (TableColumn parentColumn : column.getParents()) {
-                if (DotConnector.isExcluded(parentColumn, stats)) {
-                    stats.addExcludedColumn(parentColumn);
+                if (!includeExcluded && parentColumn.isExcluded()) {
                     continue;
                 }
                 boolean implied = column.getParentConstraint(parentColumn).isImplied();
@@ -258,7 +255,7 @@ public class DotFormatter {
         Set<DotConnector> connectors = new TreeSet<DotConnector>();
 
         for (DotNode node : nodes.values()) {
-            connectors.addAll(finder.getRelatedConnectors(node.getTable(), stats));
+            connectors.addAll(finder.getRelatedConnectors(node.getTable()));
         }
 
         markExcludedColumns(nodes, stats.getExcludedColumns());
