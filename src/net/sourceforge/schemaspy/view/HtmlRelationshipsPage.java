@@ -79,7 +79,7 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
             
             System.out.print(".");
             html.writeln("</td></tr></table>");
-            writeExcludedColumns(excludedColumns, html);
+            writeExcludedColumns(excludedColumns, null, html);
             
             writeFooter(html);
             return true;

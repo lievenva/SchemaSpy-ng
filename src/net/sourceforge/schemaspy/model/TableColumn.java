@@ -28,7 +28,7 @@ public class TableColumn {
     private final Map<TableColumn, ForeignKeyConstraint> children = new TreeMap<TableColumn, ForeignKeyConstraint>(new ColumnComparator());
     private boolean allowImpliedParents = true;
     private boolean allowImpliedChildren = true;
-    private final boolean isExcluded;
+    private boolean isExcluded = false;
 
     /**
      * Create a column associated with a table.
@@ -87,7 +87,6 @@ public class TableColumn {
         isAutoUpdated = false;
         defaultValue = null;
         comments = colMeta.getComments();
-        isExcluded = false;
     }
 
     public Table getTable() {
@@ -287,6 +286,7 @@ public class TableColumn {
   
         allowImpliedParents  = !colMeta.isImpliedParentsDisabled();
         allowImpliedChildren = !colMeta.isImpliedChildrenDisabled();
+        isExcluded |= colMeta.isExcluded();
     }
 
     @Override

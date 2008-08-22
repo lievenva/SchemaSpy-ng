@@ -1,8 +1,8 @@
 package net.sourceforge.schemaspy.view;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 
@@ -15,17 +15,24 @@ public class WriteStats {
     private boolean includeImplied;
     private boolean wroteImplied;
     private boolean wroteTwoDegrees;
-    private Pattern exclusionPattern;
-    private final Set<TableColumn> excludedColumns = new HashSet<TableColumn>();
+    private final Set<TableColumn> excludedColumns;
 
-    public WriteStats(Pattern exclusionPattern, boolean includeImplied) {
-        this.exclusionPattern = exclusionPattern;
+    public WriteStats(boolean includeImplied, Collection<Table> tables) {
         this.includeImplied = includeImplied;
+        this.excludedColumns = new HashSet<TableColumn>();
+        
+        for (Table table : tables) {
+            for (TableColumn column : table.getColumns()) {
+                if (column.isExcluded()) {
+                    excludedColumns.add(column);
+                }
+            }
+        }
     }
 
     public WriteStats(WriteStats stats) {
-        this.exclusionPattern = stats.exclusionPattern;
         this.includeImplied = stats.includeImplied;
+        this.excludedColumns = stats.excludedColumns;
     }
 
     public void wroteTable(Table table) {
@@ -63,16 +70,8 @@ public class WriteStats {
         return wroteTwoDegrees;
     }
 
-    public void addExcludedColumn(TableColumn column) {
-        excludedColumns.add(column);
-    }
-
     public Set<TableColumn> getExcludedColumns() {
         return excludedColumns;
-    }
-
-    public Pattern getExclusionPattern() {
-        return exclusionPattern;
     }
 
     /**

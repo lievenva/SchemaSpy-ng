@@ -1,6 +1,7 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
@@ -201,18 +202,34 @@ public class HtmlFormatter {
         }
     }
 
-    protected void writeExcludedColumns(Set<TableColumn> excludedColumns, LineWriter html) throws IOException {
-        if (excludedColumns.size() > 0) {
-            html.writeln("<span class='excludedRelationship'>");
-            html.writeln("<br>These columns were not evaluated during analysis: ");
+    protected void writeExcludedColumns(Set<TableColumn> excludedColumns, Table table, LineWriter html) throws IOException {
+        Set<TableColumn> notInDiagram;
+        
+        // diagram INCLUDES relationships directly connected to THIS table's excluded columns
+        if (table == null) {
+            notInDiagram = excludedColumns;
+        } else {
+            notInDiagram = new HashSet<TableColumn>();
             for (TableColumn column : excludedColumns) {
-                html.write("<a href=\"" + getPathToRoot() + "tables/");
-                html.write(column.getTable().getName());
-                html.write(".html\">");
-                html.write(column.getTable().getName());
-                html.write(".");
-                html.write(column.getName());
-                html.writeln("</a>&nbsp;");
+                if (!column.getTable().equals(table)) {
+                    notInDiagram.add(column);
+                }
+            }
+        }
+        
+        if (notInDiagram.size() > 0) {
+            html.writeln("<span class='excludedRelationship'>");
+            html.writeln("<br>Excluded from diagram's relationships: ");
+            for (TableColumn column : notInDiagram) {
+                if (!column.getTable().equals(table)) {
+                    html.write("<a href=\"" + getPathToRoot() + "tables/");
+                    html.write(column.getTable().getName());
+                    html.write(".html\">");
+                    html.write(column.getTable().getName());
+                    html.write(".");
+                    html.write(column.getName());
+                    html.writeln("</a>&nbsp;");
+                }
             }
             html.writeln("</span>");
         }
