@@ -13,10 +13,27 @@ public class ForeignKeyMeta {
     
     ForeignKeyMeta(Node foreignKeyNode) {
         NamedNodeMap attribs = foreignKeyNode.getAttributes();
+        Node node = attribs.getNamedItem("table");
+        if (node == null)
+            throw new IllegalStateException("XML foreignKey definition requires 'table' attribute");
+        tableName = node.getNodeValue();
+        attribs.removeNamedItem("table");
+        node = attribs.getNamedItem("column");
+        if (node == null)
+            throw new IllegalStateException("XML foreignKey definition requires 'column' attribute");
+        columnName = node.getNodeValue();
+        attribs.removeNamedItem("column");
+        node = attribs.getNamedItem("remoteSchema");
+        if (node != null) {
+            remoteSchema = node.getNodeValue();
+            attribs.removeNamedItem("remoteSchema");
+        } else {
+            remoteSchema = null;
+        }
         
-        tableName = attribs.getNamedItem("table").getNodeValue();
-        columnName = attribs.getNamedItem("column").getNodeValue();
-        remoteSchema = attribs.getNamedItem("remoteSchema") == null ? null : attribs.getNamedItem("remoteSchema").getNodeValue();
+        for (int i = 0; i < attribs.getLength(); ++i) {
+            System.err.println("Unrecognized attribute '" + attribs.item(i).getNodeName() + "' in XML definition of foreignKey");
+        }
     }
     
     public String getTableName() {

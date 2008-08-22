@@ -24,16 +24,23 @@ public class TableColumnMeta {
         String tmp;
         
         name = attribs.getNamedItem("name").getNodeValue();
+        attribs.removeNamedItem("name");
         Node node = attribs.getNamedItem("comments");
         if (node != null) {
             tmp = node.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
+            attribs.removeNamedItem("comments");
         } else {
             comments = null;
         }
         
         node = attribs.getNamedItem("primaryKey");
-        isPrimary = node != null && evalBoolean(node.getNodeValue());
+        if (node != null) {
+            isPrimary = evalBoolean(node.getNodeValue());
+            attribs.removeNamedItem("primaryKey");
+        } else {
+            isPrimary = false;
+        }
 
         node = attribs.getNamedItem("disableImpliedKeys");
         if (node != null) {
@@ -51,18 +58,29 @@ public class TableColumnMeta {
                 System.err.println("  Valid values include 'to', 'from' and 'all'");
                 isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
             }
+            
+            attribs.removeNamedItem("disableImpliedKeys");
         } else {
             isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
         }
 
         node = attribs.getNamedItem("disableDiagramAssociations");
-        isExcluded = node != null && evalBoolean(node.getNodeValue());
+        if (node != null) {
+            isExcluded = evalBoolean(node.getNodeValue());
+            attribs.removeNamedItem("disableDiagramAssociations");
+        } else {
+            isExcluded = false;
+        }
         
         NodeList fkNodes = ((Element)colNode.getChildNodes()).getElementsByTagName("foreignKey");
         
         for (int i = 0; i < fkNodes.getLength(); ++i) {
             Node fkNode = fkNodes.item(i);
             foreignKeys.add(new ForeignKeyMeta(fkNode));
+        }
+        
+        for (int i = 0; i < attribs.getLength(); ++i) {
+            System.err.println("Unrecognized attribute '" + attribs.item(i).getNodeName() + "' in XML definition of column '" + name + '\'');
         }
     }
     
