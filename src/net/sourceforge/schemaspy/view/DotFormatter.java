@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.util.Dot;
@@ -35,10 +36,11 @@ public class DotFormatter {
     }
 
     /**
-     * Write all relationships (including implied) associated with the given table
+     * Write real relationships (excluding implied) associated with the given table.<p>
+     * Returns a set of the implied constraints that could have been included but weren't.
      */
-    public void writeRealRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
-        writeRelationships(table, twoDegreesOfSeparation, stats, false, dot);
+    public Set<ForeignKeyConstraint> writeRealRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, LineWriter dot) throws IOException {
+        return writeRelationships(table, twoDegreesOfSeparation, stats, false, dot);
     }
 
     /**
@@ -49,19 +51,21 @@ public class DotFormatter {
     }
 
     /**
-     * Write relationships associated with the given table
+     * Write relationships associated with the given table.<p>
+     * Returns a set of the implied constraints that could have been included but weren't.
      */
-    private void writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, boolean includeImplied, LineWriter dot) throws IOException {
+    private Set<ForeignKeyConstraint> writeRelationships(Table table, boolean twoDegreesOfSeparation, WriteStats stats, boolean includeImplied, LineWriter dot) throws IOException {
         Set<Table> tablesWritten = new HashSet<Table>();
+        Set<ForeignKeyConstraint> skippedImpliedConstraints = new HashSet<ForeignKeyConstraint>();
 
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
 
         String diagramName = includeImplied ? "impliedTwoDegreesRelationshipsDiagram" : (twoDegreesOfSeparation ? "twoDegreesRelationshipsDiagram" : "oneDegreeRelationshipsDiagram");
         writeHeader(diagramName, true, dot);
 
-        Set<Table> relatedTables = getImmediateRelatives(table, stats, true, includeImplied);
+        Set<Table> relatedTables = getImmediateRelatives(table, true, includeImplied, skippedImpliedConstraints);
 
-        Set<DotConnector> connectors = new TreeSet<DotConnector>(finder.getRelatedConnectors(table));
+        Set<DotConnector> connectors = new TreeSet<DotConnector>(finder.getRelatedConnectors(table, includeImplied));
         tablesWritten.add(table);
 
         Map<Table, DotNode> nodes = new TreeMap<Table, DotNode>();
@@ -72,7 +76,7 @@ public class DotFormatter {
                 continue; // already written
 
             nodes.put(relatedTable, new DotNode(relatedTable, true, ""));
-            connectors.addAll(finder.getRelatedConnectors(relatedTable, table, true));
+            connectors.addAll(finder.getRelatedConnectors(relatedTable, table, true, includeImplied));
         }
 
         // connect the edges that go directly to the target table
@@ -88,13 +92,13 @@ public class DotFormatter {
         // next write 'cousins' (2nd degree of separation)
         if (twoDegreesOfSeparation) {
             for (Table relatedTable : relatedTables) {
-                Set<Table> cousins = getImmediateRelatives(relatedTable, stats, false, includeImplied);
+                Set<Table> cousins = getImmediateRelatives(relatedTable, false, includeImplied, skippedImpliedConstraints);
 
                 for (Table cousin : cousins) {
                     if (!tablesWritten.add(cousin))
                         continue; // already written
 
-                    allCousinConnectors.addAll(finder.getRelatedConnectors(cousin, relatedTable, false));
+                    allCousinConnectors.addAll(finder.getRelatedConnectors(cousin, relatedTable, false, includeImplied));
                     nodes.put(cousin, new DotNode(cousin, false, ""));
                 }
 
@@ -135,11 +139,12 @@ public class DotFormatter {
         }
 
         dot.writeln("}");
+        
+        return skippedImpliedConstraints;
     }
 
-    private Set<Table> getImmediateRelatives(Table table, WriteStats stats, boolean includeExcluded, boolean includeImplied) {
+    private Set<Table> getImmediateRelatives(Table table, boolean includeExcluded, boolean includeImplied, Set<ForeignKeyConstraint> skippedImpliedConstraints) {
         Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
-        boolean foundImplied = false;
         
         for (TableColumn column : table.getColumns()) {
             if (!includeExcluded && column.isExcluded()) {
@@ -150,29 +155,42 @@ public class DotFormatter {
                 if (!includeExcluded && childColumn.isExcluded()) {
                     continue;
                 }
-                boolean implied = column.getChildConstraint(childColumn).isImplied();
-                foundImplied |= implied;
-                if (!implied || includeImplied)
+                
+                ForeignKeyConstraint constraint = column.getChildConstraint(childColumn); 
+                if (includeImplied || !constraint.isImplied())
                     relatedColumns.add(childColumn);
+                else
+                    skippedImpliedConstraints.add(constraint);
             }
             
             for (TableColumn parentColumn : column.getParents()) {
                 if (!includeExcluded && parentColumn.isExcluded()) {
                     continue;
                 }
-                boolean implied = column.getParentConstraint(parentColumn).isImplied();
-                foundImplied |= implied;
-                if (!implied || includeImplied)
+
+                ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn); 
+                if (includeImplied || !constraint.isImplied())
                     relatedColumns.add(parentColumn);
+                else
+                    skippedImpliedConstraints.add(constraint);
             }
         }
 
         Set<Table> relatedTables = new HashSet<Table>();
         for (TableColumn column : relatedColumns)
             relatedTables.add(column.getTable());
-
+        
         relatedTables.remove(table);
-        stats.setWroteImplied(foundImplied);
+
+        /*
+        if (table.getName().equals("character_tutorial")) {
+            System.out.println("included: " + relatedTables);
+            System.out.println("skipped implied:");
+            for (ForeignKeyConstraint constraint : skippedImpliedConstraints) {
+                System.out.println(" " + constraint.getChildTable() + "->" + constraint.getParentTable());
+            }
+        }*/
+        
         return relatedTables;
     }
 
@@ -210,13 +228,17 @@ public class DotFormatter {
         writeRelationships(db, tables, compact, showColumns, false, stats, dot);
     }
 
-    public void writeAllRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
-        writeRelationships(db, tables, compact, showColumns, true, stats, dot);
+    /**
+     * Returns <code>true</code> if it wrote any implied relationships
+     */
+    public boolean writeAllRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, WriteStats stats, LineWriter dot) throws IOException {
+        return writeRelationships(db, tables, compact, showColumns, true, stats, dot);
     }
 
-    private void writeRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, boolean includeImplied, WriteStats stats, LineWriter dot) throws IOException {
+    private boolean writeRelationships(Database db, Collection<Table> tables, boolean compact, boolean showColumns, boolean includeImplied, WriteStats stats, LineWriter dot) throws IOException {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         DotNodeConfig nodeConfig = showColumns ? new DotNodeConfig(!compact, false) : new DotNodeConfig();
+        boolean wroteImplied = false;
         
         String diagramName;
         if (includeImplied) {
@@ -247,7 +269,7 @@ public class DotFormatter {
         Set<DotConnector> connectors = new TreeSet<DotConnector>();
 
         for (DotNode node : nodes.values()) {
-            connectors.addAll(finder.getRelatedConnectors(node.getTable()));
+            connectors.addAll(finder.getRelatedConnectors(node.getTable(), includeImplied));
         }
 
         markExcludedColumns(nodes, stats.getExcludedColumns());
@@ -257,9 +279,7 @@ public class DotFormatter {
 
             dot.writeln(node.toString());
             stats.wroteTable(table);
-            if (includeImplied && table.isOrphan(!includeImplied)) {
-                stats.setWroteImplied(true);
-            }
+            wroteImplied = wroteImplied || (includeImplied && table.isOrphan(false));
         }
 
         for (DotConnector connector : connectors) {
@@ -267,6 +287,8 @@ public class DotFormatter {
         }
 
         dot.writeln("}");
+        
+        return wroteImplied;
     }
 
     private void markExcludedColumns(Map<Table, DotNode> nodes, Set<TableColumn> excludedColumns) {

@@ -12,8 +12,6 @@ import net.sourceforge.schemaspy.model.TableColumn;
 public class WriteStats {
     private int numTables;
     private int numViews;
-    private boolean wroteImplied;
-    private boolean wroteTwoDegrees;
     private final Set<TableColumn> excludedColumns;
 
     public WriteStats(Collection<Table> tables) {
@@ -39,28 +37,12 @@ public class WriteStats {
             ++numTables;
     }
 
-    public void setWroteImplied(boolean wroteImplied) {
-        this.wroteImplied = wroteImplied;
-    }
-
-    public void setWroteTwoDegrees(boolean wroteFocused) {
-        this.wroteTwoDegrees = wroteFocused;
-    }
-
     public int getNumTablesWritten() {
         return numTables;
     }
 
     public int getNumViewsWritten() {
         return numViews;
-    }
-
-    public boolean wroteImplied() {
-        return wroteImplied;
-    }
-
-    public boolean wroteTwoDegrees() {
-        return wroteTwoDegrees;
     }
 
     public Set<TableColumn> getExcludedColumns() {

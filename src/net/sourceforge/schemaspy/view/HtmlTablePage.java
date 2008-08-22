@@ -48,12 +48,12 @@ public class HtmlTablePage extends HtmlFormatter {
 
     public WriteStats write(Database db, Table table, boolean hasOrphans, File outputDir, WriteStats stats, LineWriter out) throws IOException {
         File diagramsDir = new File(outputDir, "diagrams");
-        generateDots(table, diagramsDir, stats);
+        boolean hasImplied = generateDots(table, diagramsDir, stats);
 
         writeHeader(db, table, null, hasOrphans, out);
         out.writeln("<table width='100%' border='0'>");
         out.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
-        writeHeader(table, stats, out);
+        writeHeader(table, hasImplied, out);
         out.writeln("</td><td class='container' rowspan='2' align='right' valign='top'>");
         writeLegend(true, out);
         out.writeln("</td><tr valign='top'><td class='container' align='left' valign='top'>");
@@ -69,9 +69,9 @@ public class HtmlTablePage extends HtmlFormatter {
         return stats;
     }
 
-    private void writeHeader(Table table, WriteStats stats, LineWriter html) throws IOException {
+    private void writeHeader(Table table, boolean hasImplied, LineWriter html) throws IOException {
         html.writeln("<form name='options' action=''>");
-        if (stats.wroteImplied()) {
+        if (hasImplied) {
             html.write(" <label for='implied'><input type=checkbox id='implied'");
             if (table.isOrphan(false))
                 html.write(" checked");
@@ -514,32 +514,53 @@ public class HtmlTablePage extends HtmlFormatter {
      * @return boolean <code>true</code> if the table has implied relatives within two
      *                 degrees of separation.
      */
-    private void generateDots(Table table, File diagramsDir, WriteStats stats) throws IOException {
+    private boolean generateDots(Table table, File diagramDir, WriteStats stats) throws IOException {
+        File oneDegreeDotFile = new File(diagramDir, table.getName() + ".1degree.dot");
+        File oneDegreeDiagramFile = new File(diagramDir, table.getName() + ".1degree.png");
+        File twoDegreesDotFile = new File(diagramDir, table.getName() + ".2degrees.dot");
+        File twoDegreesDiagramFile = new File(diagramDir, table.getName() + ".2degrees.png");
+        File impliedDotFile = new File(diagramDir, table.getName() + ".implied2degrees.dot");
+        File impliedDiagramFile = new File(diagramDir, table.getName() + ".implied2degrees.png");
+        
+        // delete before we start because we'll use the existence of these files to determine
+        // if they should be turned into pngs & presented
+        oneDegreeDotFile.delete();
+        oneDegreeDiagramFile.delete();
+        twoDegreesDotFile.delete();
+        twoDegreesDiagramFile.delete();
+        impliedDotFile.delete();
+        impliedDiagramFile.delete();
+
         if (table.getMaxChildren() + table.getMaxParents() > 0) {
+            Set<ForeignKeyConstraint> impliedConstraints;
+            
             DotFormatter formatter = DotFormatter.getInstance();
-            LineWriter dotOut = new LineWriter(new File(diagramsDir, table.getName() + ".1degree.dot"), Config.DOT_CHARSET);
+            LineWriter dotOut = new LineWriter(oneDegreeDotFile, Config.DOT_CHARSET);
             formatter.writeRealRelationships(table, false, stats, dotOut);
             dotOut.close();
 
-            dotOut = new LineWriter(new File(diagramsDir, table.getName() + ".2degrees.dot"), Config.DOT_CHARSET);
+            dotOut = new LineWriter(twoDegreesDotFile, Config.DOT_CHARSET);
             WriteStats twoStats = new WriteStats(stats);
-            formatter.writeRealRelationships(table, true, twoStats, dotOut);
+            impliedConstraints = formatter.writeRealRelationships(table, true, twoStats, dotOut);
             dotOut.close();
-            if (stats.getNumTablesWritten() + stats.getNumViewsWritten() != twoStats.getNumTablesWritten() + twoStats.getNumViewsWritten())
-                stats.setWroteTwoDegrees(true);
+            if (stats.getNumTablesWritten() + stats.getNumViewsWritten() == twoStats.getNumTablesWritten() + twoStats.getNumViewsWritten())
+                twoDegreesDotFile.delete(); // no different than before, so don't show it
 
-            if (stats.wroteImplied()) {
-                dotOut = new LineWriter(new File(diagramsDir, table.getName() + ".implied2degrees.dot"), Config.DOT_CHARSET);
+            if (!impliedConstraints.isEmpty()) {
+                dotOut = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                 formatter.writeAllRelationships(table, true, stats, dotOut);
                 dotOut.close();
+                return true;
             }
         }
+        
+        return false;
     }
 
     private void writeDiagram(Table table, WriteStats stats, File diagramsDir, LineWriter html) throws IOException {
         if (table.getMaxChildren() + table.getMaxParents() > 0) {
             html.writeln("<table width='100%' border='0'><tr><td class='container'>");
-            if (HtmlTableDiagrammer.getInstance().write(table, diagramsDir, stats, html)) {
+            if (HtmlTableDiagrammer.getInstance().write(table, diagramsDir, html)) {
                 html.writeln("</td></tr></table>");
                 writeExcludedColumns(stats.getExcludedColumns(), table, html);
             } else {

@@ -205,14 +205,12 @@ public class SchemaAnalyzer {
                 WriteStats stats = new WriteStats(tables);
                 DotFormatter.getInstance().writeRealRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
-                stats = new WriteStats(stats);
                 out.close();
 
                 if (hasRealRelationships) {
                     System.out.print(".");
                     out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
-                    stats = new WriteStats(stats);
                     out.close();
                 }
 
@@ -231,17 +229,14 @@ public class SchemaAnalyzer {
 
                 File impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
-                stats = new WriteStats(tables);
-                DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
-                boolean hasImplied = stats.wroteImplied();
+                boolean hasImplied = DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
+                
                 Set<TableColumn> excludedColumns = stats.getExcludedColumns();
-                stats = new WriteStats(stats);
                 out.close();
                 if (hasImplied) {
                     impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.large.dot");
                     out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeAllRelationships(db, tables, false, showDetailedTables, stats, out);
-                    stats = new WriteStats(stats);
                     out.close();
                 } else {
                     impliedDotFile.delete();
@@ -255,13 +250,11 @@ public class SchemaAnalyzer {
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
                 HtmlOrphansPage.getInstance().write(db, orphans, diagramsDir, out);
-                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new File(outputDir, "index.html"), 64 * 1024, config.getCharset());
                 HtmlMainIndexPage.getInstance().write(db, tables, hasOrphans, out);
-                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
@@ -269,20 +262,17 @@ public class SchemaAnalyzer {
                 out = new LineWriter(new File(outputDir, "constraints.html"), 256 * 1024, config.getCharset());
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
-                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 out = new LineWriter(new File(outputDir, "anomalies.html"), 16 * 1024, config.getCharset());
                 HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasOrphans, out);
-                stats = new WriteStats(stats);
                 out.close();
 
                 System.out.print(".");
                 for (HtmlColumnsPage.ColumnInfo columnInfo : HtmlColumnsPage.getInstance().getColumnInfos()) {
                     out = new LineWriter(new File(outputDir, columnInfo.getLocation()), 16 * 1024, config.getCharset());
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
-                    stats = new WriteStats(stats);
                     out.close();
                 }
 
@@ -296,7 +286,6 @@ public class SchemaAnalyzer {
                     System.out.print('.');
                     out = new LineWriter(new File(outputDir, "tables/" + table.getName() + ".html"), 24 * 1024, config.getCharset());
                     tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
-                    stats = new WriteStats(stats);
                     out.close();
                 }
 

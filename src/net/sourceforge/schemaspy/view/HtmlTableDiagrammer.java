@@ -16,7 +16,7 @@ public class HtmlTableDiagrammer extends HtmlDiagramFormatter {
         return instance;
     }
 
-    public boolean write(Table table, File diagramDir, WriteStats stats, LineWriter html) {
+    public boolean write(Table table, File diagramDir, LineWriter html) {
         File oneDegreeDotFile = new File(diagramDir, table.getName() + ".1degree.dot");
         File oneDegreeDiagramFile = new File(diagramDir, table.getName() + ".1degree.png");
         File twoDegreesDotFile = new File(diagramDir, table.getName() + ".2degrees.dot");
@@ -32,7 +32,7 @@ public class HtmlTableDiagrammer extends HtmlDiagramFormatter {
             String map = dot.generateDiagram(oneDegreeDotFile, oneDegreeDiagramFile);
 
             html.write("<br><form action='get'><b>Close relationships");
-            if (stats.wroteTwoDegrees()) {
+            if (twoDegreesDotFile.exists()) {
                 html.writeln("</b><span class='degrees' id='degrees' title='Detail diminishes with increased separation from " + table.getName() + "'>");
                 html.write("&nbsp;within <label for='oneDegree'><input type='radio' name='degrees' id='oneDegree' checked>one</label>");
                 html.write("  <label for='twoDegrees'><input type='radio' name='degrees' id='twoDegrees'>two degrees</label> of separation");
@@ -45,14 +45,14 @@ public class HtmlTableDiagrammer extends HtmlDiagramFormatter {
             map = null;
             html.writeln("  <a name='diagram'><img id='oneDegreeImg' src='../diagrams/" + oneDegreeDiagramFile.getName() + "' usemap='#oneDegreeRelationshipsDiagram' class='diagram' border='0' alt='' align='left'></a>");
             
-            if (stats.wroteImplied()) {
+            if (impliedDotFile.exists()) {
                 html.writeln(dot.generateDiagram(impliedDotFile, impliedDiagramFile));
                 html.writeln("  <a name='diagram'><img id='impliedTwoDegreesImg' src='../diagrams/" + impliedDiagramFile.getName() + "' usemap='#impliedTwoDegreesRelationshipsDiagram' class='diagram' border='0' alt='' align='left'></a>");
             } else {
                 impliedDotFile.delete();
                 impliedDiagramFile.delete();
             }
-            if (stats.wroteTwoDegrees()) {
+            if (twoDegreesDotFile.exists()) {
                 html.writeln(dot.generateDiagram(twoDegreesDotFile, twoDegreesDiagramFile));
                 html.writeln("  <a name='diagram'><img id='twoDegreesImg' src='../diagrams/" + twoDegreesDiagramFile.getName() + "' usemap='#twoDegreesRelationshipsDiagram' class='diagram' border='0' alt='' align='left'></a>");
             } else {

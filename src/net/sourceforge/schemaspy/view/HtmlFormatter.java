@@ -167,7 +167,8 @@ public class HtmlFormatter {
         //out.writeln("    <tr><td class='container'>Arrows go from children (foreign keys)" + (tableDetails ? "<br>" : " ") + "to parents (primary keys)</td></tr>");
         if (diagramDetails) {
             out.writeln("    <tr><td class='excludedColumn'>Excluded column relationships</td></tr>");
-            out.writeln("    <tr class='impliedRelationship'><td class='legendDetail'>Dashed lines show" + (tableDetails ? "<br>" : " ") + "implied relationships</td></tr>");
+            if (!tableDetails)
+                out.writeln("    <tr class='impliedRelationship'><td class='legendDetail'>Dashed lines show implied relationships</td></tr>");
             out.writeln("    <tr><td class='legendDetail'>&lt; <em>n</em> &gt; number of related tables</td></tr>");
         }
         out.writeln("   </table>");
