@@ -125,10 +125,10 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         html.writeln("<p>");
         html.writeln("<form name='options' action=''>");
-        html.writeln(" <label><input type=checkbox id=showRelatedCols>Related columns</label>");
-        html.writeln(" <label><input type=checkbox id=showConstNames>Constraint names</label>");
-        html.writeln(" <label><input type=checkbox " + (showCommentsInitially ? "checked " : "") + " id=showComments>Comments</label>");
-        html.writeln(" <label><input type=checkbox checked id=showLegend>Legend</label>");
+        html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
+        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraint names</label>");
+        html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially ? "checked " : "") + " id='showComments'>Comments</label>");
+        html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
         html.writeln("</table>");
 

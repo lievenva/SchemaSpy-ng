@@ -72,7 +72,7 @@ public class HtmlTablePage extends HtmlFormatter {
     private void writeHeader(Table table, WriteStats stats, LineWriter html) throws IOException {
         html.writeln("<form name='options' action=''>");
         if (stats.wroteImplied()) {
-            html.write(" <label><input type=checkbox id='implied'");
+            html.write(" <label for='implied'><input type=checkbox id='implied'");
             if (table.isOrphan(false))
                 html.write(" checked");
             html.writeln(">Implied relationships</label>");
@@ -87,10 +87,10 @@ public class HtmlTablePage extends HtmlFormatter {
             }
         }
         
-        html.writeln(" <label><input type=checkbox id=showRelatedCols>Related columns</label>");
-        html.writeln(" <label><input type=checkbox id=showConstNames>Constraint names</label>");
-        html.writeln(" <label><input type=checkbox " + (showCommentsInitially  ? "checked " : "") + "id=showComments>Comments</label>");
-        html.writeln(" <label><input type=checkbox checked id=showLegend>Legend</label>");
+        html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
+        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraint names</label>");
+        html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially  ? "checked " : "") + "id='showComments'>Comments</label>");
+        html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
     }
 

@@ -117,12 +117,12 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
         html.writeln("<form name='options' action=''>");
         if (hasRealRelationships && hasImpliedRelationships) {
             html.write("  <span title=\"Show relationships implied by column name and type matching another table's primary key\">");
-            html.write("<label><input type='checkbox' id='implied'>");
+            html.write("<label for='implied'><input type='checkbox' id='implied'>");
             html.writeln("Implied relationships</label></span>");
         }
         if (hasRealRelationships || hasImpliedRelationships) {
             html.write("  <span title=\"By default only columns that are primary keys, foreign keys or indexes are shown\">");
-            html.write("<label><input type='checkbox' id='showNonKeys'>");
+            html.write("<label for='showNonKeys'><input type='checkbox' id='showNonKeys'>");
             html.writeln("All columns</label></span>");
         }
         html.writeln("</form>");
