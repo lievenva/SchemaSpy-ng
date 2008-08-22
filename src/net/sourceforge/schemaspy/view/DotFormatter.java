@@ -1,8 +1,11 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -106,6 +109,25 @@ public class DotFormatter {
             }
         }
 
+        // glue together any 'participants' that aren't yet connected
+        // note that this is the epitome of nested loops from hell
+        List<Table> participants = new ArrayList<Table>(nodes.keySet());
+        Iterator<Table> iter = participants.iterator();
+        while (iter.hasNext()) {
+            Table participantA = iter.next();
+            iter.remove(); // cut down the combos as quickly as possible
+            
+            for (Table participantB : participants) {
+                for (DotConnector connector : finder.getRelatedConnectors(participantA, participantB, false, includeImplied)) {
+                    if (twoDegreesOfSeparation && (allCousins.contains(participantA) || allCousins.contains(participantB))) {
+                        allCousinConnectors.add(connector);
+                    } else {
+                        connectors.add(connector);
+                    }
+                }                
+            }
+        }
+        
         markExcludedColumns(nodes, stats.getExcludedColumns());
 
         // now directly connect the loose ends to the title of the
@@ -182,15 +204,6 @@ public class DotFormatter {
         
         relatedTables.remove(table);
 
-        /*
-        if (table.getName().equals("character_tutorial")) {
-            System.out.println("included: " + relatedTables);
-            System.out.println("skipped implied:");
-            for (ForeignKeyConstraint constraint : skippedImpliedConstraints) {
-                System.out.println(" " + constraint.getChildTable() + "->" + constraint.getParentTable());
-            }
-        }*/
-        
         return relatedTables;
     }
 
