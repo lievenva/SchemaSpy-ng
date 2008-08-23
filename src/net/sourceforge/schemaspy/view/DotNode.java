@@ -149,7 +149,7 @@ public class DotNode {
         buf.append("</TD></TR>" + lineSeparator);
 
         buf.append("    </TABLE>>" + lineSeparator);
-        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + (path.length() == 0 && !config.showColumnDetails ? "#diagram" : "#") + "\"" + lineSeparator);
+        buf.append("    URL=\"" + path + toNCR(tableName) + ".html" + ((path.length() == 0 && !config.showColumnDetails) || table.isRemote() ? "#diagram" : "#") + "\"" + lineSeparator);
         buf.append("    tooltip=\"" + toNCR(tableName) + "\"" + lineSeparator);
         buf.append("  ];");
 
