@@ -589,29 +589,47 @@ public class Database {
     private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
         if (schemaMeta != null) {
             final Pattern excludeNone = Pattern.compile("[^.]");
+            final Properties noProps = new Properties();
             
             comments = schemaMeta.getComments();
             
-            // add the newly defined remote tables first
+            // done in three passes:
+            // 1: create any new tables
+            // 2: add/mod columns
+            // 3: connect
+
+            // add the newly defined tables and columns first
             for (TableMeta tableMeta : schemaMeta.getTables()) {
+                Table table;
+
                 if (tableMeta.getRemoteSchema() != null) {
-                    Table table = remoteTables.get(tableMeta.getName());
+                    table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
                     if (table == null) {
                         table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone);
                     }
-                    
-                    table.update(tableMeta, tables, remoteTables);
+                } else {
+                    table = tables.get(tableMeta.getName());
+
+                    if (table == null) {
+                        table = new Table(Database.this, getSchema(), tableMeta.getName(), null, noProps, excludeNone);
+                        tables.put(table.getName(), table);
+                    }
                 }
+
+                table.update(tableMeta);
             }
     
             // then tie the tables together
             for (TableMeta tableMeta : schemaMeta.getTables()) {
-                if (tableMeta.getRemoteSchema() == null) {
-                    Table table = tables.get(tableMeta.getName());
-                    if (table != null) {
-                        table.update(tableMeta, tables, remoteTables);
-                    }
+                Table table;
+                
+                if (tableMeta.getRemoteSchema() != null) {
+                    table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
+                } else {
+                    table = tables.get(tableMeta.getName());
                 }
+                
+                table.connect(tableMeta, tables, remoteTables);
             }
         }
     }

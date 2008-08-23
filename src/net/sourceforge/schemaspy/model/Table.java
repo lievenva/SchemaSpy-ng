@@ -708,10 +708,7 @@ public class Table implements Comparable<Table> {
         }
     }
 
-    /**
-     * @param tableMeta
-     */
-    public void update(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
+    public void update(TableMeta tableMeta) {
         String newComments = tableMeta.getComments();
         if (newComments != null) {
             comments = newComments;
@@ -731,8 +728,17 @@ public class Table implements Comparable<Table> {
 
             // update the column with the changes
             col.update(colMeta);
+        }
+    }
+    
+    /**
+     * @param tableMeta
+     */
+    public void connect(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
+        for (TableColumnMeta colMeta : tableMeta.getColumns()) {
+            TableColumn col = getColumn(colMeta.getName());
 
-            // go thru the new foreign key defs and associate them with our columns
+             // go thru the new foreign key defs and associate them with our columns
             for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
                 Table parent = fk.getRemoteSchema() == null ? tables.get(fk.getTableName())
                                                             : remoteTables.get(fk.getRemoteSchema() + '.' + fk.getTableName());

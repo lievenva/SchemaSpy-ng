@@ -166,6 +166,8 @@ public class SchemaAnalyzer {
             SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), schemaMeta);
             Database db = spy.getDatabase();
 
+            schemaMeta = null; // done with it so let GC reclaim it
+
             LineWriter out;
             Collection<Table> tables = new ArrayList<Table>(db.getTables());
             tables.addAll(db.getViews());
