@@ -2,11 +2,18 @@ package net.sourceforge.schemaspy.model.xml;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import net.sourceforge.schemaspy.Config;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -86,26 +93,46 @@ public class SchemaMeta {
         return tables;
     }
     
+    private void validate(Document document) throws SAXException, IOException {
+        // create a SchemaFactory capable of understanding WXS schemas
+        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+        // load a WXS schema, represented by a Schema instance
+        InputStream xsl = getClass().getResourceAsStream("/schemaspy.meta.xsd");
+        
+        Schema schema = factory.newSchema(new StreamSource(xsl));
+
+        // create a Validator instance, which can be used to validate an instance document
+        Validator validator = schema.newValidator();
+
+        // validate the DOM tree
+        validator.validate(new DOMSource(document));
+    }
+    
     private Document parse(File file) {
         DocumentBuilder docBuilder;
         Document doc = null;
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        docBuilderFactory.setIgnoringElementContentWhitespace(true);
-        docBuilderFactory.setIgnoringComments(true);
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setIgnoringElementContentWhitespace(true);
+        factory.setIgnoringComments(true);
         
         try {
-            docBuilder = docBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            System.err.println("Wrong parser configuration: " + e.getMessage());
+            docBuilder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException exc) {
+            System.err.println("Invalid parser configuration: " + exc.getMessage());
             return null;
         }
-        
+
         try {
             doc = docBuilder.parse(file);
-        } catch (SAXException e) {
-            System.err.println("Wrong XML file structure: " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println("Could not read source file: " + e.getMessage());
+            validate(doc);
+        } catch (SAXException exc) {
+            // exception already reported to stderr by error handler
+            System.err.println(file + " failed XML validation");
+            return null;
+        } catch (IOException exc) {
+            System.err.println("Could not read file: " + exc.getMessage());
+            return null;
         }
 
         return doc;

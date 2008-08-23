@@ -39,6 +39,7 @@
         <include name="**/*.css"/>
         <include name="**/*.gif"/>
         <include name="**/*.js"/>
+        <include name="**/*.xsd"/>
       </fileset>
     </copy>
   </target>
