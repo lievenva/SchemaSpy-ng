@@ -20,20 +20,17 @@ public class TableMeta {
         NamedNodeMap attribs = tableNode.getAttributes();
         
         name = attribs.getNamedItem("name").getNodeValue();
-        attribs.removeNamedItem("name");
         
         Node commentNode = attribs.getNamedItem("comments");
         if (commentNode != null) {
             String tmp = commentNode.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
-            attribs.removeNamedItem("comments");
         } else {
             comments = null;
         }
         
         Node remoteSchemaNode = attribs.getNamedItem("remoteSchema");
         if (remoteSchemaNode != null) {
-            attribs.removeNamedItem("remoteSchema");
             remoteSchema = remoteSchemaNode.getNodeValue().trim();
         } else {
             remoteSchema = null;
@@ -44,10 +41,6 @@ public class TableMeta {
         for (int i = 0; i < columnNodes.getLength(); ++i) {
             Node colNode = columnNodes.item(i);
             columns.add(new TableColumnMeta(colNode));
-        }
-        
-        for (int i = 0; i < attribs.getLength(); ++i) {
-            System.err.println("Unrecognized attribute '" + attribs.item(i).getNodeName() + "' in XML definition of table '" + name + '\'');
         }
     }
     

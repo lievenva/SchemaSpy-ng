@@ -24,12 +24,10 @@ public class TableColumnMeta {
         String tmp;
         
         name = attribs.getNamedItem("name").getNodeValue();
-        attribs.removeNamedItem("name");
         Node node = attribs.getNamedItem("comments");
         if (node != null) {
             tmp = node.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
-            attribs.removeNamedItem("comments");
         } else {
             comments = null;
         }
@@ -37,7 +35,6 @@ public class TableColumnMeta {
         node = attribs.getNamedItem("primaryKey");
         if (node != null) {
             isPrimary = evalBoolean(node.getNodeValue());
-            attribs.removeNamedItem("primaryKey");
         } else {
             isPrimary = false;
         }
@@ -58,8 +55,6 @@ public class TableColumnMeta {
                 System.err.println("  Valid values include 'to', 'from' and 'all'");
                 isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
             }
-            
-            attribs.removeNamedItem("disableImpliedKeys");
         } else {
             isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
         }
@@ -67,7 +62,6 @@ public class TableColumnMeta {
         node = attribs.getNamedItem("disableDiagramAssociations");
         if (node != null) {
             isExcluded = evalBoolean(node.getNodeValue());
-            attribs.removeNamedItem("disableDiagramAssociations");
         } else {
             isExcluded = false;
         }
@@ -77,10 +71,6 @@ public class TableColumnMeta {
         for (int i = 0; i < fkNodes.getLength(); ++i) {
             Node fkNode = fkNodes.item(i);
             foreignKeys.add(new ForeignKeyMeta(fkNode));
-        }
-        
-        for (int i = 0; i < attribs.getLength(); ++i) {
-            System.err.println("Unrecognized attribute '" + attribs.item(i).getNodeName() + "' in XML definition of column '" + name + '\'');
         }
     }
     

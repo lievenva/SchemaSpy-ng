@@ -17,22 +17,15 @@ public class ForeignKeyMeta {
         if (node == null)
             throw new IllegalStateException("XML foreignKey definition requires 'table' attribute");
         tableName = node.getNodeValue();
-        attribs.removeNamedItem("table");
         node = attribs.getNamedItem("column");
         if (node == null)
             throw new IllegalStateException("XML foreignKey definition requires 'column' attribute");
         columnName = node.getNodeValue();
-        attribs.removeNamedItem("column");
         node = attribs.getNamedItem("remoteSchema");
         if (node != null) {
             remoteSchema = node.getNodeValue();
-            attribs.removeNamedItem("remoteSchema");
         } else {
             remoteSchema = null;
-        }
-        
-        for (int i = 0; i < attribs.getLength(); ++i) {
-            System.err.println("Unrecognized attribute '" + attribs.item(i).getNodeName() + "' in XML definition of foreignKey");
         }
     }
     
