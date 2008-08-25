@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.Revision;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
@@ -25,6 +26,7 @@ public class HtmlFormatter {
         out.writeln("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>");
         out.writeln("<html>");
         out.writeln("<head>");
+        out.writeln("  <!-- SchemaSpy rev " + new Revision() + " -->");
         out.write("  <title>SchemaSpy - ");
         out.write(getDescription(db, table, text, false));
         out.writeln("</title>");

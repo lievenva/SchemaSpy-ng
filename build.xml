@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir="." default="rebuild" name="SchemaSpy">
-  <property name="dest" value="classes"/>
+  <property name="dest" value="output"/>
   <property name="dist" value="dist"/>
   <property name="src" value="src"/>
   <path id="project.class.path">
@@ -40,6 +40,7 @@
         <include name="**/*.gif"/>
         <include name="**/*.js"/>
         <include name="**/*.xsd"/>
+        <include name="**/*.rev"/>
       </fileset>
     </copy>
   </target>
@@ -56,7 +57,14 @@
     />
   </target>
 
-  <target name="make" depends="compile,archive"/>
+  <target name="revision" depends="compile">
+    <echo>Extracting revision information</echo>
+    <java classname="net.sourceforge.schemaspy.Revision"
+      classpath="output"
+    />
+  </target>
+
+  <target name="make" depends="compile,revision,archive"/>
   <target name="rebuild" depends="clean,make"/>
   <target name="init">
     <mkdir dir="${dest}"/>

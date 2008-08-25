@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.Revision;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
@@ -209,6 +210,7 @@ public class DotFormatter {
 
     private void writeHeader(String diagramName, boolean showLabel, LineWriter dot) throws IOException {
         dot.writeln("// dot " + Dot.getInstance().getVersion() + " on " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
+        dot.writeln("// SchemaSpy rev " + new Revision());
         dot.writeln("digraph \"" + diagramName + "\" {");
         dot.writeln("  graph [");
         boolean rankdirbug = Config.getInstance().isRankDirBugEnabled();
