@@ -226,7 +226,7 @@ public class HtmlFormatter {
         } else {
             notInDiagram = new HashSet<TableColumn>();
             for (TableColumn column : excludedColumns) {
-                if (!column.getTable().equals(table)) {
+                if (column.isAllExcluded() || !column.getTable().equals(table)) {
                     notInDiagram.add(column);
                 }
             }

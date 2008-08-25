@@ -29,6 +29,7 @@ public class TableColumn {
     private boolean allowImpliedParents = true;
     private boolean allowImpliedChildren = true;
     private boolean isExcluded = false;
+    private boolean isAllExcluded = false;
 
     /**
      * Create a column associated with a table.
@@ -167,13 +168,29 @@ public class TableColumn {
     
     /**
      * Returns <code>true</code> if this column is to be excluded from relationship diagrams.
-     * This is typically an attempt to reduce clutter that can be introduced when many tables
+     * Unless {@link #isAllExcluded()} is true this column will be included in the detailed
+     * diagrams of the containing table.
+     * 
+     * <p>This is typically an attempt to reduce clutter that can be introduced when many tables
      * reference a given column.
      * 
      * @return
      */
     public boolean isExcluded() {
         return isExcluded;
+    }
+    
+    /**
+     * Returns <code>true</code> if this column is to be excluded from all relationships in
+     * relationship diagrams.  This includes the detailed diagrams of the containing table.
+     * 
+     * <p>This is typically an attempt to reduce clutter that can be introduced when many tables
+     * reference a given column.
+     * 
+     * @return
+     */
+    public boolean isAllExcluded() {
+        return isAllExcluded;
     }
     
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {
@@ -287,6 +304,7 @@ public class TableColumn {
         allowImpliedParents  = !colMeta.isImpliedParentsDisabled();
         allowImpliedChildren = !colMeta.isImpliedChildrenDisabled();
         isExcluded |= colMeta.isExcluded();
+        isAllExcluded |= colMeta.isAllExcluded();
     }
 
     @Override

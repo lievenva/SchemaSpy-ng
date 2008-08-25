@@ -169,12 +169,12 @@ public class DotFormatter {
         Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
         
         for (TableColumn column : table.getColumns()) {
-            if (!includeExcluded && column.isExcluded()) {
+            if (column.isAllExcluded() || (!includeExcluded && column.isExcluded())) {
                 continue;
             }
             
             for (TableColumn childColumn : column.getChildren()) {
-                if (!includeExcluded && childColumn.isExcluded()) {
+                if (childColumn.isAllExcluded() || (!includeExcluded && childColumn.isExcluded())) {
                     continue;
                 }
                 
@@ -186,7 +186,7 @@ public class DotFormatter {
             }
             
             for (TableColumn parentColumn : column.getParents()) {
-                if (!includeExcluded && parentColumn.isExcluded()) {
+                if (parentColumn.isAllExcluded() || (!includeExcluded && parentColumn.isExcluded())) {
                     continue;
                 }
 

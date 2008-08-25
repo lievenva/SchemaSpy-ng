@@ -16,6 +16,7 @@ public class TableColumnMeta {
     private final boolean isPrimary;
     private final List<ForeignKeyMeta> foreignKeys = new ArrayList<ForeignKeyMeta>();
     private final boolean isExcluded;
+    private final boolean isAllExcluded;
     private final boolean isImpliedParentsDisabled;
     private final boolean isImpliedChildrenDisabled;
     
@@ -51,8 +52,6 @@ public class TableColumnMeta {
             } else if (tmp.equals("all")) {
                 isImpliedChildrenDisabled = isImpliedParentsDisabled = true;
             } else {
-                System.err.println("Unrecognized value for " + node.getNodeName() + ": '" + tmp + '\'');
-                System.err.println("  Valid values include 'to', 'from' and 'all'");
                 isImpliedChildrenDisabled = isImpliedParentsDisabled = false;
             }
         } else {
@@ -61,8 +60,19 @@ public class TableColumnMeta {
 
         node = attribs.getNamedItem("disableDiagramAssociations");
         if (node != null) {
-            isExcluded = evalBoolean(node.getNodeValue());
+            tmp = node.getNodeValue().trim().toLowerCase();
+            if (tmp.equals("all")) {
+                isAllExcluded = true;
+                isExcluded = true;
+            } else if (tmp.equals("exceptdirect")) {
+                isAllExcluded = false;
+                isExcluded = true;
+            } else {
+                isAllExcluded = false;
+                isExcluded = false;
+            }
         } else {
+            isAllExcluded = false;
             isExcluded = false;
         }
         
@@ -100,6 +110,10 @@ public class TableColumnMeta {
     
     public boolean isExcluded() {
         return isExcluded;
+    }
+    
+    public boolean isAllExcluded() {
+        return isAllExcluded;
     }
     
     public boolean isImpliedParentsDisabled() {
