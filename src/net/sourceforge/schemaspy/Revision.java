@@ -57,11 +57,15 @@ public class Revision {
         String revision = entries.readLine(); // rev
         entries.close();
 
-        File revFile = new File("output", resourceName);
+        String buildDir = "output";
+        if (args.length < 1)
+            buildDir = args[0];
+        File revFile = new File(buildDir, resourceName);
         FileWriter out = new FileWriter(revFile);
         out.write(revision);
         out.close();
         
         initialize();
+        System.out.println("Subversion revision " + new Revision());
     }
 }

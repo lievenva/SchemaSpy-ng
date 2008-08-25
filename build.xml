@@ -59,9 +59,9 @@
 
   <target name="revision" depends="compile">
     <echo>Extracting revision information</echo>
-    <java classname="net.sourceforge.schemaspy.Revision"
-      classpath="output"
-    />
+    <java classname="net.sourceforge.schemaspy.Revision" classpath="output">
+      <arg value="output"/>
+    </java>
   </target>
 
   <target name="make" depends="compile,revision,archive"/>
