@@ -544,15 +544,18 @@ public class HtmlTablePage extends HtmlFormatter {
             
             DotFormatter formatter = DotFormatter.getInstance();
             LineWriter dotOut = new LineWriter(oneDegreeDotFile, Config.DOT_CHARSET);
-            formatter.writeRealRelationships(table, false, stats, dotOut);
+            WriteStats oneStats = new WriteStats(stats);
+            formatter.writeRealRelationships(table, false, oneStats, dotOut);
             dotOut.close();
 
             dotOut = new LineWriter(twoDegreesDotFile, Config.DOT_CHARSET);
             WriteStats twoStats = new WriteStats(stats);
             impliedConstraints = formatter.writeRealRelationships(table, true, twoStats, dotOut);
             dotOut.close();
-            if (stats.getNumTablesWritten() + stats.getNumViewsWritten() == twoStats.getNumTablesWritten() + twoStats.getNumViewsWritten())
+
+            if (oneStats.getNumTablesWritten() + oneStats.getNumViewsWritten() == twoStats.getNumTablesWritten() + twoStats.getNumViewsWritten()) {
                 twoDegreesDotFile.delete(); // no different than before, so don't show it
+            }
 
             if (!impliedConstraints.isEmpty()) {
                 dotOut = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
