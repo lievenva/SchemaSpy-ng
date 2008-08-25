@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 public class RemoteTable extends Table {
     private final String baseSchema;
 
-    public RemoteTable(Database db, String schema, String name, String baseSchema, Properties properties, Pattern excludeColumns) throws SQLException {
-        super(db, schema, name, null, properties, excludeColumns);
+    public RemoteTable(Database db, String schema, String name, String baseSchema, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+        super(db, schema, name, null, properties, excludeIndirectColumns, excludeColumns);
         this.baseSchema = baseSchema;
     }
     
@@ -26,7 +26,7 @@ public class RemoteTable extends Table {
      * @param tables
      */
     @Override
-    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties, Pattern excludeColumns) throws SQLException {
+    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -37,7 +37,7 @@ public class RemoteTable extends Table {
                 if (otherSchema != null && otherSchema.equals(baseSchema))
                     addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"), 
                             rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
-                            rs.getString("PKCOLUMN_NAME"), tables, db, properties, excludeColumns);
+                            rs.getString("PKCOLUMN_NAME"), tables, db, properties, excludeIndirectColumns, excludeColumns);
             }
         } finally {
             if (rs != null)

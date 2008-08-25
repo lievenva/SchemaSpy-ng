@@ -55,6 +55,7 @@ public class Config
     private String meta;
     private Pattern tableInclusions;
     private Pattern columnExclusions;
+    private Pattern indirectColumnExclusions;
     private String userConnectionPropertiesFile;
     private Properties userConnectionProperties;
     private Integer maxDbThreads;
@@ -567,13 +568,23 @@ public class Config
         return meterEnabled;
     }
 
+    /**
+     * Set the columns to exclude from all relationship diagrams.
+     * 
+     * @param columnExclusions regular expression of the columns to
+     *        exclude
+     */
     public void setColumnExclusions(String columnExclusions) {
         this.columnExclusions = Pattern.compile(columnExclusions);
     }
 
+    /**
+     * See {@link #setColumnExclusions(String)}
+     * @return
+     */
     public Pattern getColumnExclusions() {
         if (columnExclusions == null) {
-            String strExclusions = pullParam("-x");
+            String strExclusions = pullParam("-X");
             if (strExclusions == null)
                 strExclusions = "[^.]";   // match nothing
 
@@ -581,6 +592,29 @@ public class Config
         }
 
         return columnExclusions;
+    }
+
+    /**
+     * Set the columns to exclude from relationship diagrams where the specified
+     * columns aren't directly referenced by the focal table.
+     * 
+     * @param columnExclusions regular expression of the columns to
+     *        exclude
+     */
+    public void setIndirectColumnExclusions(String fullColumnExclusions) {
+        this.indirectColumnExclusions = Pattern.compile(fullColumnExclusions);
+    }
+
+    public Pattern getIndirectColumnExclusions() {
+        if (indirectColumnExclusions == null) {
+            String strExclusions = pullParam("-x");
+            if (strExclusions == null)
+                strExclusions = "[^.]";   // match nothing
+
+            indirectColumnExclusions = Pattern.compile(strExclusions);
+        }
+
+        return indirectColumnExclusions;
     }
 
     public void setTableInclusions(String tableInclusions) {

@@ -38,7 +38,7 @@ public class TableColumn {
      * @param rs ResultSet returned from <code>java.sql.DatabaseMetaData.getColumns()</code>.
      * @throws SQLException
      */
-    TableColumn(Table table, ResultSet rs, Pattern excludeColumns) throws SQLException {
+    TableColumn(Table table, ResultSet rs, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         this.table = table;
         
         // names and types are typically reused *many* times in a database,
@@ -69,7 +69,8 @@ public class TableColumn {
         setComments(rs.getString("REMARKS"));
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
         
-        isExcluded = matches(excludeColumns);
+        isAllExcluded = matches(excludeColumns);
+        isExcluded = isAllExcluded || matches(excludeIndirectColumns);
     }
 
     /**

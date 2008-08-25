@@ -378,16 +378,16 @@ public class Database {
         return stmt;
     }
     
-    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties, Pattern excludeColumns) throws SQLException {
+    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         String fullName = remoteSchema + "." + remoteTableName;
         Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
             if (properties != null)
-                remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties, excludeColumns);
+                remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties, excludeIndirectColumns, excludeColumns);
             else
                 remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
             
-            remoteTable.connectForeignKeys(tables, this, properties, excludeColumns);
+            remoteTable.connectForeignKeys(tables, this, properties, excludeIndirectColumns, excludeColumns);
             remoteTables.put(fullName, remoteTable);
         }
         
@@ -558,6 +558,7 @@ public class Database {
         String[] types = {"VIEW"};
         ResultSet rs = null;
         Pattern excludeColumns = Config.getInstance().getColumnExclusions();
+        Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
 
         try {
             rs = metadata.getTables(null, schema, "%", types);
@@ -567,7 +568,7 @@ public class Database {
                     System.out.print('.');
                     
                     try {
-                        View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeColumns);
+                        View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeIndirectColumns, excludeColumns);
                         
                         if (include.matcher(view.getName()).matches())
                             views.put(view.getName(), view);
@@ -605,13 +606,13 @@ public class Database {
                 if (tableMeta.getRemoteSchema() != null) {
                     table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
                     if (table == null) {
-                        table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone);
+                        table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
                     }
                 } else {
                     table = tables.get(tableMeta.getName());
 
                     if (table == null) {
-                        table = new Table(Database.this, getSchema(), tableMeta.getName(), null, noProps, excludeNone);
+                        table = new Table(Database.this, getSchema(), tableMeta.getName(), null, noProps, excludeNone, excludeNone);
                         tables.put(table.getName(), table);
                     }
                 }
@@ -636,9 +637,10 @@ public class Database {
     
     private void connectTables(Properties properties) throws SQLException {
         Pattern excludeColumns = Config.getInstance().getColumnExclusions();
+        Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
         
         for (Table table : tables.values()) {
-            table.connectForeignKeys(tables, this, properties, excludeColumns);
+            table.connectForeignKeys(tables, this, properties, excludeIndirectColumns, excludeColumns);
         }
     }
 
@@ -647,6 +649,7 @@ public class Database {
      */
     private class TableCreator {
         private final Pattern excludeColumns = Config.getInstance().getColumnExclusions();
+        private final Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
         
         /**
          * Create a table and put it into <code>tables</code>
@@ -656,7 +659,7 @@ public class Database {
         }
 
         protected void createImpl(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, schemaName, tableName, remarks, properties, excludeColumns);
+            Table table = new Table(Database.this, schemaName, tableName, remarks, properties, excludeIndirectColumns, excludeColumns);
             tables.put(table.getName(), table);
             System.out.print('.');
         }

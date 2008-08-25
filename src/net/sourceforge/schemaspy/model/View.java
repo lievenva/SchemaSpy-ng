@@ -15,8 +15,8 @@ public class View extends Table {
      * @param selectViewSql
      * @throws java.sql.SQLException
      */
-    public View(Database db, ResultSet rs, String selectViewSql, Pattern excludeColumns) throws SQLException {
-        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), null, excludeColumns);
+    public View(Database db, ResultSet rs, String selectViewSql, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), null, excludeIndirectColumns, excludeColumns);
         viewSql = getViewSql(db, selectViewSql);
     }
 
