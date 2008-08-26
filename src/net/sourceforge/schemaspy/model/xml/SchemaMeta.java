@@ -15,6 +15,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -29,8 +30,7 @@ public class SchemaMeta {
     private final String comments;
     private final File metaFile;
     
-    @SuppressWarnings("null") // System.exit() results in compiler complaints about null doc refs
-    public SchemaMeta(String xmlMeta, String dbName, String schema) {
+    public SchemaMeta(String xmlMeta, String dbName, String schema) throws InvalidConfigurationException {
         File meta = new File(xmlMeta);
         if (meta.isDirectory()) {
             String filename = (schema == null ? dbName : schema) + ".meta.xml";
@@ -45,19 +45,17 @@ public class SchemaMeta {
                     return;
                 }
 
-                System.err.println("Meta directory \"" + xmlMeta + "\" must contain a file named \"" + filename + '\"');
-                System.exit(2);
+                throw new InvalidConfigurationException("Meta directory \"" + xmlMeta + "\" must contain a file named \"" + filename + '\"');
             }
         } else if (!meta.exists()) {
-            System.err.println("Specified meta file \"" + xmlMeta + "\" does not exist");
-            System.exit(2);
+            throw new InvalidConfigurationException("Specified meta file \"" + xmlMeta + "\" does not exist");
         }
         
         metaFile = meta;
         
         Document doc = parse(metaFile);
         if (doc == null) {
-            System.exit(1);
+            throw new InvalidConfigurationException();
         }
     
         NodeList commentsNodes = doc.getElementsByTagName("comments");

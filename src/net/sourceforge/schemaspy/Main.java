@@ -14,6 +14,14 @@ public class Main {
         
         SchemaAnalyzer analyzer = new SchemaAnalyzer();
 
-        System.exit(analyzer.analyze(new Config(argv)));
+        int rc = 1;
+
+        try {
+            rc = analyzer.analyze(new Config(argv));
+        } catch (Exception exc) {
+            System.err.println(exc);
+        }
+        
+        System.exit(rc);
     }
 }
