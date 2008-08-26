@@ -1193,6 +1193,8 @@ public class Config
         list.add(getTableInclusions().pattern());
         list.add("-x");
         list.add(getColumnExclusions().pattern());
+        list.add("-X");
+        list.add(getIndirectColumnExclusions().pattern());
         list.add("-dbthreads");
         list.add(String.valueOf(getMaxDbThreads()));
         list.add("-maxdet");
