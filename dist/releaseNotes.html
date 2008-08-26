@@ -12,18 +12,88 @@
 <h3><a href='http://schemaspy.sourceforge.net'>SchemaSpy</a> Release Notes</h3>
 <ul>
 
-<li class='release'>x.x.x - xx/xx/200x
+<li class='release'>4.0.0 - xx/xx/2008
 <ul>
-	<li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1526669&group_id=137197&atid=737990">
-		feature request 1526669</a> - Don't display row counts.<br>
-		Thanks to Gonzalo Mena-Mendoza for the suggestion.
-	</li>
+    <li>One major enhancement of this release is the implementation of 
+        <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1996467&group_id=137197&atid=737990">
+        feature request 1996467</a> - Define Non-Foreign Key relationships.<br>
+        There have been several requests related to this topic.<br>
+        SchemaSpy now supports defining supplemental schema metadata in XML.  
+        This includes defining foreign keys, remote tables, schema/table/column comments and column exclusions.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1643953&group_id=137197&atid=737990">
+        feature request 1643953</a> - Provide way to suppress columns in images.<br>  
+        This feature request resulted into a re-thinking of the compact form of the overview relationships diagram.
+        The compact form now displays only primary and foreign key columns while the non-compact
+        form displays all columns.  
+        This is also used to indicate degrees of separation for the detailed diagrams<br>
+        Thanks to Paul B Callahan for the suggestion.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1593736&group_id=137197&atid=737990">
+        feature request 1593736</a> - Graph generation performance opportunity.<br>
+        This cut the number of calls to the dot executable in half, significantly
+        reducing the time required to generate diagrams.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1609408&group_id=137197&atid=737990">
+        feature request 1609408</a> - Better Unicode support to resolve some table name to URL mapping issues
+        that show up with Japanese table names. 
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1887490&group_id=137197&atid=737990">
+        feature request 1887490</a> - Get rowcount from metadata.<br>  
+        Added MySQL-specific <code>selectRowCountSql</code> implementation.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1598195&group_id=137197&atid=737990">
+        feature request 1598195</a> - Sybase replacement for <code>"select count(*) from"</code>.<br>
+        Added ability to provide a database-specific <code>selectRowCountSql</code> to query
+        the number of rows in a column.  
+        For large Sybase databases this should significantly reduce processing time.<br>
+        Thanks to Klaus-Martin Hansche for the suggestion.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1598113&group_id=137197&atid=737990">
+        feature request 1598113</a> - Request for font specification parameter.<br>  
+        Added <code>-font</code> and <code>-fontsize</code> options for generated diagrams.<br>
+        Thanks to Tim Walters for the suggestion.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1444337&group_id=137197&atid=737990">
+        feature request 1444337</a> - Document cross-schema FK with -all option.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1562942&group_id=137197&atid=737990">
+        feature request 1562942</a> - Refactor to allow for dependency injection.<br>  
+        Separating configuration from processing simplifies integration with Maven, Maven2, Ant, etc.<br>
+        Thanks to Tim P for the suggestion.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1601046&group_id=137197&atid=737990">
+        feature request 1601046</a> - Remove System.exit calls to allow for easier integration with 
+        build tools.
+    </li>
+    <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1526669&group_id=137197&atid=737990">
+        feature request 1526669</a> - Don't display row counts.<br>
+        Thanks to Gonzalo Mena-Mendoza for the suggestion.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2018566&group_id=137197&atid=737987">
+        patch 2018566</a> - SQL Server column comment SQL.
+    </li>
     <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1571711&group_id=137197&atid=737987">
         bug 1571711</a> - Fails to correctly identify dot version on MacOS-X.<br>
         Thanks to Jean-François Veillette for providing the fix.
     </li>
-    <li>Now has better Unicode support in that table links and hover text should now work
-	    for languages like Japanese.
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1620052&group_id=137197&atid=737987">
+        bug 1620052</a> - Documenting foreign keys referencing anther schema. 
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1687569&group_id=137197&atid=737987">
+        bug 1687569</a> - Minor HTML validation errors.
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1689794&group_id=137197&atid=737987">
+        bug 1689794</a> - Case-sensitive table names handled incorrectly.
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1841219&group_id=137197&atid=737987">
+        bug 1841219</a> - Exception when running against DB2 UDB for AS/400.
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1947528&group_id=137197&atid=737987">
+        bug 1947528</a> - Table Column regular expression not excluded.
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2040582&group_id=137197&atid=737987">
+        bug 2040582</a> - Oracle - can't add Foreign Keys from tables in other schema.
     </li>
 </ul>
 </li>
@@ -55,13 +125,13 @@
     </li>
     <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1479956&group_id=137197&atid=737990">
         feature request 1479956</a> - Add description.<br>
-	    Added a new option (-desc) to provide a description of the schema that is displayed
+        Added a new option (-desc) to provide a description of the schema that is displayed
         on the non-detail pages.<br>
         Thanks to Amihay Gonen for the suggestion.
     </li>
     <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1570467&group_id=137197&atid=737990">
         feature request 1570467</a> - No table comments option.<br>
-	    Added -notablecomments option for databases like MySQL that stuff unrelated data where comments belong.
+        Added -notablecomments option for databases like MySQL that stuff unrelated data where comments belong.
     </li>
     <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1484462&group_id=137197&atid=737987">
         bug 1484462</a> - SchemaSpy_3.0.0 and Oracle 10g problems.
@@ -137,7 +207,7 @@
 <li class='release'>2.1.2 - 02/28/2006
 <ul>
 <li>Now generates a relatively useful relationships page even if dot fails 
-	to build the larger (and more likely to break Graphviz's dot) images.</li>
+    to build the larger (and more likely to break Graphviz's dot) images.</li>
 <li>Lots of minor code cleanup after cranking up Eclipse's warning levels.</li>
 </ul>
 </li>
