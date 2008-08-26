@@ -72,7 +72,6 @@ public class Config
     private Boolean logoEnabled;
     private Boolean rankDirBugEnabled;
     private Boolean encodeCommentsEnabled;
-    private Boolean tableCommentsEnabled;
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
     private Boolean evaluteAll;
@@ -527,27 +526,6 @@ public class Config
             encodeCommentsEnabled = !options.remove("-ahic");
         
         return encodeCommentsEnabled;
-    }
-
-    /**
-     * Some database types (e.g. MySQL) stuff inappropriate things in the
-     * table comments.  
-     * This setting allows you to disable those table comments.
-     * 
-     * @param enabled
-     */
-    public void setTableCommentsEnabled(boolean enabled) {
-        this.tableCommentsEnabled = enabled;
-    }
-
-    /**
-     * @see #setTableCommentsEnabled(boolean)
-     */
-    public boolean isTableCommentsEnabled() {
-        if (tableCommentsEnabled == null)
-            tableCommentsEnabled = !options.remove("-notablecomments");
-        
-        return tableCommentsEnabled;
     }
 
     public void setNumRowsEnabled(boolean enabled) {
@@ -1123,8 +1101,6 @@ public class Config
             list.add("-norows");
         if (isRankDirBugEnabled())
             list.add("-rankdirbug");
-        if (!isTableCommentsEnabled())
-            list.add("-notablecomments");
         if (!isAdsEnabled())
             list.add("-noads");
         

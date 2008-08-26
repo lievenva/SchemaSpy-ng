@@ -99,7 +99,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         }
         html.writeln(":</b>");
         html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
-        int numGroups = 4 + (showIds ? 1 : 0) + (displayTableComments ? 1 : 0) + (displayNumRows ? 1 : 0);
+        int numGroups = 5 + (showIds ? 1 : 0) + (displayNumRows ? 1 : 0);
         for (int i = 0; i < numGroups; ++i)
             html.writeln("<colgroup>");
         html.writeln("<thead align='left'>");
@@ -112,8 +112,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  <th align='right' valign='bottom'>Columns</th>");
         if (displayNumRows)
             html.writeln("  <th align='right' valign='bottom'>Rows</th>");
-        if (displayTableComments)
-            html.writeln("  <th align='left' valign='bottom'>Comments</th>");
+        html.writeln("  <th align='left' valign='bottom'>Comments</th>");
         html.writeln("</tr>");
         html.writeln("</thead>");
         html.writeln("<tbody>");
@@ -156,18 +155,16 @@ public class HtmlMainIndexPage extends HtmlFormatter {
                 html.write("<span title='Views contain no real rows'>view</span>");
             html.writeln("</td>");
         }
-        if (displayTableComments) {
-            html.write("  <td class='detail'>");
-            String comments = table.getComments();
-            if (comments != null) {
-                if (encodeComments)
-                    for (int i = 0; i < comments.length(); ++i)
-                        html.write(HtmlEncoder.encode(comments.charAt(i)));
-                else
-                    html.write(comments);
-            }
-            html.writeln("</td>");
+        html.write("  <td class='detail'>");
+        String comments = table.getComments();
+        if (comments != null) {
+            if (encodeComments)
+                for (int i = 0; i < comments.length(); ++i)
+                    html.write(HtmlEncoder.encode(comments.charAt(i)));
+            else
+                html.write(comments);
         }
+        html.writeln("</td>");
         html.writeln("  </tr>");
     }
 

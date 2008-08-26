@@ -15,7 +15,6 @@ import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
     protected final boolean encodeComments       = Config.getInstance().isEncodeCommentsEnabled();
-    protected final boolean displayTableComments = Config.getInstance().isTableCommentsEnabled();
     protected final boolean displayNumRows       = Config.getInstance().isNumRowsEnabled();
     private   final boolean isMetered            = Config.getInstance().isMeterEnabled();
 
@@ -62,12 +61,7 @@ public class HtmlFormatter {
         out.write("</span>");
         if (table == null && db.getDescription() != null)
             out.write("<span class='description'>" + db.getDescription() + "</span>");
-        String comments;
-        if (table != null) {
-            comments = displayTableComments ? table.getComments() : null;
-        } else {
-            comments = db.getComments();
-        }
+        String comments = table == null ? db.getComments() : table.getComments();
         
         if (comments != null) {
             out.write("<div style='padding: 0px 4px;'>");
