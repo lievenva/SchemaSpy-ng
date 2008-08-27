@@ -29,7 +29,7 @@ import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 public class Database {
     private final String databaseName;
     private final String schema;
-    private final String description;
+    private String description;
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
     private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName value: RemoteTable
@@ -38,7 +38,6 @@ public class Database {
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
-    private String comments;
 
     public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
@@ -69,16 +68,6 @@ public class Database {
         return description;
     }
     
-    /**
-     * Comments that describe the associated schema / database.  Specified
-     * through XML metadata.
-     * 
-     * @return
-     */
-    public String getComments() {
-        return comments;
-    }
-
     public Collection<Table> getTables() {
         return tables.values();
     }
@@ -592,7 +581,7 @@ public class Database {
             final Pattern excludeNone = Pattern.compile("[^.]");
             final Properties noProps = new Properties();
             
-            comments = schemaMeta.getComments();
+            description = schemaMeta.getComments();
             
             // done in three passes:
             // 1: create any new tables
