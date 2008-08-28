@@ -19,7 +19,7 @@ public class Main {
         try {
             rc = analyzer.analyze(new Config(argv));
         } catch (Exception exc) {
-            System.err.println(exc);
+            System.err.println(exc.getClass().getSimpleName() + ": " + exc.getMessage());
         }
         
         System.exit(rc);

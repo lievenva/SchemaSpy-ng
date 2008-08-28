@@ -54,9 +54,6 @@ public class SchemaMeta {
         metaFile = meta;
         
         Document doc = parse(metaFile);
-        if (doc == null) {
-            throw new InvalidConfigurationException();
-        }
     
         NodeList commentsNodes = doc.getElementsByTagName("comments");
         if (commentsNodes != null && commentsNodes.getLength() > 0)
@@ -97,7 +94,7 @@ public class SchemaMeta {
 
         // load a WXS schema, represented by a Schema instance
         InputStream xsl = getClass().getResourceAsStream("/schemaspy.meta.xsd");
-        
+
         Schema schema = factory.newSchema(new StreamSource(xsl));
 
         // create a Validator instance, which can be used to validate an instance document
@@ -107,30 +104,27 @@ public class SchemaMeta {
         validator.validate(new DOMSource(document));
     }
     
-    private Document parse(File file) {
+    private Document parse(File file) throws InvalidConfigurationException {
         DocumentBuilder docBuilder;
         Document doc = null;
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
         factory.setIgnoringElementContentWhitespace(true);
         factory.setIgnoringComments(true);
         
         try {
             docBuilder = factory.newDocumentBuilder();
         } catch (ParserConfigurationException exc) {
-            System.err.println("Invalid parser configuration: " + exc.getMessage());
-            return null;
+            throw new InvalidConfigurationException("Invalid XML parser configuration", exc);
         }
 
         try {
             doc = docBuilder.parse(file);
             validate(doc);
         } catch (SAXException exc) {
-            // exception already reported to stderr by error handler
-            System.err.println(file + " failed XML validation");
-            return null;
+            throw new InvalidConfigurationException(file + " failed XML validation:", exc);
         } catch (IOException exc) {
-            System.err.println("Could not read file: " + exc.getMessage());
-            return null;
+            throw new InvalidConfigurationException("Could not read " + file + ":", exc);
         }
 
         return doc;

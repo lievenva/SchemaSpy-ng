@@ -19,6 +19,6 @@ public class InvalidConfigurationException extends RuntimeException {
     }
     
     public InvalidConfigurationException(String msg, Throwable cause) {
-        super(msg, cause);
+        super(msg + " " + cause.getMessage(), cause);
     }
 }
