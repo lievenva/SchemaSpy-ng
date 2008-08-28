@@ -118,28 +118,32 @@ public class Table implements Comparable<Table> {
         }
 
         TableColumn childColumn = getColumn(fkColName);
-        foreignKey.addChildColumn(childColumn);
-
-        Table parentTable = tables.get(pkTableName);
-        if (parentTable == null) {
-            String otherSchema = pkTableSchema;
-            if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
-                parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties, excludeIndirectColumns, excludeColumns);
-            }
-        }
-        
-        if (parentTable != null) {
-            TableColumn parentColumn = parentTable.getColumn(pkColName);
-            if (parentColumn != null) {
-                foreignKey.addParentColumn(parentColumn);
+        if (childColumn != null) {
+            foreignKey.addChildColumn(childColumn);
     
-                childColumn.addParent(parentColumn, foreignKey);
-                parentColumn.addChild(childColumn, foreignKey);
+            Table parentTable = tables.get(pkTableName);
+            if (parentTable == null) {
+                String otherSchema = pkTableSchema;
+                if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
+                    parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties, excludeIndirectColumns, excludeColumns);
+                }
+            }
+            
+            if (parentTable != null) {
+                TableColumn parentColumn = parentTable.getColumn(pkColName);
+                if (parentColumn != null) {
+                    foreignKey.addParentColumn(parentColumn);
+        
+                    childColumn.addParent(parentColumn, foreignKey);
+                    parentColumn.addChild(childColumn, foreignKey);
+                } else {
+                    System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to " + this + " - Column '" + pkColName + "' doesn't exist in table '" + parentTable + "'");
+                }
             } else {
-                System.err.println("Couldn't add FK to " + this + " - Unknown Parent Column '" + pkColName + "'");
+                System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to " + this + " - Unknown Referenced Table '" + pkTableName + "'");
             }
         } else {
-            System.err.println("Couldn't add FK to " + this + " - Unknown Parent Table '" + pkTableName + "'");
+            System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to " + this + " - Column '" + fkColName + "' doesn't exist");
         }
     }
 
