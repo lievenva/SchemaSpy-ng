@@ -137,13 +137,13 @@ public class Table implements Comparable<Table> {
                     childColumn.addParent(parentColumn, foreignKey);
                     parentColumn.addChild(childColumn, foreignKey);
                 } else {
-                    System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to " + this + " - Column '" + pkColName + "' doesn't exist in table '" + parentTable + "'");
+                    System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this + "' - Column '" + pkColName + "' doesn't exist in table '" + parentTable + "'");
                 }
             } else {
-                System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to " + this + " - Unknown Referenced Table '" + pkTableName + "'");
+                System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this + "' - Unknown Referenced Table '" + pkTableName + "'");
             }
         } else {
-            System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to " + this + " - Column '" + fkColName + "' doesn't exist");
+            System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this + "' - Column '" + fkColName + "' doesn't exist");
         }
     }
 
