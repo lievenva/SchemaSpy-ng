@@ -29,6 +29,24 @@
         This is also used to indicate degrees of separation for the detailed diagrams<br>
         Thanks to Paul B Callahan for the suggestion.
     </li>
+    <li><a href="http://www.jquery.com">jQuery</a> was presented by Scott Ryan at a recent 
+        <a href="http://opensource.meetup.com/88/">Colorado Springs Open Source Software</a> meeting.
+        One of the big advantages of jQuery is that it lets you separate behavior from
+        the structure of your web pages.  There are tons of other benefits to jQuery, so
+        SchemaSpy now uses it under the 
+        <a href="http://jquery.com/dev/svn/trunk/jquery/MIT-LICENSE.txt">MIT license</a>.
+    </li>
+    <li>Added support for Derby (JavaDB) databases, both embedded and network.
+    </li>
+    <li>Added support for SQL Server with jTDS driver.
+    </li>
+    <li>Added support for SQL Server 2005.
+    </li>
+    <li>Added support for MaxDB.
+    </li>
+    <li>Renamed -cp option to -dp (driver path) to reduce confusion/conflict with the
+        java executable's -cp option.  -cp is deprecated but still valid.
+    </li>
     <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1593736&group_id=137197&atid=737990">
         feature request 1593736</a> - Graph generation performance opportunity.<br>
         This cut the number of calls to the dot executable in half, significantly
@@ -135,17 +153,6 @@
     <li>Implemented <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1570467&group_id=137197&atid=737990">
         feature request 1570467</a> - No table comments option.<br>
         Added -notablecomments option for databases like MySQL that stuff unrelated data where comments belong.
-    </li>
-    <li>Added support for Derby (JavaDB) databases, both embedded and network.
-    </li>
-    <li>Added support for SQL Server with jTDS driver.
-    </li>
-    <li>Added support for SQL Server 2005.
-    </li>
-    <li>Added support for MaxDB.
-    </li>
-    <li>Renamed -cp option to -dp (driver path) to reduce confusion/conflict with the
-        java executable's -cp option.
     </li>
     <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1484462&group_id=137197&atid=737987">
         bug 1484462</a> - SchemaSpy_3.0.0 and Oracle 10g problems.
