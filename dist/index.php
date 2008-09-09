@@ -83,7 +83,7 @@ Or are you in QA and the
 developers expect you to understand all the relationships in their
 schema?
 If so then this tool's for you.<br>
-<br>SchemaSpy is a Java-based tool (requires <a href="www.java.com/getjava/">Java 1.4 or higher</a>) that analyzes the 
+<br>SchemaSpy is a Java-based tool (requires <a href="www.java.com/getjava/">Java 5 or higher</a>) that analyzes the 
 metadata of a schema in a database and generates a visual representation of it in a
 browser-displayable format.
 It lets you click through the
@@ -95,8 +95,8 @@ to help resolve the obtuse errors that a database sometimes gives related
 to failures due to constraints.<br>
       <p>
 It is free software that is distributed under the terms of the
-<a target="_blank" href="http://www.gnu.org/licenses/lgpl.html">
-Lesser GNU Public License</a>.
+<a target="_blank" href="http://www.gnu.org/licenses/lgpl-2.1.html">
+Lesser GNU Public License 2.1</a>.
 Your <a href="http://sourceforge.net/donate/index.php?group_id=137197">donations</a>
 are, however, <span style="font-weight: bold;">greatly </span>appreciated.<br>
 <p>
