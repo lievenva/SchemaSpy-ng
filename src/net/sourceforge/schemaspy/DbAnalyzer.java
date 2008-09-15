@@ -27,9 +27,9 @@ public class DbAnalyzer {
         List<TableColumn> columnsWithoutParents = new ArrayList<TableColumn>();
         Map<TableColumn, Table> allPrimaries = new TreeMap<TableColumn, Table>(new Comparator<TableColumn>() {
             public int compare(TableColumn column1, TableColumn column2) {
-                int rc = column1.getName().compareTo(column2.getName());
+                int rc = column1.getName().compareToIgnoreCase(column2.getName());
                 if (rc == 0)
-                    rc = column1.getType().compareTo(column2.getType());
+                    rc = column1.getType().compareToIgnoreCase(column2.getType());
                 if (rc == 0)
                     rc = column1.getLength() - column2.getLength();
                 return rc;
@@ -56,7 +56,7 @@ public class DbAnalyzer {
         }
 
         // if more than half of the tables have the same primary key then
-        // it's most likey a database where primary key names aren't unique
+        // it's most likely a database where primary key names aren't unique
         // (e.g. they all have a primary key named 'ID')
         if (duplicatePrimaries > allPrimaries.size()) // bizarre logic, but it does approximately what we need
             return new ArrayList<ImpliedForeignKeyConstraint>();
@@ -200,7 +200,7 @@ public class DbAnalyzer {
     public static List<Table> sortTablesByName(List<Table> tables) {
         Collections.sort(tables, new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
-                return table1.getName().compareTo(table2.getName());
+                return table1.getName().compareToIgnoreCase(table2.getName());
             }
         });
 
@@ -210,9 +210,9 @@ public class DbAnalyzer {
     public static List<TableColumn> sortColumnsByTable(List<TableColumn> columns) {
         Collections.sort(columns, new Comparator<TableColumn>() {
             public int compare(TableColumn column1, TableColumn column2) {
-                int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+                int rc = column1.getTable().getName().compareToIgnoreCase(column2.getTable().getName());
                 if (rc == 0)
-                    rc = column1.getName().compareTo(column2.getName());
+                    rc = column1.getName().compareToIgnoreCase(column2.getName());
                 return rc;
             }
         });
