@@ -700,9 +700,9 @@ public class Config
 //    }
     
     /**
-     * If <code>true</code> then generate output of "higher quality"
-     * than the default ("lower quality").  
-     * Note that the default is intended to be "lower quality", 
+     * If <code>false</code> then generate output of "lower quality"
+     * than the default ("higher quality").  
+     * Note that the default is intended to be "higher quality", 
      * but various installations of Graphviz may have have different abilities.
      * That is, some might not have the "lower quality" libraries and others might
      * not have the "higher quality" libraries.<p>
@@ -719,13 +719,13 @@ public class Config
      */
     public boolean isHighQuality() {
         if (highQuality == null) {
-            highQuality = options.remove("-hq");
+            highQuality = !options.remove("-lq");
             Dot.getInstance().setHighQuality(highQuality);
         }
 
         return Dot.getInstance().isHighQuality();
     }
-
+    
     /**
      * <code>true</code> if we should display advertisements.  
      * Defaults to <code>true</code>.<p>
@@ -1103,6 +1103,8 @@ public class Config
             list.add("-rankdirbug");
         if (!isAdsEnabled())
             list.add("-noads");
+        if (!isHighQuality())
+            list.add("-lq");
         
         String value = getDriverPath();
         if (value != null) {
