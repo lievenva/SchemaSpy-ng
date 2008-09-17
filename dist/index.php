@@ -121,13 +121,12 @@ constraints.
 The differences between vendors have been isolated to configuration files and are extremely limited. 
 Almost all of the vendor-specific SQL is optional.<br>
 <br>
-Sample output of the tool is available at <a
- onclick="return top.js.OpenExtLink(window,event,this)" href="sample/"
- target="_blank">here</a>.
+Sample output of the tool is available at 
+<a onclick="return top.js.OpenExtLink(window,event,this)" href="sample/" target="_blank">here</a>.
 Note that this was run against an extremely limited schema so it doesn't show the full power of the tool.<br>
-      <hr>
+      <br/><hr>
       <h3><a name="Running_SchemaSpy">Running SchemaSpy </a></h3>
-      <p>You run SchemaSpy from the command line: </p>
+      <p>You run SchemaSpy from the command line:</p>
       <table>
         <tbody>
           <tr>
@@ -147,52 +146,103 @@ Note that this was run against an extremely limited schema so it doesn't show th
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-t databaseType</code></td>
+            <td class="param"><code>-t <i>databaseType</i></code></td>
             <td class="param">Type of database (e.g. ora, db2, etc.).
-                Use <code>-dbhelp</code> for a list of built-in types.  Defaults to <code>ora</code>.
+                Use <code>-dbhelp</code> for a list of built-in types.  
+                Defaults to <code>ora</code>.
             </td>
           </tr>
           <tr>
             <td>*</td>
-            <td class="param"><code>-db dbName</code></td>
+            <td class="param"><code>-db <i>dbName</i></code></td>
             <td class="param">Name of database to connect to</td>
           </tr>
           <tr>
             <td>*</td>
-            <td class="param"><code>-u user</code></td>
+            <td class="param"><code>-u <i>user</i></code></td>
             <td class="param">Valid database user id with read access</td>
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-s schema</code></td>
-            <td class="param">Database schema (optional if the same as user or isn't supported by your database)</td>
+            <td class="param"><code>-s <i>schema</i></code></td>
+            <td class="param">Database schema 
+                (optional if the same as user or isn't supported by your database)</td>
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-p password</code></td>
-            <td class="param">Password associated with that user.  Defaults to no password.</td>
+            <td class="param"><code>-p <i>password</i></code></td>
+            <td class="param">Password associated with that user.  
+                Defaults to no password.</td>
           </tr>
           <tr>
             <td>*</td>
-            <td class="param"><code>-o outputDirectory</code></td>
+            <td class="param"><code>-o <i>outputDirectory</i></code></td>
             <td class="param">Directory to write the generated HTML/graphs to</td>
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-dp pathToDrivers</code></td>
+            <td class="param"><code>-dp <i>pathToDrivers</i></code></td>
             <td class="param">Looks for drivers here before looking in driverPath in [databaseType].properties</td>
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-desc "Schema description"</code></td>
+            <td class="param"><code>-desc <i>"Schema description"</i></code></td>
             <td class="param">Displays the specified textual description on summary pages.
                 If your description includes an equals sign then escape it with a backslash.<br>
                 For example:<br>
-                -desc "&lt;a href\='http://schemaspy.sourceforge.net'&gt;SchemaSpy&lt;/a&gt;".</td>
+                <code>-desc "&lt;a href\='http://schemaspy.sourceforge.net'&gt;SchemaSpy&lt;/a&gt;"</code>.
+            </td>
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-i tableNamesRegex</code></td>
+            <td class="param"><code>-all</code></td>
+            <td class="param">Evaluate all schemas in a database.
+                Generates a high-level index of the schemas evaluated and allows for
+                traversal of cross-schema foreign key relationships.<br/>
+                Use with <code>-schemaSpec <i>"schemaRegularExpression"</i></code> 
+                to narrow-down the schemas to include.
+            </td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-schemas <i>"schema1,schema2"</i></code></td>
+            <td class="param">Evaluate specified schemas.
+                Similar to <code>-all</code>, but explicitly specifies which
+                schema to evaluate without interrogating the database's metadata.  
+                Can be used with databases like MySQL where a database isn't
+                composed of multiple schemas.
+            </td>
+          </tr>
+          <tr name="metaparam">
+            <td>&nbsp;</td>
+            <td class="param"><code>-meta <i>metafile</i></code></td>
+            <td class="param">
+                <code><i>metafile</i></code> is either the name of an individual 
+                XML file or the directory that contains meta files.
+                If a directory is specified then it is expected to contain files
+                matching the pattern <code>[schema].meta.xml</code>.<br/>  
+                For databases that don't have schema substitute database for schema.<br/>
+                See <a href="#meta">Providing Additional Metadata</a> for details.
+            </td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-lq</code></td>
+            <td class="param">Generate lower-quality diagrams.
+                Note that the default is intended to be "higher quality", but 
+                various installations of 
+                <a target="_blank" href="http://www.graphviz.org/">Graphviz</a>
+                may have have different abilities.
+                That is, some might not have the "lower quality" libraries and others 
+                might not have the "higher quality" libraries.<br/>
+                Higher quality output takes longer to generate and results in significantly
+                larger image files (which take longer to download / display), 
+                but the resultant Entity Relationship diagrams generally look better.
+            </td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-i <i>"tableNamesRegex"</i></code></td>
             <td class="param">Only include matching tables/views.
                 This is a regular expression that's used to determine which
                 tables/views to include.  <br>For example: <code>-i "(.*book.*)|(library.*)"</code> 
@@ -202,7 +252,7 @@ Note that this was run against an extremely limited schema so it doesn't show th
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-x columnNamesRegex</code></td>
+            <td class="param"><code>-x <i>"columnNamesRegex"</i></code></td>
             <td class="param">Exclude matching columns from relationship analysis to
                 simplify the generated graphs.
                 This is a regular expression that's used to determine which
@@ -210,6 +260,14 @@ Note that this was run against an extremely limited schema so it doesn't show th
                 column name.<br/>For example: <code>-x "(book.isbn)|(borrower.address)"</code><br/>
                 Note that each column name regular expression must be surround by <code>()</code>'s and
                 separated from other column names by a <code>|</code>.
+                <br/>Excluded relationships will still show up on detail pages.
+            </td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="param"><code>-X <i>"columnNamesRegex"</i></code></td>
+            <td class="param">
+                Same as -x but excluded relationships will not show up on detail pages.
             </td>
           </tr>
           <tr>
@@ -221,23 +279,9 @@ Note that this was run against an extremely limited schema so it doesn't show th
           </tr>
           <tr>
             <td>&nbsp;</td>
-            <td class="param"><code>-cid</code></td>
-            <td class="param"><em>C</em>omments <em>I</em>nitially <em>D</em>isplayed.<br/>
-                Column comments are normally hidden by default.  This option displays them by default.</td>
-          </tr>
-          <tr>
-            <td>&nbsp;</td>
-            <td class="param"><code>-notablecomments</code></td>
-            <td class="param">Don't display table-based comments.
-            	for databases like MySQL that stuff unrelated data where comments belong.</td>
-          </tr>
-          <!-- 
-          <tr>
-            <td>&nbsp;</td>
             <td class="param"><code>-norows</code></td>
-            <td class="param">Don't display row counts.</td>
+            <td class="param">Don't query or display row counts.</td>
           </tr>
-           -->
           <tr>
             <td>&nbsp;</td>
             <td class="param"><code>-noimplied</code></td>
@@ -341,7 +385,7 @@ Note that this was run against an extremely limited schema so it doesn't show th
         <tbody>
           <tr>
             <td>&nbsp;
-            <code>java -jar schemaSpy.jar -t mysql -o library -host localhost -db library -u user -p password -notablecomments</code>
+            <code>java -jar schemaSpy.jar -t mysql -o library -host localhost -db library -u user -p password</code>
             </td>
           </tr>
         </tbody>
@@ -361,7 +405,32 @@ Note that this was run against an extremely limited schema so it doesn't show th
       </table>
       <p/>does the same thing as the MySQL example, but specifies an <code>mssql</code>
       database type with MS SQL Server-specific database connection parameters.
-      <hr/>
+      
+      <br/><hr>
+      <h3><a name="meta">Providing Additional Metadata</a></h3>
+        Metafiles are XML-based files that provide additional metadata
+        about the schema being evaluated.  
+        See the <a href="#metaparam"><code>-meta</code></a> parameter.
+        Here are some of the things that you can define in this XML:
+        <ul>
+          <li>Schema comments</li>
+          <li>Table comments</li>
+          <li>Primary keys</li>
+          <li>Foreign keys</li>
+          <li>Cross-schema foreign keys</li>
+          <li>Disabled implied relationships</li>
+          <li>Disabled diagram assocations</li>
+          <li>etc.</li>
+        </ul>
+        The XML schema that defines the structure of these files is available
+        <a href="http://schemaspy.sourceforge.net/xmlschema/2008/09/03/schemaspy.meta.xsd">here</a>.
+        There are also some 
+        <a href="http://schemaspy.sourceforge.net/unifieddb/xml/">sample XML files</a>
+        (a work in progress) that were used to generate 
+        <a href="http://schemaspy.sourceforge.net/unifieddb/">these pages</a>.
+        Note that this group of MySQL databases had almost no foreign key
+        relationships defined.
+      <p/><hr/><br/>
       Some information about the developer, John Currier, is available <a href="http://john.currier.googlepages.com">here</a>.
       <br/>Feedback on <a href="https://sourceforge.net/tracker/?group_id=137197&atid=737987">problems</a> and/or <a href="https://sourceforge.net/forum/?group_id=137197">enhancements</a> is appreciated.
       <span style="float: right;">
