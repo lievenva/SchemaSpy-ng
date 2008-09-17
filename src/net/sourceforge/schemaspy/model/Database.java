@@ -133,6 +133,7 @@ public class Database {
             // it's actually DatabaseMetaData.getIndexInfo() that's the pig.
 
             rs = metadata.getTables(null, schema, "%", types);
+            boolean moreTables = true;
 
             TableCreator creator;
             if (maxThreads == 1) {
@@ -142,7 +143,7 @@ public class Database {
 
                 // "prime the pump" so if there's a database problem we'll probably see it now
                 // and not in a secondary thread
-                while (rs.next()) {
+                while (moreTables = rs.next()) {
                     if (tableValidator.isValid(rs)) {
                         new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
                         break;
@@ -150,9 +151,11 @@ public class Database {
                 }
             }
 
-            while (rs.next()) {
-                if (tableValidator.isValid(rs)) {
-                    creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
+            if (moreTables) { // this prevents an exception if an invalid schema is specified
+                while (rs.next()) {
+                    if (tableValidator.isValid(rs)) {
+                        creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
+                    }
                 }
             }
 
