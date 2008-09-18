@@ -1,13 +1,8 @@
 package net.sourceforge.schemaspy;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Connection;
@@ -135,9 +130,6 @@ public class SchemaAnalyzer {
                 yankParam(args, "-s");  // param will be replaced by something appropriate
                 args.remove("-all");    // param will be replaced by something appropriate
 
-                if (config.isHtmlGenerationEnabled())
-                    StyleSheet.init(new BufferedReader(getStyleSheet(config.getCss())));
-                    
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
@@ -153,7 +145,6 @@ public class SchemaAnalyzer {
             if (config.isHtmlGenerationEnabled()) {
                 new File(outputDir, "tables").mkdirs();
                 new File(outputDir, "diagrams/summary").mkdirs();
-                StyleSheet.init(new BufferedReader(getStyleSheet(config.getCss())));
 
                 System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
                 if (schemaMeta != null && schemaMeta.getFile() != null) {
@@ -571,19 +562,5 @@ public class SchemaAnalyzer {
             args.remove(paramIndex);
             args.remove(paramIndex);
         }
-    }
-
-    private static Reader getStyleSheet(String cssName) throws IOException {
-        File cssFile = new File(cssName);
-        if (cssFile.exists())
-            return new FileReader(cssFile);
-        cssFile = new File(System.getProperty("user.dir"), cssName);
-        if (cssFile.exists())
-            return new FileReader(cssFile);
-        
-        InputStream cssStream = StyleSheet.class.getClassLoader().getResourceAsStream(cssName);
-        if (cssStream == null)
-            throw new IllegalStateException("Unable to find requested style sheet: " + cssName);
-        return new InputStreamReader(cssStream);
     }
 }

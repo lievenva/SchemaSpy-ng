@@ -1,5 +1,11 @@
 package net.sourceforge.schemaspy.view;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,12 +82,31 @@ public class StyleSheet {
         }
     }
 
-    public static StyleSheet getInstance() {
+    public static StyleSheet getInstance() throws ParseException {
+        if (instance == null) {
+            try {
+                instance = new StyleSheet(new BufferedReader(getReader(Config.getInstance().getCss())));
+            } catch (IOException exc) {
+                throw new ParseException(exc);
+            }
+        }
+        
         return instance;
     }
-
-    public static void init(BufferedReader cssReader) throws IOException {
-        instance = new StyleSheet(cssReader);
+    
+    private static Reader getReader(String cssName) throws IOException {
+        File cssFile = new File(cssName);
+        if (cssFile.exists())
+            return new FileReader(cssFile);
+        cssFile = new File(System.getProperty("user.dir"), cssName);
+        if (cssFile.exists())
+            return new FileReader(cssFile);
+        
+        InputStream cssStream = StyleSheet.class.getClassLoader().getResourceAsStream(cssName);
+        if (cssStream == null)
+            throw new ParseException("Unable to find requested style sheet: " + cssName);
+        
+        return new InputStreamReader(cssStream);
     }
 
     private Map<String, String> parseAttributes(String data) {
@@ -170,18 +195,23 @@ public class StyleSheet {
         return linkVisitedColor;
     }
 
-    public int getOffsetOf(String id) {
-        int offset = ids.indexOf(id.toLowerCase());
-        if (offset == -1)
-            throw new IllegalArgumentException(id);
-        return offset;
-    }
-    
-    public class MissingCssPropertyException extends RuntimeException {
+    public static class MissingCssPropertyException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         public MissingCssPropertyException(String cssSection, String propName) {
             super("Required property '" + propName + "' was not found for the definition of '" + cssSection + "' in " + Config.getInstance().getCss());
+        }
+    }
+    
+    public static class ParseException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public ParseException(Exception cause) {
+            super(cause);
+        }
+        
+        public ParseException(String msg) {
+            super(msg);
         }
     }
 }

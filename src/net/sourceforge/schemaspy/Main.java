@@ -26,6 +26,9 @@ public class Main {
         } catch (StyleSheet.MissingCssPropertyException badCss) {
             System.err.println();
             System.err.println(badCss.getClass().getSimpleName() + ": " + badCss.getMessage());
+        } catch (StyleSheet.ParseException badCss) {
+            System.err.println();
+            System.err.println(badCss.getClass().getSimpleName() + ": " + badCss.getMessage());
         } catch (Exception exc) {
             exc.printStackTrace();
         }
