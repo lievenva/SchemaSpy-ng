@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class StyleSheet {
     private static StyleSheet instance;
-    private String css;
+    private final String css;
     private String bodyBackgroundColor;
     private String tableHeadBackgroundColor;
     private String tableBackgroundColor;
@@ -107,38 +108,65 @@ public class StyleSheet {
     }
 
     public String getBodyBackground() {
+        if (bodyBackgroundColor == null)
+            throw new MissingCssPropertyException(".content", "background");
+        
         return bodyBackgroundColor;
     }
 
     public String getTableBackground() {
+        if (tableBackgroundColor == null)
+            throw new MissingCssPropertyException("td", "background-color");
+        
         return tableBackgroundColor;
     }
 
     public String getTableHeadBackground() {
+        if (tableHeadBackgroundColor == null)
+            throw new MissingCssPropertyException("th", "background-color");
+        
         return tableHeadBackgroundColor;
     }
 
     public String getPrimaryKeyBackground() {
+        if (primaryKeyBackgroundColor == null)
+            throw new MissingCssPropertyException(".primaryKey", "background");
+        
         return primaryKeyBackgroundColor;
     }
 
     public String getIndexedColumnBackground() {
+        if (indexedColumnBackgroundColor == null)
+            throw new MissingCssPropertyException(".indexedColumn", "background");
+        
         return indexedColumnBackgroundColor;
     }
 
     public String getSelectedTableBackground() {
+        if (selectedTableBackgroundColor == null)
+            throw new MissingCssPropertyException(".selectedTable", "background");
+        
         return selectedTableBackgroundColor;
     }
 
     public String getExcludedColumnBackgroundColor() {
+        if (excludedColumnBackgroundColor == null)
+            throw new MissingCssPropertyException(".excludedColumn", "background");
+        
         return excludedColumnBackgroundColor;
     }
     
     public String getLinkColor() {
+        if (linkColor == null)
+            throw new MissingCssPropertyException("a:link", "color");
+        
         return linkColor;
     }
     
     public String getLinkVisitedColor() {
+        if (linkVisitedColor == null)
+            throw new MissingCssPropertyException("a:visited", "color");
+        
         return linkVisitedColor;
     }
 
@@ -147,5 +175,13 @@ public class StyleSheet {
         if (offset == -1)
             throw new IllegalArgumentException(id);
         return offset;
+    }
+    
+    public class MissingCssPropertyException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public MissingCssPropertyException(String cssSection, String propName) {
+            super("Required property '" + propName + "' was not found for the CSS definition of '" + cssSection + "' in " + Config.getInstance().getCss());
+        }
     }
 }

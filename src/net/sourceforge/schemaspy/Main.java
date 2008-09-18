@@ -1,5 +1,7 @@
 package net.sourceforge.schemaspy;
 
+import net.sourceforge.schemaspy.view.StyleSheet;
+
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.ui.MainFrame;
 
@@ -21,6 +23,8 @@ public class Main {
             rc = analyzer.analyze(new Config(argv));
         } catch (InvalidConfigurationException badConfig) {
             System.err.println(badConfig.getClass().getSimpleName() + ": " + badConfig.getMessage());
+        } catch (StyleSheet.MissingCssPropertyException badCss) {
+            System.err.println(badCss.getClass().getSimpleName() + ": " + badCss.getMessage());
         } catch (Exception exc) {
             exc.printStackTrace();
         }
