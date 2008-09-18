@@ -673,32 +673,30 @@ public class Config
         return schemaSpec;
     }
 
-    // removed these as they're too low-level to expose externally...replaced with -hq
-//    /**
-//     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
-//     * at <a href='http://www.graphviz.org/doc/info/command.html'>
-//     * http://www.graphviz.org/doc/info/command.html</a>.<p>
-//     * Note that the leading ":" is required while :formatter is optional.<p>
-//     * The default renderer is typically GD. 
-//     */
-//    public void setRenderer(String renderer) {
-//        this.renderer = renderer;
-//        Dot.getInstance().setRenderer(renderer);
-//    }
-//    
-//    /**
-//     * @see #setRenderer(String)
-//     * @return
-//     */
-//    public String getRenderer() {
-//        if (renderer == null) {
-//            renderer = pullParam("-renderer");
-//            if (renderer != null)
-//                setRenderer(renderer);
-//        }
-//        
-//        return renderer;
-//    }
+    /**
+     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
+     * at <a href='http://www.graphviz.org/doc/info/command.html'>
+     * http://www.graphviz.org/doc/info/command.html</a>.<p>
+     * Note that the leading ":" is required while :formatter is optional.<p>
+     * The default renderer is typically GD.<p>
+     * Note that using {@link #setHighQuality(boolean)} is the preferred approach
+     * over using this method.
+     */
+    public void setRenderer(String renderer) {
+        Dot.getInstance().setRenderer(renderer);
+    }
+    
+    /**
+     * @see #setRenderer(String)
+     * @return
+     */
+    public String getRenderer() {
+        String renderer = pullParam("-renderer");
+        if (renderer != null)
+            setRenderer(renderer);
+        
+        return Dot.getInstance().getRenderer();
+    }
     
     /**
      * If <code>false</code> then generate output of "lower quality"
@@ -1126,10 +1124,6 @@ public class Config
             list.add("-rankdirbug");
         if (!isAdsEnabled())
             list.add("-noads");
-        if (isHighQuality())
-            list.add("-hq");
-        else if (isLowQuality())
-            list.add("-lq");
         
         String value = getDriverPath();
         if (value != null) {
@@ -1146,6 +1140,8 @@ public class Config
         list.add(String.valueOf(getFontSize()));
         list.add("-t");
         list.add(getDbType());
+        list.add("-renderer");  // instead of -hq and/or -lq
+        list.add(getRenderer());
         value = getDescription();
         if (value != null) {
             list.add("-desc");
