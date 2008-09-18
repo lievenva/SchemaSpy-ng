@@ -24,6 +24,7 @@ public class Main {
         } catch (InvalidConfigurationException badConfig) {
             System.err.println(badConfig.getClass().getSimpleName() + ": " + badConfig.getMessage());
         } catch (StyleSheet.MissingCssPropertyException badCss) {
+            System.err.println();
             System.err.println(badCss.getClass().getSimpleName() + ": " + badCss.getMessage());
         } catch (Exception exc) {
             exc.printStackTrace();

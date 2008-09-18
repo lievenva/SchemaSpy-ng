@@ -181,7 +181,7 @@ public class StyleSheet {
         private static final long serialVersionUID = 1L;
 
         public MissingCssPropertyException(String cssSection, String propName) {
-            super("Required property '" + propName + "' was not found for the CSS definition of '" + cssSection + "' in " + Config.getInstance().getCss());
+            super("Required property '" + propName + "' was not found for the definition of '" + cssSection + "' in " + Config.getInstance().getCss());
         }
     }
 }
