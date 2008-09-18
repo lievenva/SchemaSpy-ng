@@ -1,5 +1,6 @@
 package net.sourceforge.schemaspy;
 
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.ui.MainFrame;
 
 /**
@@ -18,8 +19,10 @@ public class Main {
 
         try {
             rc = analyzer.analyze(new Config(argv));
+        } catch (InvalidConfigurationException badConfig) {
+            System.err.println(badConfig.getClass().getSimpleName() + ": " + badConfig.getMessage());
         } catch (Exception exc) {
-            System.err.println(exc.getClass().getSimpleName() + ": " + exc.getMessage());
+            exc.printStackTrace();
         }
         
         System.exit(rc);
