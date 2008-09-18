@@ -105,7 +105,7 @@ public class Dot {
      * @return
      */
     public boolean requiresGdRenderer() {
-        return getVersion().compareTo(new Version("2.12")) >= 0 && supportsRenderer(":gd", false);
+        return getVersion().compareTo(new Version("2.12")) >= 0 && supportsRenderer(":gd");
     }
     
     /**
@@ -122,7 +122,7 @@ public class Dot {
     }
     
     public String getRenderer() {
-        return renderer != null && supportsRenderer(renderer, true) ? renderer 
+        return renderer != null && supportsRenderer(renderer) ? renderer 
             : (requiresGdRenderer() ? ":gd" : "");
     }
     
@@ -135,9 +135,9 @@ public class Dot {
      * not have the "higher quality" libraries.
      */
     public void setHighQuality(boolean highQuality) {
-        if (highQuality && supportsRenderer(":cairo", true)) {
+        if (highQuality && supportsRenderer(":cairo")) {
             setRenderer(":cairo");
-        } else if (supportsRenderer(":gd", false)) {
+        } else if (supportsRenderer(":gd")) {
             setRenderer(":gd");
         }
     }
@@ -154,11 +154,9 @@ public class Dot {
      * See {@link #setRenderer(String)} for renderer details.
      * 
      * @param renderer
-     * @param warnIfNotSupported 
      * @return
      */
-    public boolean supportsRenderer(@SuppressWarnings("hiding") String renderer, 
-                                    boolean warnIfNotSupported) {
+    public boolean supportsRenderer(@SuppressWarnings("hiding") String renderer) {
         if (!exists())
             return false;
         
@@ -184,10 +182,8 @@ public class Dot {
         }
         
         if (!validatedRenderers.contains(renderer)) {
-            if (warnIfNotSupported) {
-                System.err.println("\nFailed to validate " + getFormat() + " renderer '" + renderer + "'.  Reverting to detault renderer for " + getFormat() + '.');
-                invalidatedRenderers.add(renderer);
-            }
+            //System.err.println("\nFailed to validate " + getFormat() + " renderer '" + renderer + "'.  Reverting to detault renderer for " + getFormat() + '.');
+            invalidatedRenderers.add(renderer);
             return false;
         }
         

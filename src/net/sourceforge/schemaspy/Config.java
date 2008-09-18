@@ -76,6 +76,7 @@ public class Config
     private Boolean meterEnabled;
     private Boolean evaluteAll;
     private Boolean highQuality;
+    private Boolean lowQuality;
     private Boolean adsEnabled;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
@@ -701,16 +702,18 @@ public class Config
     
     /**
      * If <code>false</code> then generate output of "lower quality"
-     * than the default ("higher quality").  
+     * than the default.
      * Note that the default is intended to be "higher quality", 
      * but various installations of Graphviz may have have different abilities.
      * That is, some might not have the "lower quality" libraries and others might
      * not have the "higher quality" libraries.<p>
      * Higher quality output takes longer to generate and results in significantly
-     * larger image files (which take longer to download / display), but it looks better.
+     * larger image files (which take longer to download / display), but it generally
+     * looks better.
      */
     public void setHighQuality(boolean highQuality) {
         this.highQuality = highQuality;
+        this.lowQuality = !highQuality;
         Dot.getInstance().setHighQuality(highQuality);
     }
     
@@ -719,11 +722,31 @@ public class Config
      */
     public boolean isHighQuality() {
         if (highQuality == null) {
-            highQuality = !options.remove("-lq");
-            Dot.getInstance().setHighQuality(highQuality);
+            highQuality = options.remove("-hq");
+            if (highQuality) {
+                // use whatever is the default unless explicitly specified otherwise
+                Dot.getInstance().setHighQuality(highQuality);
+            }
         }
 
-        return Dot.getInstance().isHighQuality();
+        highQuality = Dot.getInstance().isHighQuality();
+        return highQuality; 
+    }
+    
+    /**
+     * @see #setHighQuality(boolean)
+     */
+    public boolean isLowQuality() {
+        if (lowQuality == null) {
+            lowQuality = options.remove("-lq");
+            if (lowQuality) {
+                // use whatever is the default unless explicitly specified otherwise
+                Dot.getInstance().setHighQuality(!lowQuality);
+            }
+        }
+        
+        lowQuality = !Dot.getInstance().isHighQuality();
+        return lowQuality;
     }
     
     /**
@@ -1103,7 +1126,9 @@ public class Config
             list.add("-rankdirbug");
         if (!isAdsEnabled())
             list.add("-noads");
-        if (!isHighQuality())
+        if (isHighQuality())
+            list.add("-hq");
+        else if (isLowQuality())
             list.add("-lq");
         
         String value = getDriverPath();
