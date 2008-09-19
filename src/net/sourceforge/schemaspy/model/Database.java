@@ -537,7 +537,7 @@ public class Database {
             String paramName = new StringTokenizer(sql.substring(nextColon), " ,").nextToken();
             String paramValue = namedParams.get(paramName);
             if (paramValue == null)
-                throw new IllegalArgumentException("Unexpected named parameter '" + paramName + "' found in SQL '" + sql + "'");
+                throw new InvalidConfigurationException("Unexpected named parameter '" + paramName + "' found in SQL '" + sql + "'");
             sqlParams.add(paramValue);
             sql.replace(nextColon, nextColon + paramName.length(), "?"); // replace with a ?
             nextColon = sql.indexOf(":", nextColon);

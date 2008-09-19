@@ -1,13 +1,12 @@
 package net.sourceforge.schemaspy.view;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +14,17 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import net.sourceforge.schemaspy.Config;
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * Represents our CSS style sheet (CSS) with accessors for important
+ * data from that style sheet.  
+ * The idea is that the CSS that will be used to render the HTML pages
+ * also determines the colors used in the generated ER diagrams. 
+ *  
+ * @author John Currier
+ */
 public class StyleSheet {
     private static StyleSheet instance;
     private final String css;
@@ -82,6 +90,12 @@ public class StyleSheet {
         }
     }
 
+    /**
+     * Singleton accessor
+     * 
+     * @return the singleton
+     * @throws ParseException
+     */
     public static StyleSheet getInstance() throws ParseException {
         if (instance == null) {
             try {
@@ -93,7 +107,21 @@ public class StyleSheet {
         
         return instance;
     }
-    
+
+    /**
+     * Returns a {@link Reader} that can be used to read the contents
+     * of the specified css.<p>
+     * Search order is
+     * <ol>
+     * <li><code>cssName</code> as an explicitly-defined file</li>
+     * <li><code>cssName</code> as a file in the user's home directory</li>
+     * <li><code>cssName</code> as a resource from the class path</li>
+     * </ol>
+     * 
+     * @param cssName
+     * @return
+     * @throws IOException
+     */
     private static Reader getReader(String cssName) throws IOException {
         File cssFile = new File(cssName);
         if (cssFile.exists())
@@ -128,6 +156,12 @@ public class StyleSheet {
         return attribs;
     }
 
+    /**
+     * Write the contents of the original css to <code>out</code>.
+     * 
+     * @param out
+     * @throws IOException
+     */
     public void write(LineWriter out) throws IOException {
         out.write(css);
     }
@@ -195,21 +229,37 @@ public class StyleSheet {
         return linkVisitedColor;
     }
 
-    public static class MissingCssPropertyException extends RuntimeException {
+    /**
+     * Indicates that a css property was missing
+     */
+    public static class MissingCssPropertyException extends InvalidConfigurationException {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * @param cssSection name of the css section
+         * @param propName name of the missing property in that section
+         */
         public MissingCssPropertyException(String cssSection, String propName) {
             super("Required property '" + propName + "' was not found for the definition of '" + cssSection + "' in " + Config.getInstance().getCss());
         }
     }
     
-    public static class ParseException extends RuntimeException {
+    /**
+     * Indicates an exception in parsing the css
+     */
+    public static class ParseException extends InvalidConfigurationException {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * @param cause root exception that caused the failure
+         */
         public ParseException(Exception cause) {
             super(cause);
         }
         
+        /**
+         * @param msg textual description of the failure
+         */
         public ParseException(String msg) {
             super(msg);
         }
