@@ -95,7 +95,7 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <th>Name</th>
   <th>Req'd Column(s)</th>
-  <th>Description</th>
+  <th>Returns</th>
   <th>Scope of query</th>
  </tr>
  <tr>
@@ -127,14 +127,18 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectCheckConstraintsSql</td>
   <td>constraint_name, table_name, text</td>
-  <td>Check constraint details of all check contraints, where 'text' is usually 
-  the SQL used to create the constraint.</td>
+  <td>Check constraint details of all check constraints, where 'text' is usually 
+      the SQL used to create the constraint.
+      These details will be displayed on the table detail pages.
+  </td>
   <td>Database</td>
  </tr>
  <tr>
   <td>selectViewSql</td>
   <td>text</td>
-  <td>Details of a specific view, usually the SQL used to create the view.</td>
+  <td>Details of a specific view, usually the SQL used to create the view.
+      These details will be displayed on the view detail pages.
+  </td>
   <td>Single view</td>
  </tr>
  <tr>
