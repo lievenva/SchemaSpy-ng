@@ -21,7 +21,7 @@ create table PUBLISHER (
   primary key(publisherId),
   foreign key(address) references ADDRESS(addressId),
   index(name)
-) type=InnoDB COMMENT='<a href="foo.html">foo</a>';
+) type=InnoDB COMMENT='<a href="http://en.wikipedia.org/wiki/Publisher">Publisher</a>';
 
 create table BOOK (
   isbn bigint,
@@ -30,7 +30,7 @@ create table BOOK (
   primary key (isbn),
   foreign key (publisherId) references PUBLISHER(publisherId),
   index (title)
-) type=InnoDB;
+) type=InnoDB COMMENT='Book details';
 
 create table author (
   authorId integer auto_increment,
