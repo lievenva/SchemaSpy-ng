@@ -83,7 +83,7 @@ Or are you in QA and the developers expect you to understand all the
 relationships in their schema?
 If so then this tool's for you.<br>
 <br>
-SchemaSpy is a Java-based tool (requires <a href="www.java.com/getjava/">Java 5 or higher</a>)
+SchemaSpy is a Java-based tool (requires <a href="http://www.java.com/getjava/">Java 5 or higher</a>)
 that analyzes the metadata of a schema in a database and generates a
 visual representation of it in a browser-displayable format.
 It lets you click through the hierarchy of database tables via child and parent table 
