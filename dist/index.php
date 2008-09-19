@@ -232,12 +232,12 @@ full power of the tool.<br>
       </tr>
       <tr>
         <td>&nbsp;</td>
-        <td class="param"><code>-lq</code></td>
-        <td class="param">Generate lower-quality diagrams.
-            Note that the default is intended to be "higher quality", but 
-            various installations of 
+        <td class="param"><code>-hq<br>-lq</code></td>
+        <td class="param">Generate either higher or lower-quality diagrams.
+            Various installations of 
             <a target="_blank" href="http://www.graphviz.org/">Graphviz</a>
-            may have have different abilities.
+            (depending on OS and/or version) will default to generating either 
+            higher or lower quality images. 
             That is, some might not have the "lower quality" libraries and others 
             might not have the "higher quality" libraries.<br/>
             Higher quality output takes longer to generate and results in significantly
