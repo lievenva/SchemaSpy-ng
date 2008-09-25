@@ -1150,6 +1150,8 @@ public class Config
             list.add("-norows");
         if (isRankDirBugEnabled())
             list.add("-rankdirbug");
+        if (isRailsEnabled())
+        	list.add("-rails");
         if (!isAdsEnabled())
             list.add("-noads");
         
