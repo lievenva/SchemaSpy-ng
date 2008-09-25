@@ -71,6 +71,15 @@ public class Database {
     public Collection<Table> getTables() {
         return tables.values();
     }
+    
+    /**
+     * Return a {@link Map} of all {@link Table}s keyed by their name.
+     * 
+     * @return
+     */
+    public Map<String, Table> getTablesByName() {
+    	return tables;
+    }
 
     public Collection<View> getViews() {
         return views.values();

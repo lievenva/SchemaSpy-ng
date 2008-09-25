@@ -213,7 +213,10 @@ public class SchemaAnalyzer {
                 // getting implied constraints has a side-effect of associating the parent/child tables, so don't do it
                 // here unless they want that behavior
                 List<ImpliedForeignKeyConstraint> impliedConstraints = null;
-                if (includeImpliedConstraints)
+                if (config.isRailsEnabled()) {
+                	DbAnalyzer.getRailsConstraints(db.getTablesByName());
+                    impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
+                } else if (includeImpliedConstraints)
                     impliedConstraints = DbAnalyzer.getImpliedConstraints(tables);
                 else
                     impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();

@@ -74,6 +74,7 @@ public class Config
     private Boolean encodeCommentsEnabled;
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
+	private Boolean railsEnabled;
     private Boolean evaluteAll;
     private Boolean highQuality;
     private Boolean lowQuality;
@@ -510,6 +511,33 @@ public class Config
             rankDirBugEnabled = options.remove("-rankdirbug");
         
         return rankDirBugEnabled;
+    }
+    
+    /**
+     * Look for Ruby on Rails-based naming conventions in
+     * relationships between logical foreign keys and primary keys.<p>
+     * 
+     * Basically all tables have a primary key named <code>ID</code>.
+     * All tables are named plural names.
+     * The columns that logically reference that <code>ID</code> are the singular 
+     * form of the table name suffixed with <code>_ID</code>.<p>
+     *  
+     * @param enabled
+     */
+    public void setRailsEnabled(boolean enabled) {
+    	this.railsEnabled = enabled;
+    }
+    
+    /**
+     * @see #setRailsEnabled(boolean)
+     * 
+     * @return
+     */
+    public boolean isRailsEnabled() {
+    	if (railsEnabled == null) 
+    		railsEnabled = options.remove("-rails");
+    	
+    	return railsEnabled;
     }
     
     /**
