@@ -634,6 +634,8 @@ public class Table implements Comparable<Table> {
         if (properties == null) // some "meta" tables don't have associated properties
             return 0;
         
+        SQLException originalFailure = null;
+        
         String sql = properties.getProperty("selectRowCountSql");
         if (sql != null) {
             PreparedStatement stmt = null;
@@ -648,9 +650,7 @@ public class Table implements Comparable<Table> {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.err.println();
-                System.err.println("Unable to extract the number of rows for table " + getName() + ": " + sqlException);
-                System.err.println(sql);
+            	originalFailure = sqlException;
             } finally {
                 if (rs != null)
                     rs.close();
@@ -663,13 +663,15 @@ public class Table implements Comparable<Table> {
         try {
             // '*' should work best for the majority of cases
             return fetchNumRows(db, "count(*)", false);
-        } catch (SQLException exc) {
+        } catch (SQLException try2Exception) {
             try {
                 // except nested tables...try using '1' instead
                 return fetchNumRows(db, "count(1)", false);
-            } catch (SQLException try2Exception) {
-                System.err.println(try2Exception);
+            } catch (SQLException try3Exception) {
                 System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
+                System.err.println(originalFailure);
+                System.err.println(try2Exception);
+                System.err.println(try3Exception);
                 return -1;
             }
         }
