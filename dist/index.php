@@ -154,12 +154,12 @@ the full power of the tool.<br>
         </td>
       </tr>
       <tr>
-        <td>*</td>
+        <td title='Required'>*</td>
         <td class="param"><code>-db <i>dbName</i></code></td>
         <td class="param">Name of database to connect to</td>
       </tr>
       <tr>
-        <td>*</td>
+        <td title='Required unless -nouser specified'>*</td>
         <td class="param"><code>-u <i>user</i></code></td>
         <td class="param">Valid database user id with read access</td>
       </tr>
@@ -176,7 +176,7 @@ the full power of the tool.<br>
             Defaults to no password.</td>
       </tr>
       <tr>
-        <td>*</td>
+        <td title='Required'>*</td>
         <td class="param"><code>-o <i>outputDirectory</i></code></td>
         <td class="param">Directory to write the generated HTML/graphs to</td>
       </tr>
@@ -270,7 +270,7 @@ the full power of the tool.<br>
         <td>&nbsp;</td>
         <td class="param"><code>-X <i>"columnNamesRegex"</i></code></td>
         <td class="param">
-            Same as -x but excluded relationships will not show up on detail pages.
+            Same as <code>-x</code> but excluded relationships will not show up on detail pages.
         </td>
       </tr>
       <tr>
@@ -289,6 +289,14 @@ the full power of the tool.<br>
         <td>&nbsp;</td>
         <td class="param"><code>-noimplied</code></td>
         <td class="param">Don't include implied foreign key relationships in the generated table details</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td class="param"><code>-nouser</code></td>
+        <td class="param">
+            Don't require a user to be specified with <code>-u</code>.
+            This can simplify configuration when running in a single sign-on environment.
+        </td>
       </tr>
       <tr>
         <td>&nbsp;</td>
