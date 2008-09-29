@@ -1,5 +1,7 @@
 package net.sourceforge.schemaspy;
 
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -138,6 +140,8 @@ public class SchemaAnalyzer {
 
             if (schema == null && meta.supportsSchemasInTableDefinitions()) {
                 schema = config.getUser();
+                if (schema == null)
+                    throw new InvalidConfigurationException("Either a schema ('-s') or a user ('-u') must be specified");
                 config.setSchema(schema);
             }
 
@@ -457,7 +461,8 @@ public class SchemaAnalyzer {
         }
 
         Properties connectionProperties = new Properties();
-        connectionProperties.put("user", config.getUser());
+        if (config.getUser() != null)
+            connectionProperties.put("user", config.getUser());
         if (config.getPassword() != null)
             connectionProperties.put("password", config.getPassword());
         connectionProperties.putAll(config.getConnectionProperties());

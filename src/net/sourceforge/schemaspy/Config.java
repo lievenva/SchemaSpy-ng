@@ -47,6 +47,7 @@ public class Config
     private String schema;
     private List<String> schemas;
     private String user;
+    private Boolean userRequired;
     private String password;
     private String db;
     private String host;
@@ -266,9 +267,34 @@ public class Config
     }
     
     public String getUser() {
-        if (user == null)
-            user = pullRequiredParam("-u");
+        if (user == null) {
+            if (isUserRequired())
+                user = pullRequiredParam("-u");
+            else
+                user = pullParam("-u");
+        }
         return user;
+    }
+
+    /**
+     * By default a "user" (as specified with -u) is required.
+     * This option allows disabling of that requirement (e.g. for 
+     * single sign-on environments).
+     * 
+     * @param required defaults to <code>true</code>
+     */
+    public void setUserRequired(boolean required) {
+        this.userRequired = required;
+    }
+
+    /**
+     * @see #setUserRequired(boolean)
+     */
+    public boolean isUserRequired() {
+        if (userRequired == null)
+            userRequired = !options.remove("-nouser");
+        
+        return userRequired;
     }
     
     public void setPassword(String password) {
@@ -1123,114 +1149,118 @@ public class Config
      * @throws IOException
      */
     public List<String> asList() throws IOException {
-        List<String> list = new ArrayList<String>();
+        List<String> params = new ArrayList<String>();
         
         if (originalDbSpecificOptions != null) {
             for (String key : originalDbSpecificOptions.keySet()) {
                 String value = originalDbSpecificOptions.get(key);
                 if (!key.startsWith("-"))
                     key = "-" + key;
-                list.add(key);
-                list.add(value);
+                params.add(key);
+                params.add(value);
             }
         }
         if (isEncodeCommentsEnabled())
-            list.add("-ahic");
+            params.add("-ahic");
         if (isEvaluateAllEnabled())
-            list.add("-all");
+            params.add("-all");
         if (!isHtmlGenerationEnabled())
-            list.add("-nohtml");
+            params.add("-nohtml");
         if (!isImpliedConstraintsEnabled())
-            list.add("-noimplied");
+            params.add("-noimplied");
         if (!isLogoEnabled())
-            list.add("-nologo");
+            params.add("-nologo");
         if (isMeterEnabled())
-            list.add("-meter");
+            params.add("-meter");
         if (!isNumRowsEnabled())
-            list.add("-norows");
+            params.add("-norows");
         if (isRankDirBugEnabled())
-            list.add("-rankdirbug");
+            params.add("-rankdirbug");
         if (isRailsEnabled())
-        	list.add("-rails");
+        	params.add("-rails");
+        if (!isUserRequired())
+            params.add("-nouser");
         if (!isAdsEnabled())
-            list.add("-noads");
+            params.add("-noads");
         
         String value = getDriverPath();
         if (value != null) {
-            list.add("-dp");
-            list.add(value);
+            params.add("-dp");
+            params.add(value);
         }
-        list.add("-css");
-        list.add(getCss());
-        list.add("-charset");
-        list.add(getCharset());
-        list.add("-font");
-        list.add(getFont());
-        list.add("-fontsize");
-        list.add(String.valueOf(getFontSize()));
-        list.add("-t");
-        list.add(getDbType());
-        list.add("-renderer");  // instead of -hq and/or -lq
-        list.add(getRenderer());
+        params.add("-css");
+        params.add(getCss());
+        params.add("-charset");
+        params.add(getCharset());
+        params.add("-font");
+        params.add(getFont());
+        params.add("-fontsize");
+        params.add(String.valueOf(getFontSize()));
+        params.add("-t");
+        params.add(getDbType());
+        params.add("-renderer");  // instead of -hq and/or -lq
+        params.add(getRenderer());
         value = getDescription();
         if (value != null) {
-            list.add("-desc");
-            list.add(value);
+            params.add("-desc");
+            params.add(value);
         }
         value = getPassword();
         if (value != null) {
-            list.add("-p");
-            list.add(value);
+            params.add("-p");
+            params.add(value);
         }
         value = getSchema();
         if (value != null) {
-            list.add("-s");
-            list.add(value);
+            params.add("-s");
+            params.add(value);
         }
-        list.add("-u");
-        list.add(getUser());
+        if (getUser() != null) {
+            params.add("-u");
+            params.add(getUser());
+        }
         value = getConnectionPropertiesFile();
         if (value != null) {
-            list.add("-connprops");
-            list.add(value);
+            params.add("-connprops");
+            params.add(value);
         }
         value = getDb();
         if (value != null) {
-            list.add("-db");
-            list.add(value);
+            params.add("-db");
+            params.add(value);
         }
         value = getHost();
         if (value != null) {
-            list.add("-host");
-            list.add(value);
+            params.add("-host");
+            params.add(value);
         }
         if (getPort() != null) {
-            list.add("-port");
-            list.add(getPort().toString());
+            params.add("-port");
+            params.add(getPort().toString());
         }
         value = getServer();
         if (value != null) {
-            list.add("-server");
-            list.add(value);
+            params.add("-server");
+            params.add(value);
         }
         value = getMeta();
         if (value != null) {
-            list.add("-meta");
-            list.add(value);
+            params.add("-meta");
+            params.add(value);
         }
-        list.add("-i");
-        list.add(getTableInclusions().pattern());
-        list.add("-x");
-        list.add(getColumnExclusions().pattern());
-        list.add("-X");
-        list.add(getIndirectColumnExclusions().pattern());
-        list.add("-dbthreads");
-        list.add(String.valueOf(getMaxDbThreads()));
-        list.add("-maxdet");
-        list.add(String.valueOf(getMaxDetailedTables()));
-        list.add("-o");
-        list.add(getOutputDir().toString());
+        params.add("-i");
+        params.add(getTableInclusions().pattern());
+        params.add("-x");
+        params.add(getColumnExclusions().pattern());
+        params.add("-X");
+        params.add(getIndirectColumnExclusions().pattern());
+        params.add("-dbthreads");
+        params.add(String.valueOf(getMaxDbThreads()));
+        params.add("-maxdet");
+        params.add(String.valueOf(getMaxDetailedTables()));
+        params.add("-o");
+        params.add(getOutputDir().toString());
         
-        return list;
+        return params;
     }
 }
