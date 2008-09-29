@@ -199,7 +199,16 @@ public class SchemaAnalyzer {
                 boolean showDetailedTables = tables.size() <= config.getMaxDetailedTables();
                 final boolean includeImpliedConstraints = config.isImpliedConstraintsEnabled();
 
+                // if evaluating a 'ruby on rails-based' database then connect the columns
+                // based on RoR conventions
+                // note that this is done before 'hasRealRelationships' gets evaluated so
+                // we get a relationships ER diagram
+                if (config.isRailsEnabled())
+                    DbAnalyzer.getRailsConstraints(db.getTablesByName());
+
                 File diagramsDir = new File(outputDir, "diagrams/summary");
+                
+                // generate the compact form of the relationships .dot file 
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
                 WriteStats stats = new WriteStats(tables);
@@ -208,6 +217,7 @@ public class SchemaAnalyzer {
                 out.close();
 
                 if (hasRealRelationships) {
+                    // real relationships exist so generate the 'big' form of the relationships .dot file 
                     System.out.print(".");
                     out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
@@ -221,8 +231,6 @@ public class SchemaAnalyzer {
                     impliedConstraints = DbAnalyzer.getImpliedConstraints(tables);
                 else
                     impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
-                if (config.isRailsEnabled())
-                	DbAnalyzer.getRailsConstraints(db.getTablesByName());
 
                 List<Table> orphans = DbAnalyzer.getOrphans(tables);
                 boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
