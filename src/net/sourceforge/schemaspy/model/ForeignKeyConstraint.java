@@ -91,6 +91,19 @@ public class ForeignKeyConstraint {
     public boolean isImplied() {
         return false;
     }
+    
+    /**
+     * We have several types of constraints.  
+     * This returns <code>true</code> if the constraint came from the database
+     * metadata and not inferred by something else.  
+     * This is different than {@link #isImplied()} in that implied relationships
+     * are a specific type of non-real relationships.
+     *  
+     * @return
+     */
+    public boolean isReal() {
+        return getClass() == ForeignKeyConstraint.class;
+    }
 
     /**
      * @param columns

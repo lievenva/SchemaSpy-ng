@@ -53,6 +53,7 @@ public class SchemaSpy {
         }
 
         unattached = sortTrimmedLevel(unattached);
+        boolean prunedNonReals = false;
 
         while (!remainingTables.isEmpty()) {
             int tablesLeft = remainingTables.size();
@@ -62,6 +63,16 @@ public class SchemaSpy {
             // if we could't trim anything then there's recursion....
             // resolve it by removing a constraint, one by one, 'till the tables are all trimmed
             if (tablesLeft == remainingTables.size()) {
+                if (!prunedNonReals) {
+                    // get ride of everything that isn't explicitly specified by the database
+                    for (Table table : remainingTables) {
+                        table.removeNonRealForeignKeys();
+                    }
+                    
+                    prunedNonReals = true;
+                    continue;
+                }
+                
                 boolean foundSimpleRecursion = false;
                 for (Table potentialRecursiveTable : remainingTables) {
                     ForeignKeyConstraint recursiveConstraint = potentialRecursiveTable.removeSelfReferencingConstraint();

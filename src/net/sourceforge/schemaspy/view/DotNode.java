@@ -119,7 +119,7 @@ public class DotNode {
         
         buf.append("      <TR>");
         buf.append("<TD ALIGN=\"LEFT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
-        int numParents = config.showImpliedRelationships ? table.getNumParents() : table.getNumRealParents();
+        int numParents = config.showImpliedRelationships ? table.getNumParents() : table.getNumNonImpliedParents();
         if (numParents > 0 || config.showColumnDetails)
             buf.append("&lt; " + numParents);
         else
@@ -141,7 +141,7 @@ public class DotNode {
         }
         buf.append("</TD>");
         buf.append("<TD ALIGN=\"RIGHT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
-        int numChildren = config.showImpliedRelationships ? table.getNumChildren() : table.getNumRealChildren();
+        int numChildren = config.showImpliedRelationships ? table.getNumChildren() : table.getNumNonImpliedChildren();
         if (numChildren > 0 || config.showColumnDetails)
             buf.append(numChildren + " &gt;");
         else

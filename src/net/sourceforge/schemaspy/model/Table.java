@@ -506,22 +506,39 @@ public class Table implements Comparable<Table> {
         return true;
     }
 
+    /**
+     * Remove a single self referencing constraint if one exists.
+     * 
+     * @return
+     */
     public ForeignKeyConstraint removeSelfReferencingConstraint() {
-        ForeignKeyConstraint recursiveConstraint = getSelfReferencingConstraint();
-        if (recursiveConstraint != null) {
-            // more drastic removal solution by Remke Rutgers:
-            for (int i = 0; i < recursiveConstraint.getChildColumns().size(); i++) {
-                TableColumn childColumn = recursiveConstraint.getChildColumns().get(i);
-                TableColumn parentColumn = recursiveConstraint.getParentColumns().get(i);
+        return remove(getSelfReferencingConstraint());
+    }
+    
+    /**
+     * Remove the specified {@link ForeignKeyConstraint} from this table.<p>
+     * 
+     * This is a more drastic removal solution that was proposed by Remke Rutgers
+     * 
+     * @param constraint
+     */
+    private ForeignKeyConstraint remove(ForeignKeyConstraint constraint) {
+        if (constraint != null) {
+            for (int i = 0; i < constraint.getChildColumns().size(); i++) {
+                TableColumn childColumn = constraint.getChildColumns().get(i);
+                TableColumn parentColumn = constraint.getParentColumns().get(i);
                 childColumn.removeParent(parentColumn);
                 parentColumn.removeChild(childColumn);
             }
-            return recursiveConstraint;
         }
-
-        return null;
+        return constraint;
     }
 
+    /**
+     * Return a self referencing constraint if one exists
+     * 
+     * @return
+     */
     private ForeignKeyConstraint getSelfReferencingConstraint() {
         for (TableColumn column : columns.values()) {
             for (TableColumn parentColumn : column.getParents()) {
@@ -531,6 +548,26 @@ public class Table implements Comparable<Table> {
             }
         }
         return null;
+    }
+
+    /**
+     * Remove any non-real foreign keys
+     * 
+     * @return
+     */
+    public List<ForeignKeyConstraint> removeNonRealForeignKeys() {
+        List<ForeignKeyConstraint> nonReals = new ArrayList<ForeignKeyConstraint>();
+        
+        for (TableColumn column : columns.values()) {
+            for (TableColumn parentColumn : column.getParents()) {
+                ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn);
+                if (constraint != null && !constraint.isReal()) {
+                    nonReals.add(remove(constraint));
+                }
+            }
+        }
+        
+        return nonReals;
     }
 
     public int getNumChildren() {
@@ -543,7 +580,11 @@ public class Table implements Comparable<Table> {
         return numChildren;
     }
 
-    public int getNumRealChildren() {
+    /**
+     * Returns the number of non-implied children
+     * @return
+     */
+    public int getNumNonImpliedChildren() {
         int numChildren = 0;
 
         for (TableColumn column : columns.values()) {
@@ -566,7 +607,12 @@ public class Table implements Comparable<Table> {
         return numParents;
     }
 
-    public int getNumRealParents() {
+    /**
+     * Returns the number of non-implied parents
+     * 
+     * @return
+     */
+    public int getNumNonImpliedParents() {
         int numParents = 0;
 
         for (TableColumn column : columns.values()) {
@@ -584,7 +630,7 @@ public class Table implements Comparable<Table> {
         final List<TableColumn> columns = getColumns();
         int numParents = 0;
         int numChildren = 0;
-        // remove either a child or parent, chosing which based on which has the
+        // remove either a child or parent, choosing which based on which has the
         // least number of foreign key associations (when either gets to zero then
         // the table can be pruned)
         for (TableColumn column : columns) {
@@ -605,18 +651,39 @@ public class Table implements Comparable<Table> {
         return null;
     }
 
+    /**
+     * Returns <code>true</code> if this is a view, <code>false</code> otherwise
+     *
+     * @return
+     */
     public boolean isView() {
         return false;
     }
     
+    /**
+     * Returns <code>true</code> if this table is remote (in another schema), <code>false</code> otherwise
+     * @return
+     */
     public boolean isRemote() {
         return false;
     }
-    
+
+    /**
+     * If this is a view it returns the SQL used to create the view (if it's available).
+     * <code>null</code> if it's not a view or the SQL isn't available.
+     * @return
+     * @see #isView()
+     */
     public String getViewSql() {
         return null;
     }
 
+    /**
+     * Returns the number of rows contained in this table, or -1 if unable to determine
+     * the number of rows.
+     * 
+     * @return
+     */
     public int getNumRows() {
         return numRows;
     }

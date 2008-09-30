@@ -133,12 +133,12 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         }
 
         html.write("  <td class='detail' align='right'>");
-        int numRelatives = table.getNumRealChildren();
+        int numRelatives = table.getNumNonImpliedChildren();
         if (numRelatives != 0)
             html.write(String.valueOf(integerFormatter.format(numRelatives)));
         html.writeln("</td>");
         html.write("  <td class='detail' align='right'>");
-        numRelatives = table.getNumRealParents();
+        numRelatives = table.getNumNonImpliedParents();
         if (numRelatives != 0)
             html.write(String.valueOf(integerFormatter.format(numRelatives)));
         html.writeln("</td>");
