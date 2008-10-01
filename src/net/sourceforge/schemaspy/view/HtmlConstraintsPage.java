@@ -57,7 +57,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
     private void writeForeignKeyConstraints(List<ForeignKeyConstraint> constraints, LineWriter html) throws IOException {
         Set<ForeignKeyConstraint> constraintsByName = new TreeSet<ForeignKeyConstraint>(new Comparator<ForeignKeyConstraint>() {
             public int compare(ForeignKeyConstraint cons1, ForeignKeyConstraint cons2) {
-                return cons1.getName().compareTo(cons2.getName());
+                return cons1.getName().compareToIgnoreCase(cons2.getName());
             }
         });
         constraintsByName.addAll(constraints);

@@ -28,7 +28,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
     public void write(Database database, Collection<Table> tables, boolean showOrphansDiagram, LineWriter html) throws IOException {
         Set<Table> byName = new TreeSet<Table>(new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
-                return table1.getName().compareTo(table2.getName());
+                return table1.getName().compareToIgnoreCase(table2.getName());
             }
         });
         byName.addAll(tables);

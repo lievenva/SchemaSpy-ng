@@ -131,9 +131,9 @@ public class TableIndex implements Comparable<TableIndex> {
         if (!isPrimaryKey() && other.isPrimaryKey())
             return 1;
         if (getId() == null)
-            return getName().compareTo(other.getName());
+            return getName().compareToIgnoreCase(other.getName());
         if (getId() instanceof Number)
             return ((Number)getId()).intValue() - ((Number)other.getId()).intValue();
-        return getId().toString().compareTo(other.getId().toString());
+        return getId().toString().compareToIgnoreCase(other.getId().toString());
     }
 }

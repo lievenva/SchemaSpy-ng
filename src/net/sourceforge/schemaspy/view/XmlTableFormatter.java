@@ -35,7 +35,7 @@ public class XmlTableFormatter {
     public void appendTables(Element schemaNode, Collection<Table> tables) {
         Set<Table> byName = new TreeSet<Table>(new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
-                return table1.getName().compareTo(table2.getName());
+                return table1.getName().compareToIgnoreCase(table2.getName());
             }
         });
         byName.addAll(tables);

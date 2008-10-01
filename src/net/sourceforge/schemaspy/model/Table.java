@@ -866,22 +866,22 @@ public class Table implements Comparable<Table> {
     }
 
     public int compareTo(Table table) {
-        return getName().compareTo(table.getName());
+        return getName().compareToIgnoreCase(table.getName());
     }
 
     private static class ByIndexColumnComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
             if (column1.getId() == null || column2.getId() == null)
-                return column1.getName().compareTo(column2.getName());
+                return column1.getName().compareToIgnoreCase(column2.getName());
             if (column1.getId() instanceof Number)
                 return ((Number)column1.getId()).intValue() - ((Number)column2.getId()).intValue();
-            return column1.getId().toString().compareTo(column2.getId().toString());
+            return column1.getId().toString().compareToIgnoreCase(column2.getId().toString());
         }
     }
 
     private static class ByCheckConstraintStringsComparator implements Comparator<String> {
         public int compare(String string1, String string2) {
-            return string1.compareTo(string2);
+            return string1.compareToIgnoreCase(string2);
         }
     }
 }
