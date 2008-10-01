@@ -864,7 +864,7 @@ public class Config
                     dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]" + File.separator + type + ".properties";
                 } catch (Exception notInJarWithoutPath) {
                     try {
-                        String path = SchemaSpy.class.getPackage().getName() + ".dbTypes." + type;
+                        String path = TableOrderer.class.getPackage().getName() + ".dbTypes." + type;
                         path = path.replace('.', '/');
                         bundle = ResourceBundle.getBundle(path);
                         dbPropertiesLoadedFrom = "[" + getLoadedFromJar() + "]/" + path + ".properties";

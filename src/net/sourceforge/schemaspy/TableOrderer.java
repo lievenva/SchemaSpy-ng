@@ -1,33 +1,23 @@
 package net.sourceforge.schemaspy;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
-import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
-import net.sourceforge.schemaspy.model.xml.SchemaMeta;
 
-public class SchemaSpy {
-    private final Database database;
-
-    public SchemaSpy(Connection connection, DatabaseMetaData meta, String dbName, String schema, String description, Properties properties, Pattern include, int maxThreads, SchemaMeta schemaMeta) throws SQLException {
-        database = new Database(connection, meta, dbName, schema, description, properties, include, maxThreads, schemaMeta);
-    }
-
-    public Database getDatabase() {
-        return database;
-    }
-
+/**
+ * Sorts {@link Table}s by their referential integrity constraints.
+ * The intent is to have a list of tables in an order that can be used
+ * to insert or delete them from a database.
+ * 
+ * @author John Currier
+ */
+public class TableOrderer {
     /**
      * Returns a list of <code>Table</code>s ordered such that parents are listed first
      * and child tables are listed last.
@@ -37,10 +27,10 @@ public class SchemaSpy {
      * @param recursiveConstraints
      * @return
      */
-    public List<Table> sortTablesByRI(Collection<ForeignKeyConstraint> recursiveConstraints) {
+    public List<Table> getTablesOrderedByRI(Collection<Table> tables, Collection<ForeignKeyConstraint> recursiveConstraints) {
         List<Table> heads = new ArrayList<Table>();
         List<Table> tails = new ArrayList<Table>();
-        List<Table> remainingTables = new ArrayList<Table>(getDatabase().getTables());
+        List<Table> remainingTables = new ArrayList<Table>(tables);
         List<Table> unattached = new ArrayList<Table>();
 
         // first pass to gather the 'low hanging fruit'
@@ -97,7 +87,7 @@ public class SchemaSpy {
                         public int compare(Table table1, Table table2) {
                             int rc = Math.abs(table2.getNumChildren() - table2.getNumParents()) - Math.abs(table1.getNumChildren() - table1.getNumParents());
                             if (rc == 0)
-                                rc = table1.getName().compareTo(table2.getName());
+                                rc = table1.getName().compareToIgnoreCase(table2.getName());
                             return rc;
                         }
                     });
@@ -123,6 +113,12 @@ public class SchemaSpy {
         return ordered;
     }
 
+    /**
+     * Remove the root nodes (tables w/o parents)
+     * 
+     * @param tables
+     * @return tables removed
+     */
     private static List<Table> trimRoots(List<Table> tables) {
         List<Table> roots = new ArrayList<Table>();
 
@@ -147,6 +143,12 @@ public class SchemaSpy {
         return roots;
     }
 
+    /**
+     * Remove the leaf nodes (tables w/o children)
+     * 
+     * @param tables
+     * @return tables removed
+     */
     private static List<Table> trimLeaves(List<Table> tables) {
         List<Table> leaves = new ArrayList<Table>();
 
@@ -191,7 +193,7 @@ public class SchemaSpy {
                 if (rc == 0)
                     rc = table1.getMaxParents() - table2.getMaxParents();
                 if (rc == 0)
-                    rc = table1.getName().compareTo(table2.getName());
+                    rc = table1.getName().compareToIgnoreCase(table2.getName());
                 return rc;
             }
         }

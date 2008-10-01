@@ -159,10 +159,9 @@ public class SchemaAnalyzer {
             }
 
             //
-            // create the spy
+            // create our representation of the database
             //
-            SchemaSpy spy = new SchemaSpy(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), schemaMeta);
-            Database db = spy.getDatabase();
+            Database db = new Database(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), schemaMeta);
 
             schemaMeta = null; // done with it so let GC reclaim it
 
@@ -324,7 +323,6 @@ public class SchemaAnalyzer {
             // (some people have run out of memory while RI sorting tables)
             builder = null;
             connection = null;
-            db = null;
             document = null;
             factory = null;
             meta = null;
@@ -334,9 +332,12 @@ public class SchemaAnalyzer {
             
             List<ForeignKeyConstraint> recursiveConstraints = new ArrayList<ForeignKeyConstraint>();
 
+            // create an orderer to be able to determine insertion and deletion ordering of tables
+            TableOrderer orderer = new TableOrderer();
+            
             // side effect is that the RI relationships get trashed
             // also populates the recursiveConstraints collection
-            List<Table> orderedTables = spy.sortTablesByRI(recursiveConstraints);
+            List<Table> orderedTables = orderer.getTablesOrderedByRI(db.getTables(), recursiveConstraints);
 
             out = new LineWriter(new File(outputDir, "insertionOrder.txt"), 16 * 1024, Config.DOT_CHARSET);
             TextFormatter.getInstance().write(orderedTables, false, out);
