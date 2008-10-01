@@ -46,7 +46,13 @@ public class SchemaSpy {
         // first pass to gather the 'low hanging fruit'
         for (Iterator<Table> iter = remainingTables.iterator(); iter.hasNext(); ) {
             Table table = iter.next();
-            if (table.isLeaf() && table.isRoot()) {
+            if (table.isRemote()) {
+                // ignore remote tables since there's no way to deal with them
+                table.unlinkParents();
+                table.unlinkChildren();
+                iter.remove();
+            } else if (table.isLeaf() && table.isRoot()) {
+                // floater, so add it to 'unattached'
                 unattached.add(table);
                 iter.remove();
             }
