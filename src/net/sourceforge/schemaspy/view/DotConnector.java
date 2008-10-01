@@ -90,17 +90,35 @@ public class DotConnector implements Comparable<DotConnector> {
             edge.append("s");
         edge.append("e ");
 
-        edge.append("[arrowtail=");
-        if (!childColumn.isUnique())
-            edge.append("crow");
-        if (childColumn.isNullable())
-            edge.append("odot");
+        // if enabled makes the diagram unreadable
+        // have to figure out how to render these details in a readable manner
+        final boolean fullErNotation = false;
+        
+        // Thanks to Dan Zingaro for figuring out how to correctly annotate
+        // these relationships
+        if (fullErNotation) {
+            // PK end of connector
+            edge.append("[arrowhead=");
+            if (childColumn.isNullable())
+                edge.append("odottee"); // zero or one parents
+            else
+                edge.append("teetee");  // one parent
+        } else {
+            // PK end of connector
+            edge.append("[arrowhead=none");
+        }
+
+        // FK end of connector
+        edge.append(" arrowtail=");
+        if (childColumn.isUnique())
+            edge.append("teeodot"); // zero or one children
         else
-            edge.append("tee");
-        edge.append(" arrowhead=none");
+            edge.append("crowodot");// zero or more children
+
         if (implied)
             edge.append(" style=dashed");
         edge.append("];");
+        
         return edge.toString();
     }
 
