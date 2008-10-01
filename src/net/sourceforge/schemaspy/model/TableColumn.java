@@ -22,6 +22,7 @@ public class TableColumn {
     private final String detailedSize;
     private final boolean isNullable;
     private       boolean isAutoUpdated;
+    private       Boolean isUnique;
     private final Object defaultValue;
     private       String comments;
     private final Map<TableColumn, ForeignKeyConstraint> parents = new HashMap<TableColumn, ForeignKeyConstraint>();
@@ -35,14 +36,14 @@ public class TableColumn {
      * Create a column associated with a table.
      *
      * @param table Table the table that this column belongs to
-     * @param rs ResultSet returned from <code>java.sql.DatabaseMetaData.getColumns()</code>.
+     * @param rs ResultSet returned from {@link DatabaseMetaData#getColumns(String, String, String, String)}
      * @throws SQLException
      */
     TableColumn(Table table, ResultSet rs, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         this.table = table;
         
         // names and types are typically reused *many* times in a database,
-        // so keep a single instance of each distint one
+        // so keep a single instance of each distinct one
         // (thanks to Mike Barnes for the suggestion)
         String tmp = rs.getString("COLUMN_NAME");
         name = tmp == null ? null : tmp.intern();
@@ -74,6 +75,9 @@ public class TableColumn {
     }
 
     /**
+     * A TableColumn that's derived from something other than traditional database metadata
+     * (e.g. defined in XML).
+     * 
      * @param table
      * @param colMeta
      */
@@ -91,67 +95,148 @@ public class TableColumn {
         comments = colMeta.getComments();
     }
 
+    /**
+     * Returns the {@link Table} that this column belongs to.
+     * 
+     * @return
+     */
     public Table getTable() {
         return table;
     }
 
+    /**
+     * Returns the column's name.
+     * 
+     * @return
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns the ID of the column or <code>null</code> if the database doesn't support the concept.
+     * 
+     * @return
+     */
     public Object getId() {
         return id;
     }
 
+    /**
+     * Type of the column.
+     * See {@link DatabaseMetaData#getColumns(String, String, String, String)}'s <code>TYPE_NAME</code>.
+     * @return
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Length of the column.
+     * See {@link DatabaseMetaData#getColumns(String, String, String, String)}'s <code>BUFFER_LENGTH</code>,
+     * or if that's <code>null</code>, <code>COLUMN_SIZE</code>.
+     * @return
+     */
     public int getLength() {
         return length;
     }
     
+    /**
+     * Decimal digits of the column.
+     * See {@link DatabaseMetaData#getColumns(String, String, String, String)}'s <code>DECIMAL_DIGITS</code>.
+     * 
+     * @return
+     */
     public int getDecimalDigits() {
         return decimalDigits;
     }
 
+    /**
+     * String representation of length with optional decimal digits (if decimal digits &gt; 0).
+     * 
+     * @return
+     */
     public String getDetailedSize() {
         return detailedSize;
     }
 
+    /**
+     * Returns <code>true</code> if null values are allowed
+     *
+     * @return
+     */
     public boolean isNullable() {
         return isNullable;
     }
 
+    /**
+     * See {@link java.sql.ResultSetMetaData#isAutoIncrement(int)}
+     * 
+     * @return
+     */
     public boolean isAutoUpdated() {
         return isAutoUpdated;
     }
 
+    /**
+     * setIsAutoUpdated
+     *
+     * @param isAutoUpdated boolean
+     */
+    public void setIsAutoUpdated(boolean isAutoUpdated) {
+        this.isAutoUpdated = isAutoUpdated;
+    }
+
+    /**
+     * Returns <code>true</code> if this column can only contain unique values
+     *
+     * @return
+     */
     public boolean isUnique() {
-        for (TableIndex index : table.getIndexes()) {
-            if (index.isUnique()) {
-                List<TableColumn> indexColumns = index.getColumns();
-                if (indexColumns.size() == 1 && indexColumns.contains(this)) {
-                    return true;
+        if (isUnique == null) {
+            // see if there's a unique index on this column by itself
+            for (TableIndex index : table.getIndexes()) {
+                if (index.isUnique()) {
+                    List<TableColumn> indexColumns = index.getColumns();
+                    if (indexColumns.size() == 1 && indexColumns.contains(this)) {
+                        isUnique = true;
+                        break;
+                    }
                 }
+            }
+            
+            if (isUnique == null) {
+                // if it's a single PK column then it's unique
+                isUnique = table.getPrimaryColumns().size() == 1 && isPrimary();
             }
         }
 
-        return false;
+        return isUnique;
     }
 
+    /**
+     * Returns <code>true</code> if this column is a primary key
+     * 
+     * @return
+     */
     public boolean isPrimary() {
         return table.getPrimaryColumns().contains(this);
     }
     
     /**
      * Returns <code>true</code> if this column points to another table's primary key.
+     * 
      * @return
      */
     public boolean isForeignKey() {
         return !parents.isEmpty();
     }
 
+    /**
+     * Returns the value that the database uses for this column if one isn't provided.
+     * 
+     * @return
+     */
     public Object getDefaultValue() {
         return defaultValue;
     }
@@ -163,6 +248,10 @@ public class TableColumn {
         return comments;
     }
 
+    /**
+     * See {@link #getComments()}
+     * @param comments
+     */
     public void setComments(String comments) {
         this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
     }
@@ -193,16 +282,30 @@ public class TableColumn {
     public boolean isAllExcluded() {
         return isAllExcluded;
     }
-    
+
+    /**
+     * Add a parent column (PK) to this column (FK) via the associated constraint
+     *  
+     * @param parent
+     * @param constraint
+     */
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {
         parents.put(parent, constraint);
         table.addedParent();
     }
 
+    /**
+     * Remove the specified parent column from this column
+     * 
+     * @param parent
+     */
     public void removeParent(TableColumn parent) {
         parents.remove(parent);
     }
 
+    /**
+     * Disassociate all parents from this column
+     */
     public void unlinkParents() {
         for (TableColumn parent : parents.keySet()) {
             parent.removeChild(this);
@@ -210,20 +313,26 @@ public class TableColumn {
         parents.clear();
     }
 
+    /**
+     * Returns the {@link Set} of all {@link TableColumn parents} associated with this column
+     *  
+     * @return
+     */
     public Set<TableColumn> getParents() {
         return parents.keySet();
     }
 
     /**
-     * returns the constraint that connects this column to the specified column (this 'child' column to specified 'parent' column)
+     * Returns the constraint that connects this column to the specified column (this 'child' column to specified 'parent' column)
      */
     public ForeignKeyConstraint getParentConstraint(TableColumn parent) {
         return parents.get(parent);
     }
 
     /**
-     * removes a parent constraint and returns it, or null if there are no parent constraints
-     * @return
+     * Removes a parent constraint and returns it, or null if there are no parent constraints
+     * 
+     * @return the removed {@link ForeignKeyConstraint}
      */
     public ForeignKeyConstraint removeAParentFKConstraint() {
         for (TableColumn relatedColumn : parents.keySet()) {
@@ -235,6 +344,11 @@ public class TableColumn {
         return null;
     }
 
+    /**
+     * Remove one child {@link ForeignKeyConstraint} that points to this column.
+     * 
+     * @return the removed constraint, or <code>null</code> if none were available to be removed
+     */
     public ForeignKeyConstraint removeAChildFKConstraint() {
         for (TableColumn relatedColumn : children.keySet()) {
             ForeignKeyConstraint constraint = children.remove(relatedColumn);
@@ -245,15 +359,29 @@ public class TableColumn {
         return null;
     }
 
+    /**
+     * Add a child column (FK) to this column (PK) via the associated constraint
+     * 
+     * @param child
+     * @param constraint
+     */
     public void addChild(TableColumn child, ForeignKeyConstraint constraint) {
         children.put(child, constraint);
         table.addedChild();
     }
 
+    /**
+     * Remove the specified child column from this column
+     * 
+     * @param child
+     */
     public void removeChild(TableColumn child) {
         children.remove(child);
     }
 
+    /**
+     * Disassociate all children from this column
+     */
     public void unlinkChildren() {
         for (TableColumn child : children.keySet())
             child.removeParent(this);
@@ -278,19 +406,20 @@ public class TableColumn {
     }
 
     /**
-     * setIsAutoUpdated
-     *
-     * @param isAutoUpdated boolean
+     * Returns <code>true</code> if tableName.columnName matches the supplied
+     * regular expression.
+     * 
+     * @param regex
+     * @return
      */
-    public void setIsAutoUpdated(boolean isAutoUpdated) {
-        this.isAutoUpdated = isAutoUpdated;
-    }
-
     public boolean matches(Pattern regex) {
         return regex.matcher(getTable().getName() + '.' + getName()).matches();
     }
 
     /**
+     * Update the state of this column with the supplied {@link TableColumnMeta}.
+     * Intended to be used with instances created by {@link #TableColumn(Table, TableColumnMeta)}.
+     * 
      * @param colMeta
      */
     public void update(TableColumnMeta colMeta) {
@@ -308,24 +437,42 @@ public class TableColumn {
         isAllExcluded |= colMeta.isAllExcluded();
     }
 
+    /**
+     * Returns the name of this column.
+     */
     @Override
     public String toString() {
         return getName();
     }
 
+    /**
+     * Two {@link TableColumn}s are considered equal if their tables and names match. 
+     */
     private class ColumnComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = column1.getTable().getName().compareTo(column2.getTable().getName());
+            int rc = column1.getTable().getName().compareToIgnoreCase(column2.getTable().getName());
             if (rc == 0)
-                rc = column1.getName().compareTo(column2.getName());
+                rc = column1.getName().compareToIgnoreCase(column2.getName());
             return rc;
         }
     }
 
+    /**
+     * Returns <code>true</code> if this column is permitted to be an implied FK
+     * (based on name/type/size matches to PKs).
+     * 
+     * @return
+     */
     public boolean allowsImpliedParents() {
         return allowImpliedParents;
     }
     
+    /**
+     * Returns <code>true</code> if this column is permitted to be a PK to an implied FK
+     * (based on name/type/size matches to PKs).
+     * 
+     * @return
+     */
     public boolean allowsImpliedChildren() {
         return allowImpliedChildren;
     }
