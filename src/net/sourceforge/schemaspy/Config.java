@@ -47,7 +47,7 @@ public class Config
     private String schema;
     private List<String> schemas;
     private String user;
-    private Boolean userRequired;
+    private Boolean singleSignOn;
     private String password;
     private String db;
     private String host;
@@ -268,7 +268,7 @@ public class Config
     
     public String getUser() {
         if (user == null) {
-            if (isUserRequired())
+            if (!isSingleSignOn())
                 user = pullRequiredParam("-u");
             else
                 user = pullParam("-u");
@@ -278,23 +278,23 @@ public class Config
 
     /**
      * By default a "user" (as specified with -u) is required.
-     * This option allows disabling of that requirement (e.g. for 
-     * single sign-on environments).
+     * This option allows disabling of that requirement for 
+     * single sign-on environments.
      * 
-     * @param required defaults to <code>true</code>
+     * @param enabled defaults to <code>false</code>
      */
-    public void setUserRequired(boolean required) {
-        this.userRequired = required;
+    public void setSingleSignOn(boolean enabled) {
+        this.singleSignOn = enabled;
     }
 
     /**
-     * @see #setUserRequired(boolean)
+     * @see #setSingleSignOn(boolean)
      */
-    public boolean isUserRequired() {
-        if (userRequired == null)
-            userRequired = !options.remove("-nouser");
+    public boolean isSingleSignOn() {
+        if (singleSignOn == null)
+            singleSignOn = options.remove("-sso");
         
-        return userRequired;
+        return singleSignOn;
     }
     
     public void setPassword(String password) {
@@ -1178,8 +1178,8 @@ public class Config
             params.add("-rankdirbug");
         if (isRailsEnabled())
         	params.add("-rails");
-        if (!isUserRequired())
-            params.add("-nouser");
+        if (isSingleSignOn())
+            params.add("-sso");
         if (!isAdsEnabled())
             params.add("-noads");
         
@@ -1215,9 +1215,10 @@ public class Config
             params.add("-s");
             params.add(value);
         }
-        if (getUser() != null) {
+        value = getUser();
+        if (value != null) {
             params.add("-u");
-            params.add(getUser());
+            params.add(value);
         }
         value = getConnectionPropertiesFile();
         if (value != null) {

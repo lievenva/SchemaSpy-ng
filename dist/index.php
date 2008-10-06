@@ -159,7 +159,7 @@ the full power of the tool.<br>
         <td class="param">Name of database to connect to</td>
       </tr>
       <tr>
-        <td title='Required unless -nouser specified'>*</td>
+        <td title='Required unless -sso specified'>*</td>
         <td class="param"><code>-u <i>user</i></code></td>
         <td class="param">Valid database user id with read access</td>
       </tr>
@@ -292,10 +292,11 @@ the full power of the tool.<br>
       </tr>
       <tr>
         <td>&nbsp;</td>
-        <td class="param"><code>-nouser</code></td>
+        <td class="param"><code>-sso</code></td>
         <td class="param">
-            Don't require a user to be specified with <code>-u</code>.
-            This can simplify configuration when running in a single sign-on environment.
+            <em>S</em>ingle <em>S</em>ign-<em>O</em>n.
+            Don't require a user to be specified with <code>-u</code>
+            to simplify configuration when running in a single sign-on environment.
         </td>
       </tr>
       <tr>
