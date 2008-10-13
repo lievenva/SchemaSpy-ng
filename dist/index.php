@@ -230,6 +230,16 @@ the full power of the tool.<br>
       </tr>
       <tr>
         <td>&nbsp;</td>
+        <td class="param"><code>-connprops <i>propsfile</i> or <i>key\=value;</i></code></td>
+        <td class="param">
+            Specifies additional properties to be used when connecting to the database.
+            Either specify a .properties file (with key=value entries) or
+            specify the entries directly, escaping the ='s with \= and separating
+            each key\=value pair with a <code>;</code>.
+        </td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
         <td class="param"><code>-hq<br>-lq</code></td>
         <td class="param">Generate either higher or lower-quality diagrams.
             Various installations of 
