@@ -23,6 +23,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
@@ -82,7 +83,8 @@ public class Config
     private Boolean adsEnabled;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
-    public static final String DOT_CHARSET = "UTF-8"; 
+    public static final String DOT_CHARSET = "UTF-8";
+    private static final String ESCAPED_EQUALS = "\\=";
     
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -265,7 +267,13 @@ public class Config
     public void setUser(String user) {
         this.user = user;
     }
-    
+
+    /**
+     * User used to connect to the database.  
+     * Required unless single sign-on is enabled
+     * (see {@link #setSingleSignOn(boolean)}).
+     * @return
+     */
     public String getUser() {
         if (user == null) {
             if (!isSingleSignOn())
@@ -297,10 +305,18 @@ public class Config
         return singleSignOn;
     }
     
+    /**
+     * Set the password used to connect to the database.
+     * @param password
+     */
     public void setPassword(String password) {
         this.password = password;
     }
     
+    /**
+     * @see #setPassword(String)
+     * @return
+     */
     public String getPassword() {
         if (password == null)
             password = pullParam("-p");
@@ -327,7 +343,16 @@ public class Config
     public String getConnectionPropertiesFile() {
         return userConnectionPropertiesFile;
     }
-    
+
+    /**
+     * Properties from this file (in key=value pair format) are passed to the
+     * database connection.<br> 
+     * user (from -u) and password (from -p) will be passed in the
+     * connection properties if specified.
+     * @param propertiesFilename
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public void setConnectionPropertiesFile(String propertiesFilename) throws FileNotFoundException, IOException {
         if (userConnectionProperties == null)
             userConnectionProperties = new Properties();
@@ -335,15 +360,54 @@ public class Config
         userConnectionPropertiesFile = propertiesFilename;
     }
     
+    /**
+     * Returns a {@link Properties} populated either from the properties file specified
+     * by {@link #setConnectionPropertiesFile(String)}, the properties specified by
+     * {@link #setConnectionProperties(String)} or not populated.
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public Properties getConnectionProperties() throws FileNotFoundException, IOException {
         if (userConnectionProperties == null) {
-            userConnectionProperties = new Properties();
-            userConnectionPropertiesFile = pullParam("-connprops");
-            if (userConnectionPropertiesFile != null)
-                setConnectionPropertiesFile(userConnectionPropertiesFile);
+            String props = pullParam("-connprops");
+            if (props != null) {
+                if (props.indexOf(ESCAPED_EQUALS) != -1) {
+                    setConnectionProperties(props);
+                } else {
+                    setConnectionPropertiesFile(props);
+                }
+            } else {
+                userConnectionProperties = new Properties();
+            }
         }
         
         return userConnectionProperties;
+    }
+    
+    /**
+     * Specifies connection properties to use in the format:
+     * <code>key1\=value1;key2\=value2</code><br>
+     * user (from -u) and password (from -p) will be passed in the
+     * connection properties if specified.<p>
+     * This is an alternative form of passing connection properties than by file 
+     * (see {@link #setConnectionPropertiesFile(String)})
+     * 
+     * @param properties
+     */
+    public void setConnectionProperties(String properties) {
+        userConnectionProperties = new Properties();
+        
+        StringTokenizer tokenizer = new StringTokenizer(properties, ";");
+        while (tokenizer.hasMoreElements()) {
+            String pair = tokenizer.nextToken();
+            int index = pair.indexOf(ESCAPED_EQUALS);
+            if (index != -1) {
+                String key = pair.substring(0, index);
+                String value = pair.substring(index + ESCAPED_EQUALS.length());
+                userConnectionProperties.put(key, value);
+            }
+        }
     }
     
     public void setDriverPath(String driverPath) {
@@ -1000,7 +1064,7 @@ public class Config
 
         for (String arg : args) {
             int indexOfEquals = arg.indexOf('=');
-            if (indexOfEquals != -1 && indexOfEquals -1 != arg.indexOf("\\=")) {
+            if (indexOfEquals != -1 && indexOfEquals -1 != arg.indexOf(ESCAPED_EQUALS)) {
                 expandedArgs.add(arg.substring(0, indexOfEquals));
                 expandedArgs.add(arg.substring(indexOfEquals + 1));
             } else {
@@ -1224,7 +1288,21 @@ public class Config
         if (value != null) {
             params.add("-connprops");
             params.add(value);
+        } else {
+            Properties props = getConnectionProperties();
+            if (!props.isEmpty() ) {
+                params.add("-connprops");
+                StringBuilder buf = new StringBuilder();
+                for (Entry<Object, Object> entry : props.entrySet()) {
+                    buf.append(entry.getKey());
+                    buf.append(ESCAPED_EQUALS);
+                    buf.append(entry.getValue());
+                    buf.append(';');
+                }
+                params.add(buf.toString());
+            }
         }
+        
         value = getDb();
         if (value != null) {
             params.add("-db");
