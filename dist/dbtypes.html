@@ -161,12 +161,30 @@ They will be substituted with appropriate values at runtime.
 
 <h4>Reusing Configurations</h4>
 For those instances where you have two almost identical configurations you can
-use the <code>extends</code> entry, specifying another .properties file to be "extended."
+use the <code>extends</code> directive, specifying another .properties file to be "extended."
 Interaction with DB2 through its "type 4 network driver", for example, is almost identical
 to the the DB2 "app driver".  
 <code>db2net.properties</code> therefore has a line that reads 
 <code>extends=db2</code> and only includes those configuration options that 
 deviate from <code>db2.properties</code>.
+<p>
+Another related directive is <code>include</code>.  
+It "includes" a key=value pair from another .properties file.
+The format is <code>include.<i>x</i>=<i>dbtype</i>::<i>key</i></code> where
+<ul>
+<li>
+  <i>x</i> is a number that starts at 1 and increments for every 
+  <code>include</code> required
+</li>
+<li>
+  <i>dbtype</i> is the name of another database type .properties file (e.g. <code>mysql</code>)
+</li>
+<li>
+  <i>key</i> is the name of the entry in specified .properties file (e.g. <code>selectColumnCommentsSql</code>)
+</li>
+</ul>
+The include directive is useful for reusing complex portions of configuration
+files (such as the SQL customization settings shown above) while extending other files.
 
 <h4>Single-Threaded Drivers</h4>
 There's one remaining database configuration entry named <code>dbThreads</code>.
