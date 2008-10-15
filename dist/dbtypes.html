@@ -47,6 +47,8 @@ The basic file looks like this:
   host=hostname[:port] host where database resides with optional port
   db=database name
 </pre>
+See the entire MySQL configuration file <a href='http://schemaspy.svn.sourceforge.net/viewvc/schemaspy/trunk/src/net/sourceforge/schemaspy/dbTypes/mysql.properties?view=markup'>
+here</a>.
 
 <h4>Basic entries</h4>
 <div class='entry'>description</div>
@@ -185,6 +187,8 @@ The format is <code>include.<i>x</i>=<i>dbtype</i>::<i>key</i></code> where
 </ul>
 The include directive is useful for reusing complex portions of configuration
 files (such as the SQL customization settings shown above) while extending other files.
+See <a href='http://schemaspy.svn.sourceforge.net/viewvc/schemaspy/trunk/src/net/sourceforge/schemaspy/dbTypes/mssql05-jtds.properties?view=markup'>
+mssql05-jtds.properties</a> as an example.
 
 <h4>Single-Threaded Drivers</h4>
 There's one remaining database configuration entry named <code>dbThreads</code>.
