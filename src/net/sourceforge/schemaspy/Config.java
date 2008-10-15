@@ -16,7 +16,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
@@ -27,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.util.DbSpecificConfig;
 import net.sourceforge.schemaspy.util.Dot;
 
@@ -76,14 +76,14 @@ public class Config
     private Boolean encodeCommentsEnabled;
     private Boolean numRowsEnabled;
     private Boolean meterEnabled;
-	private Boolean railsEnabled;
+    private Boolean railsEnabled;
     private Boolean evaluteAll;
     private Boolean highQuality;
     private Boolean lowQuality;
     private Boolean adsEnabled;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
-    public static final String DOT_CHARSET = "UTF-8";
+    public static final String DOT_CHARSET = "UTF-8"; 
     private static final String ESCAPED_EQUALS = "\\=";
     
     /**
@@ -267,7 +267,7 @@ public class Config
     public void setUser(String user) {
         this.user = user;
     }
-
+    
     /**
      * User used to connect to the database.  
      * Required unless single sign-on is enabled
@@ -343,7 +343,7 @@ public class Config
     public String getConnectionPropertiesFile() {
         return userConnectionPropertiesFile;
     }
-
+    
     /**
      * Properties from this file (in key=value pair format) are passed to the
      * database connection.<br> 
@@ -378,8 +378,8 @@ public class Config
                     setConnectionPropertiesFile(props);
                 }
             } else {
-                userConnectionProperties = new Properties();
-            }
+            userConnectionProperties = new Properties();
+        }
         }
         
         return userConnectionProperties;
@@ -615,7 +615,7 @@ public class Config
      * @param enabled
      */
     public void setRailsEnabled(boolean enabled) {
-    	this.railsEnabled = enabled;
+        this.railsEnabled = enabled;
     }
     
     /**
@@ -624,10 +624,10 @@ public class Config
      * @return
      */
     public boolean isRailsEnabled() {
-    	if (railsEnabled == null) 
-    		railsEnabled = options.remove("-rails");
-    	
-    	return railsEnabled;
+        if (railsEnabled == null) 
+            railsEnabled = options.remove("-rails");
+        
+        return railsEnabled;
     }
     
     /**
@@ -940,20 +940,44 @@ public class Config
                 }
             }
         }
-
-        Properties properties;
-        String save = dbPropertiesLoadedFrom;
         
-        try {
-            String baseDbType = bundle.getString("extends").trim();
-            properties = getDbProperties(baseDbType);
-        } catch (MissingResourceException doesntExtend) {
-            properties = new Properties();
-        } finally {
-            dbPropertiesLoadedFrom = save;
+        Properties props = asProperties(bundle);
+        bundle = null;
+        String saveLoadedFrom = dbPropertiesLoadedFrom; // keep original thru recursion
+        
+        // bring in key/values pointed to by the include directive
+        // example: include.1=mysql::selectRowCountSql
+        for (int i = 1; true; ++i) {
+            String include = (String)props.remove("include." + i);
+            if (include == null)
+                break;
+            
+            int separator = include.indexOf("::");
+            if (separator == -1)
+                throw new InvalidConfigurationException("include directive in " + dbPropertiesLoadedFrom + " must have '::' between dbType and key");
+            
+            String refdType = include.substring(0, separator);
+            String refdKey = include.substring(separator + 2);
+            
+            // recursively resolve the ref'd properties file and the ref'd key
+            Properties refdProps = getDbProperties(refdType);
+            props.put(refdKey, refdProps.getProperty(refdKey));
         }
 
-        return add(properties, bundle);
+        // bring in base properties files pointed to by the extends directive
+        String baseDbType = (String)props.remove("extends");
+        if (baseDbType != null) {
+            Properties baseProps = getDbProperties(baseDbType);
+            
+            // overlay our properties on top of the base's
+            baseProps.putAll(props);
+            props = baseProps;
+        }
+
+        // done with this level of recursion...restore original
+        dbPropertiesLoadedFrom = saveLoadedFrom;
+
+        return props;
     }
     
     protected String getDbPropertiesLoadedFrom() throws IOException {
@@ -989,20 +1013,20 @@ public class Config
     }
 
     /**
-     * Add the contents of <code>bundle</code> to the specified <code>properties</code>.
+     * Returns a {@link Properties} populated with the contents of <code>bundle</code>
      *
-     * @param properties Properties
      * @param bundle ResourceBundle
      * @return Properties
      */
-    public static Properties add(Properties properties, ResourceBundle bundle) {
+    public static Properties asProperties(ResourceBundle bundle) {
+        Properties props = new Properties();
         Enumeration<String> iter = bundle.getKeys();
         while (iter.hasMoreElements()) {
             String key = iter.nextElement();
-            properties.put(key, bundle.getObject(key));
+            props.put(key, bundle.getObject(key));
         }
 
-        return properties;
+        return props;
     }
 
     /**
@@ -1241,7 +1265,7 @@ public class Config
         if (isRankDirBugEnabled())
             params.add("-rankdirbug");
         if (isRailsEnabled())
-        	params.add("-rails");
+            params.add("-rails");
         if (isSingleSignOn())
             params.add("-sso");
         if (!isAdsEnabled())
@@ -1302,7 +1326,6 @@ public class Config
                 params.add(buf.toString());
             }
         }
-        
         value = getDb();
         if (value != null) {
             params.add("-db");
