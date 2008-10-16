@@ -312,7 +312,10 @@ the full power of the tool.<br>
       <tr>
         <td>&nbsp;</td>
         <td class="param"><code>-nohtml</code></td>
-        <td class="param">Only generate files needed for insertion/deletion of data (e.g. for scripts)</td>
+        <td class="param">
+            Only generate files needed for insertion/deletion of data (e.g. for scripts)
+            and an XML representation of the schema.
+        </td>
       </tr>
     </tbody>
   </table>
