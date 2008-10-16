@@ -369,7 +369,7 @@ the full power of the tool.<br>
       </tr>
       <tr>
         <td class="dbType">mssql</td>
-        <td class="param">Microsoft SQL Server 2000</td>
+        <td class="param">Microsoft SQL Server</td>
       </tr>
       <tr>
         <td class="dbType">mssql05</td>
@@ -378,6 +378,10 @@ the full power of the tool.<br>
       <tr>
         <td class="dbType">mssql-jtds</td>
         <td class="param">Microsoft SQL Server with jTDS Driver</td>
+      </tr>
+      <tr>
+        <td class="dbType">mssql05-jtds</td>
+        <td class="param">Microsoft SQL Server 2005 with jTDS Driver</td>
       </tr>
       <tr>
         <td class="dbType">mysql</td>
