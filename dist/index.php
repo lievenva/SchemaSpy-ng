@@ -1,9 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3c.org/TR/1999/REC-html401-19991224/loose.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
   <title>SchemaSpy</title>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <meta name="keywords" content="schemaspy schema ddl entity relationships er erd erwin database db2 oracle udb mysql postgresql sybase hsqldb javadb derby firebird"/>
+  <meta name="keywords" content="schemaspy schema ddl entity relationships er erd erwin database db2 oracle udb mysql postgresql sybase hsqldb javadb derby firebird">
   <style type="text/css">
     body    { color: #000000; background-color: #F7F7F7; font-family: verdana, times, sans-serif; }
     table   { border-style: none; margin: 0; }
@@ -72,7 +72,7 @@
     <?php
       echo file_get_contents("donors.html");
     ?>
-    <br/>
+    <br>
     <a href="http://sourceforge.net/donate/index.php?group_id=137197"><img src="http://images.sourceforge.net/images/project-support.jpg" alt="Support SchemaSpy" style="border: 0px solid; width: 88px; height: 32px;"></a>
     </div>
   </td></tr>
@@ -105,7 +105,7 @@ digg_skin = 'icon';
 </script>
 <script src="http://digg.com/tools/diggthis.js" type="text/javascript"></script> 
 &nbsp;<a href="http://digg.com/programming/SchemaSpy_-_opensource_graphical_DB_schema_generator" target="_blank">digg it</a> and
-<img src="http://static.delicious.com/img/delicious.small.gif" height="10" width="10" alt="Delicious" />
+<img src="http://static.delicious.com/img/delicious.small.gif" height="10" width="10" alt="Delicious">
 <a href="http://delicious.com/save" onclick="window.open('http://delicious.com/save?v=5&amp;noui&amp;jump=close&amp;url=http%3A%2F%2Fschemaspy.sourceforge.net%2F&amp;title='+encodeURIComponent(document.title), 'delicious','toolbar=no,width=550,height=550'); return false;"> bookmark it on delicious</a>.
 </p>
 <p>SchemaSpy uses the <span style="font-style: italic;">dot</span> 
@@ -136,7 +136,7 @@ If you're more comfortable with the point-and-click approach then try out
 <a href='http://www.joachim-uhl.de/projekte/schemaspygui/' target="_blank">SchemaSpyGUI</a>.
 <br>
 SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reilly</a>&#39;s <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" target="_blank">Java Power Tools</a> 
- book <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" title="Java Power Tools" target="_blank"><img alt="Java Power Tools" title="Java Power Tools" width="42" height="55" src="http://safari.oreilly.com/images/9780596527938/9780596527938_cs.gif" /></a> 
+ book <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" title="Java Power Tools" target="_blank"><img alt="Java Power Tools" title="Java Power Tools" width="42" height="55" src="http://safari.oreilly.com/images/9780596527938/9780596527938_cs.gif" ></a> 
 <hr>
 <h3><a name="Running_SchemaSpy">Running SchemaSpy </a></h3>
 <p>You run SchemaSpy from the command line:</p>
@@ -149,7 +149,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       </tr>
     </tbody>
   </table>
-  <p/>
+  <p>
   <table class="params" border="1" cellpadding="0" cellspacing="1">
     <tbody>
       <tr>
@@ -214,7 +214,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <td class="param"><code>-all</code></td>
         <td class="param">Evaluate all schemas in a database.
             Generates a high-level index of the schemas evaluated and allows for
-            traversal of cross-schema foreign key relationships.<br/>
+            traversal of cross-schema foreign key relationships.<br>
             Use with <code>-schemaSpec <i>"schemaRegularExpression"</i></code> 
             to narrow-down the schemas to include.
         </td>
@@ -229,15 +229,15 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             composed of multiple schemas.
         </td>
       </tr>
-      <tr name="metaparam">
+      <tr id="metaparam">
         <td>&nbsp;</td>
         <td class="param"><code>-meta <i>metafile</i></code></td>
         <td class="param">
             <code><i>metafile</i></code> is either the name of an individual 
             XML file or the directory that contains meta files.
             If a directory is specified then it is expected to contain files
-            matching the pattern <code>[schema].meta.xml</code>.<br/>  
-            For databases that don't have schema substitute database for schema.<br/>
+            matching the pattern <code>[schema].meta.xml</code>.<br>
+            For databases that don't have schema substitute database for schema.<br>
             See <a href="#meta">Providing Additional Metadata</a> for details.
         </td>
       </tr>
@@ -260,7 +260,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             (depending on OS and/or version) will default to generating either 
             higher or lower quality images. 
             That is, some might not have the "lower quality" libraries and others 
-            might not have the "higher quality" libraries.<br/>
+            might not have the "higher quality" libraries.<br>
             Higher quality output takes longer to generate and results in significantly
             larger image files (which take longer to download / display), 
             but the resultant Entity Relationship diagrams generally look better.
@@ -283,10 +283,11 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             simplify the generated graphs.
             This is a regular expression that's used to determine which
             columns to exclude.  It must match table name, followed by a dot, followed by
-            column name.<br/>For example: <code>-x "(book.isbn)|(borrower.address)"</code><br/>
+            column name.<br>
+            For example: <code>-x "(book.isbn)|(borrower.address)"</code><br>
             Note that each column name regular expression must be surround by <code>()</code>'s and
             separated from other column names by a <code>|</code>.
-            <br/>Excluded relationships will still show up on detail pages.
+            <br>Excluded relationships will still show up on detail pages.
         </td>
       </tr>
       <tr>
@@ -299,7 +300,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       <tr>
         <td>&nbsp;</td>
         <td class="param"><code>-ahic</code></td>
-        <td class="param"><em>A</em>llow <em>H</em>TML <em>I</em>n <em>C</em>omments.<br/>
+        <td class="param"><em>A</em>llow <em>H</em>TML <em>I</em>n <em>C</em>omments.<br>
             Any HTML embedded in comments normally gets encoded so that it's rendered as text.  
             This option allows it to be rendered as HTML.</td>
       </tr>
@@ -333,7 +334,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
     </tbody>
   </table>
   * denotes required parameter.
-  <br/>
+  <br>
   <p>Here are the currently supported database types.
      Use <code>java -jar schemaSpy.jar -dbhelp</code> for a complete list of the built-in
      database types and the parameters that each one requires.<br>
@@ -437,7 +438,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       </tr>
     </tbody>
   </table>
-  <p/>will create a series of files in the <code>library</code>
+  <p>will create a series of files in the <code>library</code>
   directory that give the details of the schema in the database <code>library</code>.
   This is what I used to generate the <a href="http://schemaspy.sourceforge.net/sample" target="_blank">sample output</a>.
   <p>An MS SQL Server example:</p>
@@ -450,10 +451,10 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       </tr>
     </tbody>
   </table>
-  <p/>does the same thing as the MySQL example, but specifies an <code>mssql</code>
+  <p>does the same thing as the MySQL example, but specifies an <code>mssql</code>
   database type with MS SQL Server-specific database connection parameters.
   
-  <br/><hr>
+  <br><hr>
   <h3><a name="meta">Providing Additional Metadata</a></h3>
     Metafiles are XML-based files that provide additional metadata
     about the schema being evaluated.  
@@ -472,21 +473,21 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
     The XML schema that defines the structure of these files is available
     <a href="http://schemaspy.sourceforge.net/xmlschema/2008/09/03/schemaspy.meta.xsd" target="_blank">here</a>.
     There are also some 
-    <a href="http://schemaspy.sourceforge.net/unifieddb/xml/ target="_blank"">sample XML files</a>
+    <a href="http://schemaspy.sourceforge.net/unifieddb/xml/" target="_blank">sample XML files</a>
     (a work in progress) that were used to generate 
     <a href="http://schemaspy.sourceforge.net/unifieddb/" target="_blank">these pages</a>.
     Note that this group of MySQL databases had almost no foreign key
     relationships defined.
-  <p/><hr/><br/>
+  <p><hr><br>
   Some information about the developer, John Currier, is available <a href="http://john.currier.googlepages.com" target="_blank">here</a>.
-  <br/>Feedback on <a href="https://sourceforge.net/tracker/?group_id=137197&atid=737987" target="_blank">problems</a> and/or <a href="https://sourceforge.net/forum/?group_id=137197" target="_blank">enhancements</a> is appreciated.
+  <br>Feedback on <a href="https://sourceforge.net/tracker/?group_id=137197&amp;atid=737987" target="_blank">problems</a> and/or <a href="https://sourceforge.net/forum/?group_id=137197" target="_blank">enhancements</a> is appreciated.
   <span style="float: right;">
   <!-- Site Meter -->
   <script type="text/javascript" src="http://s28.sitemeter.com/js/counter.js?site=s28schemaspy">
   </script>
   <noscript>
   <a href="http://s28.sitemeter.com/stats.asp?site=s28schemaspy" target="_top">
-  <img src="http://s28.sitemeter.com/meter.asp?site=s28schemaspy" alt="Site Meter" border="0"/></a>
+  <img src="http://s28.sitemeter.com/meter.asp?site=s28schemaspy" alt="Site Meter" border="0"></a>
   </noscript>
   <!-- Copyright (c)2006 Site Meter -->
   </span>
