@@ -96,16 +96,17 @@ Lesser GNU Public License 2.1</a>.
 Your <a href="http://sourceforge.net/donate/index.php?group_id=137197" target="_blank">donations</a>
 are, however, <span style="font-weight: bold;">greatly </span>appreciated.<br>
 </p>
-<p>If you like SchemaSpy then please <a href="http://freshmeat.net/projects/schemaspy">
-vote for it on freshmeat</a>, 
+<p>If you like SchemaSpy then please vote for it on 
+<a href="http://freshmeat.net/projects/schemaspy" target="_blank">freshmeat</a> 
+(click <a href="http://freshmeat.net/rate/56095/" target="_blank">rate this project</a>), 
 <script type="text/javascript">
 digg_url = 'http://schemaspy.sourceforge.net';
 digg_skin = 'icon';
 </script>
 <script src="http://digg.com/tools/diggthis.js" type="text/javascript"></script> 
-&nbsp;<a href="http://digg.com/programming/SchemaSpy_-_opensource_graphical_DB_schema_generator">digg it</a> and
+&nbsp;<a href="http://digg.com/programming/SchemaSpy_-_opensource_graphical_DB_schema_generator" target="_blank">digg it</a> and
 <img src="http://static.delicious.com/img/delicious.small.gif" height="10" width="10" alt="Delicious" />
-<a href="http://delicious.com/save" onclick="window.open('http://delicious.com/save?v=5&amp;noui&amp;jump=close&amp;url=http%3A%2F%2Fschemaspy.sourceforge.net%2F&amp;title='+encodeURIComponent(document.title), 'delicious','toolbar=no,width=550,height=550'); return false;"> bookmark it on Delicious</a>.
+<a href="http://delicious.com/save" onclick="window.open('http://delicious.com/save?v=5&amp;noui&amp;jump=close&amp;url=http%3A%2F%2Fschemaspy.sourceforge.net%2F&amp;title='+encodeURIComponent(document.title), 'delicious','toolbar=no,width=550,height=550'); return false;"> bookmark it on delicious</a>.
 </p>
 <p>SchemaSpy uses the <span style="font-style: italic;">dot</span> 
 executable from <a href="http://www.graphviz.org/" target="_blank">Graphviz</a>
@@ -131,11 +132,11 @@ the full power of the tool.
 <p>
 SchemaSpy is a command line tool.  
 If you're more comfortable with the point-and-click approach then try out
-<a href='http://www.joachim-uhl.de/'>Joachim Uhl</a>&#39;s
-<a href='http://www.joachim-uhl.de/projekte/schemaspygui/'>SchemaSpyGUI</a>.
+<a href='http://www.joachim-uhl.de/' target="_blank">Joachim Uhl</a>&#39;s
+<a href='http://www.joachim-uhl.de/projekte/schemaspygui/' target="_blank">SchemaSpyGUI</a>.
 <br>
-SchemaSpy is now in <a href='http://www.oreilly.com/'>O&#39;Reilly</a>&#39;s <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" onclick="">Java Power Tools</a> 
- book <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" onclick="" title="Java Power Tools"><img alt="Java Power Tools" title="Java Power Tools" width="42" height="55" src="http://safari.oreilly.com/images/9780596527938/9780596527938_cs.gif" /></a> 
+SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reilly</a>&#39;s <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" target="_blank">Java Power Tools</a> 
+ book <a href="http://safari.oreilly.com/9780596527938/I_book_d1e1d1e112#X2ludGVybmFsX1NlY3Rpb25Db250ZW50P3htbGlkPTk3ODA1OTY1Mjc5Mzgvc2NoZW1hc3B5" title="Java Power Tools" target="_blank"><img alt="Java Power Tools" title="Java Power Tools" width="42" height="55" src="http://safari.oreilly.com/images/9780596527938/9780596527938_cs.gif" /></a> 
 <hr>
 <h3><a name="Running_SchemaSpy">Running SchemaSpy </a></h3>
 <p>You run SchemaSpy from the command line:</p>
@@ -255,7 +256,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/'>O&#39;Reilly</a>&#39;s <a 
         <td class="param"><code>-hq<br>-lq</code></td>
         <td class="param">Generate either higher or lower-quality diagrams.
             Various installations of 
-            <a target="_blank" href="http://www.graphviz.org/">Graphviz</a>
+            <a href="http://www.graphviz.org/" target="_blank">Graphviz</a>
             (depending on OS and/or version) will default to generating either 
             higher or lower quality images. 
             That is, some might not have the "lower quality" libraries and others 
@@ -336,7 +337,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/'>O&#39;Reilly</a>&#39;s <a 
   <p>Here are the currently supported database types.
      Use <code>java -jar schemaSpy.jar -dbhelp</code> for a complete list of the built-in
      database types and the parameters that each one requires.<br>
-     See the <a href="dbtypes.html">database types documentation</a>
+     See the <a href="dbtypes.html" target="_blank">database types documentation</a>
      if you want to add support for other types of databases or add additional 
      functionality (e.g. to display view and check constraint SQL) 
      to supported databases.
@@ -438,7 +439,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/'>O&#39;Reilly</a>&#39;s <a 
   </table>
   <p/>will create a series of files in the <code>library</code>
   directory that give the details of the schema in the database <code>library</code>.
-  This is what I used to generate the <a href="http://schemaspy.sourceforge.net/sample">sample output</a>.
+  This is what I used to generate the <a href="http://schemaspy.sourceforge.net/sample" target="_blank">sample output</a>.
   <p>An MS SQL Server example:</p>
   <table>
     <tbody>
@@ -469,16 +470,16 @@ SchemaSpy is now in <a href='http://www.oreilly.com/'>O&#39;Reilly</a>&#39;s <a 
       <li>etc.</li>
     </ul>
     The XML schema that defines the structure of these files is available
-    <a href="http://schemaspy.sourceforge.net/xmlschema/2008/09/03/schemaspy.meta.xsd">here</a>.
+    <a href="http://schemaspy.sourceforge.net/xmlschema/2008/09/03/schemaspy.meta.xsd" target="_blank">here</a>.
     There are also some 
-    <a href="http://schemaspy.sourceforge.net/unifieddb/xml/">sample XML files</a>
+    <a href="http://schemaspy.sourceforge.net/unifieddb/xml/ target="_blank"">sample XML files</a>
     (a work in progress) that were used to generate 
-    <a href="http://schemaspy.sourceforge.net/unifieddb/">these pages</a>.
+    <a href="http://schemaspy.sourceforge.net/unifieddb/" target="_blank">these pages</a>.
     Note that this group of MySQL databases had almost no foreign key
     relationships defined.
   <p/><hr/><br/>
-  Some information about the developer, John Currier, is available <a href="http://john.currier.googlepages.com">here</a>.
-  <br/>Feedback on <a href="https://sourceforge.net/tracker/?group_id=137197&atid=737987">problems</a> and/or <a href="https://sourceforge.net/forum/?group_id=137197">enhancements</a> is appreciated.
+  Some information about the developer, John Currier, is available <a href="http://john.currier.googlepages.com" target="_blank">here</a>.
+  <br/>Feedback on <a href="https://sourceforge.net/tracker/?group_id=137197&atid=737987" target="_blank">problems</a> and/or <a href="https://sourceforge.net/forum/?group_id=137197" target="_blank">enhancements</a> is appreciated.
   <span style="float: right;">
   <!-- Site Meter -->
   <script type="text/javascript" src="http://s28.sitemeter.com/js/counter.js?site=s28schemaspy">
