@@ -12,14 +12,50 @@
 <h3><a href='http://schemaspy.sourceforge.net'>SchemaSpy</a> Release Notes</h3>
 <ul>
 
-<li class='release'>4.x.x - xx/xx/xxxx
+<li class='release'>4.1.0 - 10/17/2008
 <ul>
-    <li>
-        Support for Ruby on Rails-based databases (add details)
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1548661&group_id=137197&atid=737990">
+        feature request 1548661</a> - Add support for Ruby on Rails databases.<br>
+        Ruby on Rails databases use an "interesting" naming convention when mapping for
+        tables (plural), foreign keys (singular form of referenced table name 
+        suffixed by <code>_id</code>) and primary keys (always <code>id</code>).
+        This release introduces the -ror (<em>R</em>uby <em>o</em>n <em>R</em>ails)
+        parameter that tells SchemaSpy to look for and render these types of relationships.<br>
+        Thanks to John Danilson for the suggestion.
     </li>
-    <li>Added a -nouser option to allow SchemaSpy to more easily run 
-        in single sign-on environments.<br>
-        Thanks to erniez for the suggestion. 
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2175509&group_id=137197&atid=737987">
+        bug 2175509</a> - Incorrect ER notation.<br>
+        SchemaSpy was using incorrect entity relationship diagram notations
+        in the cardinality of the foreign key side of relationships.
+        In many cases it showed 'one' or 'one or more' when it should have shown 'zero or more'.
+        Thanks to Dan Zingaro for noticing the incorrectness and for helping
+        to resolve the issue.
+    </li>
+    <li>Added a new <code>import</code> directive to database configuration files
+        to be able to reuse complex SQL (or other settings) from configurations
+        not in the normal inheritance tree. 
+    </li>
+    <li>Added support for MS SQL Server 2005 with jTDS driver, including column comment
+        retrieval for all of the MS SQL databases.<br>
+        Thanks to Ernest Zapata for the configuration files.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2175489&group_id=137197&atid=737990">
+        feature request 2175489</a> - Allow connection properties without file.<br>
+        Can now specify connection properties directly on the command line without
+        having to put them in a file.<br>
+        Thanks to Ernest Zapata for the suggestion and implementation.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2175499&group_id=137197&atid=737990">
+        feature request 2175499</a> - Single Sign-On Support.<br>
+        With the introduction of the <code>-sso</code> option running 
+        SchemaSpy against a database that supports single sign-on now
+        no longer requires the user name to be specified on the command line.
+        Thanks to Ernest Zapata for the suggestion and implementation.
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2126345&group_id=137197&atid=737987">
+        bug 2126345</a> - Unable to extract number of rows.<br>
+        Now doesn't report intermediate problems while attempting to
+        extract number of rows when a fallback to a more basic approach is required.
     </li>
 </ul>
 </li>
@@ -70,7 +106,7 @@
     </li>
     <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1887490&group_id=137197&atid=737990">
         feature request 1887490</a> - Get rowcount from metadata.<br>  
-        Added MySQL-specific <code>selectRowCountSql</code> implementation.<p>
+        Added MySQL-specific <code>selectRowCountSql</code> implementation.<br>
         Added Oracle-specific <code>selectRowCountSql</code> implementation provided by Mikheil Kapanadze.
     </li>
     <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1598195&group_id=137197&atid=737990">
