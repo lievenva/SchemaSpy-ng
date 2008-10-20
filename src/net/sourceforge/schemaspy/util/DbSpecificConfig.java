@@ -9,6 +9,8 @@ import java.util.StringTokenizer;
 import net.sourceforge.schemaspy.Config;
 
 /**
+ * Configuration of a specific type of database (as specified by -t)
+ * 
  * @author John Currier
  */
 public class DbSpecificConfig {
@@ -16,30 +18,14 @@ public class DbSpecificConfig {
     private       String description;
     private final List<DbSpecificOption> options = new ArrayList<DbSpecificOption>();
     private final Config config = new Config();
-    
+
+    /**
+     * Construct an instance with configuration options of the specified database type
+     * 
+     * @param dbType
+     */
     public DbSpecificConfig(final String dbType) {
         type = dbType;
-        /*
-        class DbPropLoader {
-            Properties load(String dbType) {
-                ResourceBundle bundle = ResourceBundle.getBundle(dbType);
-                Properties properties;
-                try {
-                    String baseDbType = bundle.getString("extends");
-                    int lastSlash = dbType.lastIndexOf('/');
-                    if (lastSlash != -1)
-                        baseDbType = dbType.substring(0, dbType.lastIndexOf("/") + 1) + baseDbType;
-                    properties = load(baseDbType);  // recurse
-                } catch (MissingResourceException doesntExtend) {
-                    properties = new Properties();
-                }
-
-                return Config.add(properties, bundle);
-            }
-        }
-        Properties props = new DbPropLoader().load(dbType);
-        */
-
         Properties props;
         try {
             props = config.getDbProperties(dbType);
@@ -50,6 +36,11 @@ public class DbSpecificConfig {
         }
     }
 
+    /**
+     * Resolve the options specified by connectionSpec into {@link DbSpecificOption}s.
+     * 
+     * @param properties
+     */
     private void loadOptions(Properties properties) {
         boolean inParam = false;
 
@@ -88,6 +79,9 @@ public class DbSpecificConfig {
         return config;
     }
 
+    /**
+     * Dump usage details associated with the associated type of database
+     */
     public void dumpUsage() {
         System.out.println(" " + new File(type).getName() + ":");
         System.out.println("  " + description);
@@ -96,7 +90,10 @@ public class DbSpecificConfig {
             System.out.println("   -" + option.getName() + " " + (option.getDescription() != null ? "  \t" + option.getDescription() : ""));
         }
     }
-    
+
+    /**
+     * Return description of the associated type of database
+     */
     @Override
     public String toString() {
         return description;
