@@ -956,8 +956,8 @@ public class Config
             if (separator == -1)
                 throw new InvalidConfigurationException("include directive in " + dbPropertiesLoadedFrom + " must have '::' between dbType and key");
             
-            String refdType = include.substring(0, separator);
-            String refdKey = include.substring(separator + 2);
+            String refdType = include.substring(0, separator).trim();
+            String refdKey = include.substring(separator + 2).trim();
             
             // recursively resolve the ref'd properties file and the ref'd key
             Properties refdProps = getDbProperties(refdType);
@@ -967,6 +967,7 @@ public class Config
         // bring in base properties files pointed to by the extends directive
         String baseDbType = (String)props.remove("extends");
         if (baseDbType != null) {
+            baseDbType = baseDbType.trim();
             Properties baseProps = getDbProperties(baseDbType);
             
             // overlay our properties on top of the base's
