@@ -128,7 +128,11 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
         if (showIds) {
             html.write("  <td class='detail' align='right'>");
-            html.write(String.valueOf(table.getId()));
+            Object id = table.getId();
+            if (id != null)
+                html.write(String.valueOf(id));
+            else
+                html.writeln("&nbsp;");
             html.writeln("</td>");
         }
 
