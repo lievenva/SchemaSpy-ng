@@ -56,7 +56,7 @@ public class Config
     private String server;
     private String meta;
     private Pattern tableInclusions;
-    private boolean tableInclusionsInverted;
+    private Pattern tableExclusions;
     private Pattern columnExclusions;
     private Pattern indirectColumnExclusions;
     private String userConnectionPropertiesFile;
@@ -720,14 +720,16 @@ public class Config
         return indirectColumnExclusions;
     }
 
+    /**
+     * Set the tables to include as a regular expression
+     * @param tableInclusions
+     */
     public void setTableInclusions(String tableInclusions) {
         this.tableInclusions = Pattern.compile(tableInclusions);
     }
 
     /**
-     * Get the regex {@link Pattern} for which tables to include.
-     * If the pattern (specified on the command line with -i) starts with \!
-     * then the pattern specifies which tables to exclude. 
+     * Get the regex {@link Pattern} for which tables to include in the analysis.
      * 
      * @return
      */
@@ -737,12 +739,6 @@ public class Config
             if (strInclusions == null)
                 strInclusions = ".*";     // match anything
 
-            // if pattern starts with \! then invert it (include becomes exclude)
-            if (strInclusions.startsWith("\\!")) {
-                tableInclusionsInverted = true;
-                strInclusions = strInclusions.substring(2);
-            }
-            
             tableInclusions = Pattern.compile(strInclusions);
         }
 
@@ -750,14 +746,28 @@ public class Config
     }
 
     /**
-     * Returns <code>true</code> if the {@link Pattern} returned by
-     * {@link #getTableInclusions()} is to be negated.
-     * See {@link #getTableInclusions()}.
+     * Set the tables to exclude as a regular expression
+     * @param tableInclusions
+     */
+    public void setTableExclusions(String tableExclusions) {
+        this.tableExclusions = Pattern.compile(tableExclusions);
+    }
+
+    /**
+     * Get the regex {@link Pattern} for which tables to exclude from the analysis.
      * 
      * @return
      */
-    public boolean isTableInclusionsInverted() {
-        return tableInclusionsInverted;
+    public Pattern getTableExclusions() {
+        if (tableExclusions == null) {
+            String strExclusions = pullParam("-I");
+            if (strExclusions == null)
+                strExclusions = "";  // match nothing
+
+            tableExclusions = Pattern.compile(strExclusions);
+        }
+
+        return tableExclusions;
     }
 
     /**
@@ -1381,7 +1391,9 @@ public class Config
             params.add(value);
         }
         params.add("-i");
-        params.add((isTableInclusionsInverted() ? "\\!" : "") + getTableInclusions().pattern());
+        params.add(getTableInclusions().pattern());
+        params.add("-I");
+        params.add(getTableExclusions().pattern());
         params.add("-x");
         params.add(getColumnExclusions().pattern());
         params.add("-X");

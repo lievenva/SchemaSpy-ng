@@ -114,7 +114,7 @@ public class Database {
                             final Properties properties, final Config config) throws SQLException {
         String[] types = {"TABLE"};
         final Pattern include = config.getTableInclusions();
-        final boolean invertInclusions = config.isTableInclusionsInverted();
+        final Pattern exclude = config.getTableExclusions();
         final int maxThreads = config.getMaxDbThreads();
 
         // "macro" to validate that a table is somewhat valid
@@ -130,9 +130,10 @@ public class Database {
                 if (tableName.indexOf("$") != -1)
                     return false;
 
-                // true if matches and not inverting or
-                // not matches and inverting
-                return include.matcher(tableName).matches() ^ invertInclusions;
+                if (exclude.matcher(tableName).matches())
+                    return false;
+                
+                return include.matcher(tableName).matches();
             }
         }
         TableValidator tableValidator = new TableValidator();
@@ -567,7 +568,7 @@ public class Database {
         String[] types = {"VIEW"};
         ResultSet rs = null;
         Pattern includeTables = config.getTableInclusions();
-        boolean invertTableInclusions = config.isTableInclusionsInverted();
+        Pattern excludeTables = config.getTableExclusions();
         Pattern excludeColumns = config.getColumnExclusions();
         Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
 
@@ -581,9 +582,8 @@ public class Database {
                     try {
                         View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeIndirectColumns, excludeColumns);
                         
-                        // true if matches and not inverting or
-                        // not matches and inverting
-                        if (includeTables.matcher(view.getName()).matches() ^ invertTableInclusions)
+                        if (includeTables.matcher(view.getName()).matches() &&
+                           !excludeTables.matcher(view.getName()).matches())
                             views.put(view.getName(), view);
                     } catch (SQLException exc) {
                         System.out.flush();

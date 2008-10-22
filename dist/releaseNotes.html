@@ -14,6 +14,14 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx
 <ul>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1600035&group_id=137197&atid=737990">
+        feature request 1600035</a> - Exclusion regex
+        I don't like the inconsistency of the command line that this introduces, but
+        there's a new <code>-I</code> option that takes a regular expression of tables to
+        excludes from the analysis.  This is the inverse of <code>-i</code> which specifies which
+        tables to include.  The two can be used together<br>
+        Thanks to Erik Meitner for the suggestion.
+    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1537126&group_id=137197&atid=737987">
         bug 1537126</a> - XML output fails with binary columns<br>
         It took a while but I think I finally came up with a regular expression
