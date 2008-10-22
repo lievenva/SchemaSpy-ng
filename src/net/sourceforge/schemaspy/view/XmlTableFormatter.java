@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
@@ -14,14 +15,30 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+/**
+ * Formats {@link Table}s into an XML DOM tree.
+ * 
+ * @author John Currier
+ */
 public class XmlTableFormatter {
     private static final XmlTableFormatter instance = new XmlTableFormatter();
+    
+    // valid chars came from http://www.w3.org/TR/REC-xml/#charsets
+    // and attempting to match 0x10000-0x10FFFF with the \p Unicode escapes
+    // (from http://www.regular-expressions.info/unicode.html)
+    private static final Pattern validXmlChars = 
+        Pattern.compile("^[\u0009\n\r -\uD7FF\uE000-\uFFFD\\p{L}\\p{M}\\p{Z}\\p{S}\\p{N}\\p{P}]*$");
 
     /**
      * Singleton...don't allow instantiation
      */
     private XmlTableFormatter() {}
 
+    /**
+     * Singleton accessor
+     * 
+     * @return
+     */
     public static XmlTableFormatter getInstance() {
         return instance;
     }
@@ -46,7 +63,13 @@ public class XmlTableFormatter {
         for (Table table : byName)
             appendTable(tablesNode, table);
     }
-    
+
+    /**
+     * Append table details to the XML node
+     * 
+     * @param tablesNode
+     * @param table
+     */
     private void appendTable(Element tablesNode, Table table) {
         Document document = tablesNode.getOwnerDocument();
         Element tableNode = document.createElement("table");
@@ -67,12 +90,25 @@ public class XmlTableFormatter {
         appendView(tableNode, table);
     }
 
+    /**
+     * Append all columns in the table to the XML node
+     * 
+     * @param tableNode
+     * @param table
+     */
     private void appendColumns(Element tableNode, Table table) {
         for (TableColumn column : table.getColumns()) {
             appendColumn(tableNode, column);
         }
     }
 
+    /**
+     * Append column details to the XML node
+     * 
+     * @param tableNode
+     * @param column
+     * @return
+     */
     private Node appendColumn(Node tableNode, TableColumn column) {
         Document document = tableNode.getOwnerDocument();
         Node columnNode = document.createElement("column");
@@ -85,8 +121,16 @@ public class XmlTableFormatter {
         DOMUtil.appendAttribute(columnNode, "digits", String.valueOf(column.getDecimalDigits()));
         DOMUtil.appendAttribute(columnNode, "nullable", String.valueOf(column.isNullable()));
         DOMUtil.appendAttribute(columnNode, "autoUpdated", String.valueOf(column.isAutoUpdated()));
-        if (column.getDefaultValue() != null)
-            DOMUtil.appendAttribute(columnNode, "defaultValue", String.valueOf(column.getDefaultValue()));
+        if (column.getDefaultValue() != null) {
+            String defaultValue = column.getDefaultValue().toString();
+            if (isBinary(defaultValue)) {
+                // we're run into a binary default value, convert it to its hex equivalent
+                defaultValue = asBinary(defaultValue);
+                // and indicate that it's been converted
+                DOMUtil.appendAttribute(columnNode, "defaultValueIsBinary", "true");
+            }
+            DOMUtil.appendAttribute(columnNode, "defaultValue", defaultValue);
+        }
         DOMUtil.appendAttribute(columnNode, "remarks", column.getComments() == null ? "" : column.getComments());
 
         for (TableColumn childColumn : column.getChildren()) {
@@ -114,6 +158,12 @@ public class XmlTableFormatter {
         return columnNode;
     }
 
+    /**
+     * Append primary key details to the XML node
+     * 
+     * @param tableNode
+     * @param table
+     */
     private void appendPrimaryKeys(Element tableNode, Table table) {
         Document document = tableNode.getOwnerDocument();
         int index = 1;
@@ -127,6 +177,12 @@ public class XmlTableFormatter {
         }
     }
     
+    /**
+     * Append check constraint details to the XML node
+     * 
+     * @param tableNode
+     * @param table
+     */
     private void appendCheckConstraints(Element tableNode, Table table) {
         Document document = tableNode.getOwnerDocument();
         Map<String, String> constraints = table.getCheckConstraints();
@@ -140,6 +196,12 @@ public class XmlTableFormatter {
         }
     }
 
+    /**
+     * Append index details to the XML node
+     * 
+     * @param tableNode
+     * @param table
+     */
     private void appendIndexes(Node tableNode, Table table) {
         boolean showId = table.getId() != null;
         Set<TableIndex> indexes = table.getIndexes();
@@ -165,10 +227,43 @@ public class XmlTableFormatter {
         }
     }
 
+    /**
+     * Append view SQL to the XML node
+     * 
+     * @param tableNode
+     * @param table
+     */
     private void appendView(Element tableNode, Table table) {
         String sql;
         if (table.isView() && (sql = table.getViewSql()) != null) {
             DOMUtil.appendAttribute(tableNode, "viewSql", sql);
         }
+    }
+
+    /**
+     * Returns <code>true</code> if the string contains binary data
+     * (chars that are invalid for XML) per http://www.w3.org/TR/REC-xml/#charsets
+     * 
+     * @param str
+     * @return
+     */
+    private static boolean isBinary(String str) {
+        return !validXmlChars.matcher(str).matches();
+    }
+
+    /**
+     * Turns a string into its hex equivalent.
+     * Intended to be used when {@link #isBinary(String)} returns <code>true</code>.
+     * 
+     * @param str
+     * @return
+     */
+    private String asBinary(String str) {
+        byte[] bytes = str.getBytes();
+        StringBuilder buf = new StringBuilder(bytes.length * 2);
+        for (int i = 0; i < bytes.length; ++i) {
+            buf.append(String.format("%02X", bytes[i]));
+        }
+        return buf.toString();
     }
 }
