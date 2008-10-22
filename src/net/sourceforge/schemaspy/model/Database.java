@@ -39,14 +39,14 @@ public class Database {
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
 
-    public Database(Connection connection, DatabaseMetaData meta, String name, String schema, String description, Properties properties, Pattern include, int maxThreads, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
+    public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         this.databaseName = name;
         this.schema = schema;
-        this.description = description;
-        initTables(schema, meta, properties, include, maxThreads);
-        initViews(schema, meta, properties, include);
+        this.description = config.getDescription();
+        initTables(schema, meta, properties, config);
+        initViews(schema, meta, properties, config);
         connectTables(properties);
         updateFromXmlMetadata(schemaMeta);
     }
@@ -111,9 +111,11 @@ public class Database {
 
     private void initTables(@SuppressWarnings("hiding") String schema, 
                             final DatabaseMetaData metadata, 
-                            final Properties properties, final Pattern include, 
-                            final int maxThreads) throws SQLException {
+                            final Properties properties, final Config config) throws SQLException {
         String[] types = {"TABLE"};
+        final Pattern include = config.getTableInclusions();
+        final boolean invertInclusions = config.isTableInclusionsInverted();
+        final int maxThreads = config.getMaxDbThreads();
 
         // "macro" to validate that a table is somewhat valid
         final class TableValidator {
@@ -127,11 +129,10 @@ public class Database {
                 String tableName = rs.getString("TABLE_NAME");
                 if (tableName.indexOf("$") != -1)
                     return false;
-    
-                if (!include.matcher(tableName).matches())
-                    return false;
-                
-                return true;
+
+                // true if matches and not inverting or
+                // not matches and inverting
+                return include.matcher(tableName).matches() ^ invertInclusions;
             }
         }
         TableValidator tableValidator = new TableValidator();
@@ -478,6 +479,13 @@ public class Database {
         return sqlKeywords;
     }
     
+    /**
+     * Return <code>id</code> quoted if required, otherwise return <code>id</code>
+     * 
+     * @param id
+     * @return
+     * @throws SQLException
+     */
     public String getQuotedIdentifier(String id) throws SQLException {
         // look for any character that isn't valid (then matcher.find() returns true)
         Matcher matcher = getInvalidIdentifierPattern().matcher(id);
@@ -555,11 +563,13 @@ public class Database {
         return sqlParams;
     }
 
-    private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata, Properties properties, Pattern include) throws SQLException {
+    private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata, Properties properties, Config config) throws SQLException {
         String[] types = {"VIEW"};
         ResultSet rs = null;
-        Pattern excludeColumns = Config.getInstance().getColumnExclusions();
-        Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
+        Pattern includeTables = config.getTableInclusions();
+        boolean invertTableInclusions = config.isTableInclusionsInverted();
+        Pattern excludeColumns = config.getColumnExclusions();
+        Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
 
         try {
             rs = metadata.getTables(null, schema, "%", types);
@@ -571,7 +581,9 @@ public class Database {
                     try {
                         View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeIndirectColumns, excludeColumns);
                         
-                        if (include.matcher(view.getName()).matches())
+                        // true if matches and not inverting or
+                        // not matches and inverting
+                        if (includeTables.matcher(view.getName()).matches() ^ invertTableInclusions)
                             views.put(view.getName(), view);
                     } catch (SQLException exc) {
                         System.out.flush();

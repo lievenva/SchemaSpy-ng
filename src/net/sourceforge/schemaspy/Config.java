@@ -56,6 +56,7 @@ public class Config
     private String server;
     private String meta;
     private Pattern tableInclusions;
+    private boolean tableInclusionsInverted;
     private Pattern columnExclusions;
     private Pattern indirectColumnExclusions;
     private String userConnectionPropertiesFile;
@@ -551,9 +552,14 @@ public class Config
     /**
      * @see #setMaxDbThreads(int)
      */
-    public int getMaxDbThreads() throws IOException {
+    public int getMaxDbThreads() throws InvalidConfigurationException {
         if (maxDbThreads == null) {
-            Properties properties = getDbProperties(getDbType());
+            Properties properties;
+            try {
+                properties = getDbProperties(getDbType());
+            } catch (IOException exc) {
+                throw new InvalidConfigurationException("Failed to load properties for " + getDbType() + ": " + exc);
+            }
             
             int max = Integer.MAX_VALUE;
             String threads = properties.getProperty("dbThreads");
@@ -718,18 +724,41 @@ public class Config
         this.tableInclusions = Pattern.compile(tableInclusions);
     }
 
+    /**
+     * Get the regex {@link Pattern} for which tables to include.
+     * If the pattern (specified on the command line with -i) starts with \!
+     * then the pattern specifies which tables to exclude. 
+     * 
+     * @return
+     */
     public Pattern getTableInclusions() {
         if (tableInclusions == null) {
             String strInclusions = pullParam("-i");
             if (strInclusions == null)
                 strInclusions = ".*";     // match anything
 
+            // if pattern starts with \! then invert it (include becomes exclude)
+            if (strInclusions.startsWith("\\!")) {
+                tableInclusionsInverted = true;
+                strInclusions = strInclusions.substring(2);
+            }
+            
             tableInclusions = Pattern.compile(strInclusions);
         }
 
         return tableInclusions;
     }
 
+    /**
+     * Returns <code>true</code> if the {@link Pattern} returned by
+     * {@link #getTableInclusions()} is to be negated.
+     * See {@link #getTableInclusions()}.
+     * 
+     * @return
+     */
+    public boolean isTableInclusionsInverted() {
+        return tableInclusionsInverted;
+    }
 
     /**
      * @return
@@ -1352,7 +1381,7 @@ public class Config
             params.add(value);
         }
         params.add("-i");
-        params.add(getTableInclusions().pattern());
+        params.add((isTableInclusionsInverted() ? "\\!" : "") + getTableInclusions().pattern());
         params.add("-x");
         params.add(getColumnExclusions().pattern());
         params.add("-X");

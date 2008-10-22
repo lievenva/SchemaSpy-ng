@@ -161,7 +161,7 @@ public class SchemaAnalyzer {
             //
             // create our representation of the database
             //
-            Database db = new Database(connection, meta, dbName, schema, config.getDescription(), properties, config.getTableInclusions(), config.getMaxDbThreads(), schemaMeta);
+            Database db = new Database(config, connection, meta, dbName, schema, properties, schemaMeta);
 
             schemaMeta = null; // done with it so let GC reclaim it
 
