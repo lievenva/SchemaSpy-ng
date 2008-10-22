@@ -18,7 +18,7 @@
         bug 1537126</a> - XML output fails with binary columns<br>
         It took a while but I think I finally came up with a regular expression
         that'll determine if the default value is representable in XML in Unicode:<br>
-        <code>^[\u0009\n\r -\uD7FF\uE000-\uFFFD\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}]*$</code>
+        <code>^[ -\uD7FF\uE000-\uFFFD\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}]*$</code>
     </li>
 </ul>
 </li>
