@@ -27,7 +27,7 @@ public class XmlTableFormatter {
     // and attempting to match 0x10000-0x10FFFF with the \p Unicode escapes
     // (from http://www.regular-expressions.info/unicode.html)
     private static final Pattern validXmlChars = 
-        Pattern.compile("^[\u0009\n\r -\uD7FF\uE000-\uFFFD\\p{L}\\p{M}\\p{Z}\\p{S}\\p{N}\\p{P}]*$");
+        Pattern.compile("^[ -\uD7FF\uE000-\uFFFD\\p{L}\\p{M}\\p{Z}\\p{S}\\p{N}\\p{P}]*$");
 
     /**
      * Singleton...don't allow instantiation
