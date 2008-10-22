@@ -266,7 +266,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             but the resultant Entity Relationship diagrams generally look better.
         </td>
       </tr>
-      <tr>
+      <tr id="includeparam">
         <td>&nbsp;</td>
         <td class="param"><code>-i <i>"tableNamesRegex"</i></code></td>
         <td class="param">Only include matching tables/views.
@@ -278,12 +278,20 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       </tr>
       <tr>
         <td>&nbsp;</td>
+        <td class="param"><code>-I <i>"tableNamesRegex"</i></code></td>
+        <td class="param">Exclude matching tables/views.
+            This regular expression excludes matching tables/views from the analysis.
+            Can be used in conjunction with <a href='#includeparam'><code>-i</code></a>.
+        </td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
         <td class="param"><code>-x <i>"columnNamesRegex"</i></code></td>
         <td class="param">Exclude matching columns from relationship analysis to
             simplify the generated graphs.
             This is a regular expression that's used to determine which
-            columns to exclude.  It must match table name, followed by a dot, followed by
-            column name.<br>
+            columns to exclude.
+            It must match table name, followed by a dot, followed by column name.<br>
             For example: <code>-x "(book.isbn)|(borrower.address)"</code><br>
             Note that each column name regular expression must be surround by <code>()</code>'s and
             separated from other column names by a <code>|</code>.
