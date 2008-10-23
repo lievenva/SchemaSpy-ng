@@ -120,7 +120,7 @@ public class ForeignKeyConstraint {
      */
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(childTable.getName());
         buf.append('.');
         buf.append(toString(childColumns));

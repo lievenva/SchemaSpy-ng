@@ -365,7 +365,7 @@ public class Database {
      * @return PreparedStatement
      */
     public PreparedStatement prepareStatement(String sql, String tableName) throws SQLException {
-        StringBuffer sqlBuf = new StringBuffer(sql);
+        StringBuilder sqlBuf = new StringBuilder(sql);
         List<String> sqlParams = getSqlParams(sqlBuf, tableName); // modifies sqlBuf
         PreparedStatement stmt = getConnection().prepareStatement(sqlBuf.toString());
 
@@ -536,7 +536,7 @@ public class Database {
      *
      * @see #prepareStatement(String, String)
      */
-    private List<String> getSqlParams(StringBuffer sql, String tableName) {
+    private List<String> getSqlParams(StringBuilder sql, String tableName) {
         Map<String, String> namedParams = new HashMap<String, String>();
         @SuppressWarnings("hiding")
         String schema = getSchema();

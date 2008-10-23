@@ -62,7 +62,7 @@ public class DotNode {
     @Override
     public String toString() {
         StyleSheet css = StyleSheet.getInstance();
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         String tableName = table.getName();
         String colspan = config.showColumnDetails ? "COLSPAN=\"2\" " : "COLSPAN=\"3\" ";
 
@@ -166,7 +166,7 @@ public class DotNode {
      * @return
      */
     private static String toNCR(String str) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < str.length(); ++i) {
             char ch = str.charAt(i);
             if (ch <= 127) {    // don't confuse things unless necessary

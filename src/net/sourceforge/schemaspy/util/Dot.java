@@ -194,7 +194,7 @@ public class Dot {
      * Using the specified .dot file generates an image returning the image's image map.
      */
     public String generateDiagram(File dotFile, File diagramFile) throws DotFailure {
-        StringBuffer mapBuffer = new StringBuffer(1024);
+        StringBuilder mapBuffer = new StringBuilder(1024);
         
         BufferedReader mapReader = null;
         // this one is for executing.  it can (hopefully) deal with funky things in filenames.
@@ -245,7 +245,7 @@ public class Dot {
     }
 
     private static String getDisplayableCommand(String[] command) {
-        StringBuffer displayable = new StringBuffer();
+        StringBuilder displayable = new StringBuilder();
         for (int i = 0; i < command.length; ++i) {
             displayable.append(command[i]);
             if (i + 1 < command.length)

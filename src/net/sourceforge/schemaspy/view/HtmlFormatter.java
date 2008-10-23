@@ -115,7 +115,7 @@ public class HtmlFormatter {
     }
 
     protected String getDescription(Database db, Table table, String text, boolean hoverHelp) {
-        StringBuffer description = new StringBuffer();
+        StringBuilder description = new StringBuilder();
         if (table != null) {
             if (table.isView())
                 description.append("View ");

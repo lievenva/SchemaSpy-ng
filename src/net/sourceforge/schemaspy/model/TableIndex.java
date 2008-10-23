@@ -78,7 +78,7 @@ public class TableIndex implements Comparable<TableIndex> {
      * @return
      */
     public String getColumnsAsString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         for (TableColumn column : columns) {
             if (buf.length() > 0)

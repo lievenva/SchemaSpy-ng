@@ -41,7 +41,7 @@ public class StyleSheet {
 
     private StyleSheet(BufferedReader cssReader) throws IOException {
         String lineSeparator = System.getProperty("line.separator");
-        StringBuffer data = new StringBuffer();
+        StringBuilder data = new StringBuilder();
         String line;
 
         while ((line = cssReader.readLine()) != null) {

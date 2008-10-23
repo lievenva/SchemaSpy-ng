@@ -38,7 +38,7 @@ public class HtmlOrphansPage extends HtmlDiagramFormatter {
 
         html.writeln("<a name='diagram'>");
         try {
-            StringBuffer maps = new StringBuffer(64 * 1024);
+            StringBuilder maps = new StringBuilder(64 * 1024);
 
             for (Table table : orphanTables) {
                 String dotBaseFilespec = table.getName();

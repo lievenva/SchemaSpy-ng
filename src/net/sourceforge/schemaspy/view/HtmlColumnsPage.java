@@ -180,7 +180,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
     }
    
     private String getTH(ColumnInfo selectedColumn, String columnName, String title, String align) {
-        StringBuffer buf = new StringBuffer("  <th");
+        StringBuilder buf = new StringBuilder("  <th");
         
         if (align != null) {
             buf.append(" align='");

@@ -73,7 +73,7 @@ public class DotConnector implements Comparable<DotConnector> {
 
     @Override
     public String toString() {
-        StringBuffer edge = new StringBuffer();
+        StringBuilder edge = new StringBuilder();
         edge.append("  \"");
         edge.append(childTable.getName());
         edge.append("\":\"");

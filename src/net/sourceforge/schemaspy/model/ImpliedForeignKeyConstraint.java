@@ -30,7 +30,7 @@ public class ImpliedForeignKeyConstraint extends ForeignKeyConstraint {
      */
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         buf.append(getChildTable());
         buf.append(".");

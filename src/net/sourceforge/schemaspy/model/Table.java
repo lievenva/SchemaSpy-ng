@@ -220,7 +220,7 @@ public class Table implements Comparable<Table> {
         // we've got to get a result set with all the columns in it
         // so we can ask if the columns are auto updated
         // Ugh!!!  Should have been in DatabaseMetaData instead!!!
-        StringBuffer sql = new StringBuffer("select * from ");
+        StringBuilder sql = new StringBuilder("select * from ");
         if (getSchema() != null) {
             sql.append(getSchema());
             sql.append('.');
@@ -747,7 +747,7 @@ public class Table implements Comparable<Table> {
     protected int fetchNumRows(Database db, String clause, boolean forceQuotes) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        StringBuffer sql = new StringBuffer("select ");
+        StringBuilder sql = new StringBuilder("select ");
         sql.append(clause);
         sql.append(" from ");
         if (getSchema() != null) {
