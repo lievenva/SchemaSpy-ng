@@ -164,7 +164,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         if (comments != null) {
             if (encodeComments)
                 for (int i = 0; i < comments.length(); ++i)
-                    html.write(HtmlEncoder.encode(comments.charAt(i)));
+                    html.write(HtmlEncoder.encodeToken(comments.charAt(i)));
             else
                 html.write(comments);
         }

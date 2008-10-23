@@ -67,7 +67,7 @@ public class HtmlFormatter {
             out.write("<div style='padding: 0px 4px;'>");
             if (encodeComments)
                 for (int i = 0; i < comments.length(); ++i)
-                    out.write(HtmlEncoder.encode(comments.charAt(i)));
+                    out.write(HtmlEncoder.encodeToken(comments.charAt(i)));
             else
                 out.write(comments);
             out.writeln("</div><p>");

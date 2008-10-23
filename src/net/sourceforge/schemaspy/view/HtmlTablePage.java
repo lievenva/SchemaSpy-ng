@@ -194,7 +194,7 @@ public class HtmlTablePage extends HtmlFormatter {
         if (comments != null) {
             if (encodeComments)
                 for (int i = 0; i < comments.length(); ++i)
-                    out.write(HtmlEncoder.encode(comments.charAt(i)));
+                    out.write(HtmlEncoder.encodeToken(comments.charAt(i)));
             else
                 out.write(comments);
         }
@@ -287,7 +287,7 @@ public class HtmlTablePage extends HtmlFormatter {
             for (String name : constraints.keySet()) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
-                out.write(constraints.get(name).toString());
+                out.write(HtmlEncoder.encodeString(constraints.get(name).toString()));
                 out.writeln("</td>");
                 out.write("  <td class='constraint' style='text-align:left;'>");
                 out.write(name);
@@ -419,7 +419,7 @@ public class HtmlTablePage extends HtmlFormatter {
                         out.write(t.getName());
                         out.write("</a>");
                     } else {
-                        out.write(HtmlEncoder.encode(nextToken));
+                        out.write(HtmlEncoder.encodeToken(nextToken));
                     }
                 }
             }

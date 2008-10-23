@@ -14,6 +14,7 @@ import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
+import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlConstraintsPage extends HtmlFormatter {
@@ -206,7 +207,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
             html.write(name);
             html.writeln("</td>");
             html.write("  <td class='detail'>");
-            html.write(constraints.get(name).toString());
+            html.write(HtmlEncoder.encodeString(constraints.get(name).toString()));
             html.writeln("</td>");
             html.writeln(" </tr>");
             ++constraintsWritten;

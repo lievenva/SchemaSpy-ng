@@ -21,12 +21,35 @@ public class HtmlEncoder {
    
     private HtmlEncoder() {}
     
-    public static String encode(char ch) {
-        return encode(String.valueOf(ch));
+    /**
+     * Returns an HTML-encoded equivalent of the specified character.
+     * 
+     * @param ch
+     * @return
+     */
+    public static String encodeToken(char ch) {
+        return encodeToken(String.valueOf(ch));
     }
     
-    public static String encode(String str) {
+    /**
+     * Returns an HTML-encoded equivalent of the specified tokenized string,
+     * where tokens such as '<', '>', '\n' and '\r' have been isolated from
+     * other tokens.
+     * 
+     * @param str
+     * @return
+     */
+    public static String encodeToken(String str) {
         String result = map.get(str);
         return (result == null) ? str : result;
+    }
+    
+    public static String encodeString(String str) {
+        int len = str.length();
+    	StringBuilder s = new StringBuilder(len * 2);
+    	for (int i = 0; i < len; i++) {
+			s.append(encodeToken(str.charAt(i)));
+		}
+    	return s.toString();
     }
 }
