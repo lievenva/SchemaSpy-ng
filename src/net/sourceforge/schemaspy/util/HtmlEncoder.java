@@ -44,12 +44,18 @@ public class HtmlEncoder {
         return (result == null) ? str : result;
     }
     
+    /**
+     * Returns an HTML-encoded version of the specified string
+     * 
+     * @param str
+     * @return
+     */
     public static String encodeString(String str) {
         int len = str.length();
-    	StringBuilder s = new StringBuilder(len * 2);
+    	StringBuilder buf = new StringBuilder(len * 2); // x2 should limit # of reallocs
     	for (int i = 0; i < len; i++) {
-			s.append(encodeToken(str.charAt(i)));
+			buf.append(encodeToken(str.charAt(i)));
 		}
-    	return s.toString();
+    	return buf.toString();
     }
 }
