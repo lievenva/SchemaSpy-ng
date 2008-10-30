@@ -14,15 +14,26 @@ import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.model.TableIndex;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * The page that lists all of the columns in the schema, 
+ * allowing the end user to sort by column's attributes.
+ *
+ * @author John Currier
+ */
 public class HtmlColumnsPage extends HtmlFormatter {
     private static HtmlColumnsPage instance = new HtmlColumnsPage();
 
     /**
-     * Singleton - prevent creation
+     * Singleton: Don't allow instantiation
      */
     private HtmlColumnsPage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlColumnsPage getInstance() {
         return instance;
     }

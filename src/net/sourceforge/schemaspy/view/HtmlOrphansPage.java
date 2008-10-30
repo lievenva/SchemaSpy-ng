@@ -11,12 +11,25 @@ import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * The page that contains the all tables that aren't related to others (orphans)
+ *
+ * @author John Currier
+ */
 public class HtmlOrphansPage extends HtmlDiagramFormatter {
     private static HtmlOrphansPage instance = new HtmlOrphansPage();
 
+    /**
+     * Singleton: Don't allow instantiation
+     */
     private HtmlOrphansPage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlOrphansPage getInstance() {
         return instance;
     }
@@ -27,7 +40,7 @@ public class HtmlOrphansPage extends HtmlDiagramFormatter {
             return false;
 
         Set<Table> orphansWithImpliedRelationships = new HashSet<Table>();
-        
+
         for (Table table : orphanTables) {
             if (!table.isOrphan(true)){
                 orphansWithImpliedRelationships.add(table);

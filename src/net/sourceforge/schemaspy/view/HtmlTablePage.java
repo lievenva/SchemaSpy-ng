@@ -23,6 +23,11 @@ import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * The page that contains the details of a specific table or view
+ *
+ * @author John Currier
+ */
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
     private Set<String> keywords = null;
@@ -38,11 +43,16 @@ public class HtmlTablePage extends HtmlFormatter {
     }
 
     /**
-     * Singleton...don't allow instantiation
+     * Singleton: Don't allow instantiation
      */
     private HtmlTablePage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlTablePage getInstance() {
         return instance;
     }
@@ -87,7 +97,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 break;
             }
         }
-        
+
         html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
         html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraint names</label>");
         html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially  ? "checked " : "") + "id='showComments'>Comments</label>");
@@ -97,7 +107,7 @@ public class HtmlTablePage extends HtmlFormatter {
 
     public boolean writeMainTable(Table table, LineWriter out) throws IOException {
         boolean onCascadeDelete = false;
-        
+
         HtmlColumnsPage.getInstance().writeMainTableHeader(table.getId() != null, null, out);
 
         out.writeln("<tbody valign='top'>");
@@ -106,7 +116,7 @@ public class HtmlTablePage extends HtmlFormatter {
         for (TableIndex index : table.getIndexes()) {
             indexedColumns.addAll(index.getColumns());
         }
-        
+
         boolean showIds = table.getId() != null;
         for (TableColumn column : table.getColumns()) {
             onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, showIds, out);
@@ -388,12 +398,12 @@ public class HtmlTablePage extends HtmlFormatter {
         String sql;
         if (table.isView() && (sql = table.getViewSql()) != null) {
             Map<String, Table> tables = new CaseInsensitiveMap<Table>();
-            
+
             for (Table t : db.getTables())
                 tables.put(t.getName(), t);
             for (View v : db.getViews())
                 tables.put(v.getName(), v);
-            
+
             out.writeln("<div class='indent'>");
             out.writeln("View SQL:");
             out.writeln("<table class='dataTable' border='1' width='100%'>");
@@ -529,7 +539,7 @@ public class HtmlTablePage extends HtmlFormatter {
         File twoDegreesDiagramFile = new File(diagramDir, table.getName() + ".2degrees.png");
         File impliedDotFile = new File(diagramDir, table.getName() + ".implied2degrees.dot");
         File impliedDiagramFile = new File(diagramDir, table.getName() + ".implied2degrees.png");
-        
+
         // delete before we start because we'll use the existence of these files to determine
         // if they should be turned into pngs & presented
         oneDegreeDotFile.delete();
@@ -541,7 +551,7 @@ public class HtmlTablePage extends HtmlFormatter {
 
         if (table.getMaxChildren() + table.getMaxParents() > 0) {
             Set<ForeignKeyConstraint> impliedConstraints;
-            
+
             DotFormatter formatter = DotFormatter.getInstance();
             LineWriter dotOut = new LineWriter(oneDegreeDotFile, Config.DOT_CHARSET);
             WriteStats oneStats = new WriteStats(stats);
@@ -564,7 +574,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 return true;
             }
         }
-        
+
         return false;
     }
 

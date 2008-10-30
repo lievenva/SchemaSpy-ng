@@ -11,16 +11,26 @@ import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * The main index that contains all tables and views that were evaluated
+ *
+ * @author John Currier
+ */
 public class HtmlMainIndexPage extends HtmlFormatter {
     private static HtmlMainIndexPage instance = new HtmlMainIndexPage();
     private NumberFormat integerFormatter = NumberFormat.getIntegerInstance();
 
     /**
-     * Singleton - prevent creation
+     * Singleton: Don't allow instantiation
      */
     private HtmlMainIndexPage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlMainIndexPage getInstance() {
         return instance;
     }
@@ -35,7 +45,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
         boolean showIds = false;
         int numViews = 0;
-        
+
         for (Table table : byName) {
             if (table.isView())
                 ++numViews;

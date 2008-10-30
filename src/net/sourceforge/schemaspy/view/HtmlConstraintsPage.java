@@ -17,15 +17,25 @@ import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * The page that lists all of the constraints in the schema
+ *
+ * @author John Currier
+ */
 public class HtmlConstraintsPage extends HtmlFormatter {
     private static HtmlConstraintsPage instance = new HtmlConstraintsPage();
 
     /**
-     * Singleton - prevent creation
+     * Singleton: Don't allow instantiation
      */
     private HtmlConstraintsPage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlConstraintsPage getInstance() {
         return instance;
     }

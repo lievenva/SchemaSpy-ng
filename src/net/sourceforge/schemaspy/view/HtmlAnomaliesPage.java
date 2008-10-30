@@ -12,15 +12,26 @@ import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * This page lists all of the 'things that might not be quite right'
+ * about the schema.
+ *
+ * @author John Currier
+ */
 public class HtmlAnomaliesPage extends HtmlFormatter {
     private static HtmlAnomaliesPage instance = new HtmlAnomaliesPage();
 
     /**
-     * Singleton - don't allow creation
+     * Singleton: Don't allow instantiation
      */
     private HtmlAnomaliesPage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlAnomaliesPage getInstance() {
         return instance;
     }
@@ -53,7 +64,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         out.writeln("<li>");
         out.writeln("<b>Columns whose name and type imply a relationship to another table's primary key:</b>");
         int numDetected = 0;
-        
+
         for (ForeignKeyConstraint impliedConstraint : impliedConstraints) {
             Table childTable = impliedConstraint.getChildTable();
             if (!childTable.isView()) {
@@ -72,7 +83,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            
+
             for (ForeignKeyConstraint impliedConstraint : impliedConstraints) {
                 Table childTable = impliedConstraint.getChildTable();
                 if (!childTable.isView()) {
@@ -133,7 +144,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            
+
             for (Table table : unindexedTables) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
@@ -170,7 +181,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            
+
             for (Table table : tables) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");
@@ -204,7 +215,7 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</tr>");
             out.writeln("</thead>");
             out.writeln("<tbody>");
-            
+
             for (Table table : tables) {
                 out.writeln(" <tr>");
                 out.write("  <td class='detail'>");

@@ -9,12 +9,25 @@ import java.util.List;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.util.LineWriter;
 
+/**
+ * The page that contains links to the various schemas that were analyzed
+ *
+ * @author John Currier
+ */
 public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
     private static HtmlMultipleSchemasIndexPage instance = new HtmlMultipleSchemasIndexPage();
 
+    /**
+     * Singleton: Don't allow instantiation
+     */
     private HtmlMultipleSchemasIndexPage() {
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @return the singleton instance
+     */
     public static HtmlMultipleSchemasIndexPage getInstance() {
         return instance;
     }
