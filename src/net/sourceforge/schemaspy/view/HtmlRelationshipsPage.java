@@ -118,7 +118,7 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
             html.writeln("<tr><td class='container' align='left' valign='top'>");
             if (hasImpliedRelationships) {
                 html.writeln("No 'real' Foreign Key relationships were detected in the schema.<br>");
-                html.writeln("These relationships are implied by a column's name and type matching another table's primary key.");
+                html.writeln("Displayed relationships are implied by a column's name/type/size matching another table's primary key.<p>");
             }
             else
                 html.writeln("No relationships were detected in the schema.");
@@ -127,15 +127,21 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
         html.writeln("<tr><td class='container' align='left' valign='top'>");
 
         html.writeln("<form name='options' action=''>");
-        if (hasRealRelationships && hasImpliedRelationships) {
-            html.write("  <span title=\"Show relationships implied by column name and type matching another table's primary key\">");
-            html.write("<label for='implied'><input type='checkbox' id='implied'>");
-            html.writeln("Implied relationships</label></span>");
+        if (hasImpliedRelationships) {
+            html.write("  <span ");
+            // if no real relationships then hide the 'implied' checkbox and make it 'checked'
+            if (!hasRealRelationships)
+                html.write("style=\"display:none\" ");
+            html.writeln("title=\"Show relationships implied by column name/type/size matching another table's primary key\">");
+            html.write("    <label for='implied'><input type='checkbox' id='implied'" + (hasRealRelationships ? "" : " checked" ) + '>');
+            html.writeln("Implied relationships</label>");
+            html.writeln("  </span>");
         }
         if (hasRealRelationships || hasImpliedRelationships) {
-            html.write("  <span title=\"By default only columns that are primary keys, foreign keys or indexes are shown\">");
-            html.write("<label for='showNonKeys'><input type='checkbox' id='showNonKeys'>");
-            html.writeln("All columns</label></span>");
+            html.writeln("  <span title=\"By default only columns that are primary keys, foreign keys or indexes are shown\">");
+            html.write("    <label for='showNonKeys'><input type='checkbox' id='showNonKeys'>");
+            html.writeln("All columns</label>");
+            html.writeln("  </span>");
         }
         html.writeln("</form>");
 
