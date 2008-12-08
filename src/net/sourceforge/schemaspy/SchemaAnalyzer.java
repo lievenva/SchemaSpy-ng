@@ -417,10 +417,15 @@ public class SchemaAnalyzer {
         }
 
         System.out.println();
-        System.out.println("These schemas contain tables/views that user '" + user + "' can see:");
-        System.out.println();
-        for (String populated : DbAnalyzer.getPopulatedSchemas(meta)) {
-            System.out.print(populated + " ");
+        List<String> populatedSchemas = DbAnalyzer.getPopulatedSchemas(meta);
+        if (populatedSchemas.isEmpty()) {
+            System.out.println("Unable to determine if any of the schemas contain tables/views");
+        } else {
+            System.out.println("These schemas contain tables/views that user '" + user + "' can see:");
+            System.out.println();
+            for (String populated : populatedSchemas) {
+                System.out.print(" " + populated);
+            }
         }
     }
 
