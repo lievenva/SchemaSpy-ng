@@ -60,7 +60,7 @@ public class HtmlFormatter {
         out.write(getDescription(db, table, text, true));
         out.write("</span>");
         if (table == null && db.getDescription() != null)
-            out.write("<span class='description'>" + db.getDescription() + "</span>");
+            out.write("<span class='description'>" + db.getDescription().replace("\\=", "=") + "</span>");
 
         String comments = table == null ? null : table.getComments();
         if (comments != null) {
