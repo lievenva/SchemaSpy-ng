@@ -552,7 +552,7 @@ public class Database {
         List<String> sqlParams = new ArrayList<String>();
         int nextColon = sql.indexOf(":");
         while (nextColon != -1) {
-            String paramName = new StringTokenizer(sql.substring(nextColon), " ,").nextToken();
+            String paramName = new StringTokenizer(sql.substring(nextColon), " ,\"')").nextToken();
             String paramValue = namedParams.get(paramName);
             if (paramValue == null)
                 throw new InvalidConfigurationException("Unexpected named parameter '" + paramName + "' found in SQL '" + sql + "'");
