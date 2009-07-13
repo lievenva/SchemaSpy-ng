@@ -46,6 +46,13 @@
     <li>Resolved <a href="https://sourceforge.net/forum/message.php?msg_id=7095169">an issue</a>
         where an InvalidConfigurationException was thrown when using Sybase.
     </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=2820802&group_id=137197">
+        bug 2820802</a> - ConcurrentModificationException<br>
+        This would sometimes occur while determining referential integrity-based
+        insertion/deletion ordering with schemas that have recursive foreign
+        key relationships.<br>
+        Thanks to Joao Carlos Batalha for reporting the problem.
+    </li>
 </ul>
 </li>
 

@@ -46,7 +46,7 @@ public class Table implements Comparable<Table> {
         initPrimaryKeys(db.getMetaData(), properties);
         numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db, properties) : -1;
     }
-    
+
     public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
@@ -62,7 +62,7 @@ public class Table implements Comparable<Table> {
             if (rs != null)
                 rs.close();
         }
-        
+
         // if we're one of multiples then also find all of the 'remote' tables in other
         // schemas that point to our primary keys (not necessary in the normal case
         // as we infer this from the opposite direction)
@@ -102,7 +102,7 @@ public class Table implements Comparable<Table> {
      * rs.getString("PKTABLE_NAME");
      * rs.getString("PKCOLUMN_NAME");
      * @param tables Map
-     * @param db 
+     * @param db
      * @throws SQLException
      */
     protected void addForeignKey(String fkName, String fkColName, String pkTableSchema, String pkTableName, String pkColName, Map<String, Table> tables, Database db, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
@@ -120,7 +120,7 @@ public class Table implements Comparable<Table> {
         TableColumn childColumn = getColumn(fkColName);
         if (childColumn != null) {
             foreignKey.addChildColumn(childColumn);
-    
+
             Table parentTable = tables.get(pkTableName);
             if (parentTable == null) {
                 String otherSchema = pkTableSchema;
@@ -128,12 +128,12 @@ public class Table implements Comparable<Table> {
                     parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties, excludeIndirectColumns, excludeColumns);
                 }
             }
-            
+
             if (parentTable != null) {
                 TableColumn parentColumn = parentTable.getColumn(pkColName);
                 if (parentColumn != null) {
                     foreignKey.addParentColumn(parentColumn);
-        
+
                     childColumn.addParent(parentColumn, foreignKey);
                     parentColumn.addChild(childColumn, foreignKey);
                 } else {
@@ -150,7 +150,7 @@ public class Table implements Comparable<Table> {
     private void initPrimaryKeys(DatabaseMetaData meta, Properties properties) throws SQLException {
         if (properties == null)
             return;
-        
+
         ResultSet rs = null;
 
         try {
@@ -178,7 +178,7 @@ public class Table implements Comparable<Table> {
 
         setPrimaryColumn(getColumn(columnName));
     }
-    
+
     void setPrimaryColumn(TableColumn primaryColumn) {
         primaryKeys.add(primaryColumn);
     }
@@ -201,7 +201,7 @@ public class Table implements Comparable<Table> {
                         initCause(failure);
                     }
                 }
-                
+
                 throw new ColumnInitializationFailure(exc);
             } finally {
                 if (rs != null)
@@ -225,13 +225,13 @@ public class Table implements Comparable<Table> {
             sql.append(getSchema());
             sql.append('.');
         }
-        
+
         if (forceQuotes) {
             String quote = db.getMetaData().getIdentifierQuoteString().trim();
             sql.append(quote + getName() + quote);
         } else
             sql.append(db.getQuotedIdentifier(getName()));
-        
+
         sql.append(" where 0 = 1");
 
         try {
@@ -275,7 +275,7 @@ public class Table implements Comparable<Table> {
             columns.put(column.getName(), column);
         }
     }
-    
+
     /**
      * Add a column that's defined in xml metadata.
      * Assumes that a column named colMeta.getName() doesn't already exist in <code>columns</code>.
@@ -286,7 +286,7 @@ public class Table implements Comparable<Table> {
         TableColumn column = new TableColumn(this, colMeta);
 
         columns.put(column.getName(), column);
-        
+
         return column;
     }
 
@@ -416,7 +416,7 @@ public class Table implements Comparable<Table> {
         //return Collections.unmodifiableList(primaryKeys);
         return primaryKeys;
     }
-    
+
     /**
      * @return Comments associated with this table, or <code>null</code> if none.
      */
@@ -426,8 +426,8 @@ public class Table implements Comparable<Table> {
 
     public void setComments(String comments) {
         String cmts = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
-        
-        // MySQL's InnoDB engine does some insane crap of storing erroneous details in 
+
+        // MySQL's InnoDB engine does some insane crap of storing erroneous details in
         // with table comments.  Here I attempt to strip the "crap" out without impacting
         // other databases.  Ideally this should happen in selectColumnCommentsSql (and
         // therefore isolate it to MySQL), but it's a bit too complex to do cleanly.
@@ -440,7 +440,7 @@ public class Table implements Comparable<Table> {
                 cmts = cmts.length() == 0 ? null : cmts;
             }
         }
-        
+
         this.comments = cmts;
     }
 
@@ -508,18 +508,18 @@ public class Table implements Comparable<Table> {
 
     /**
      * Remove a single self referencing constraint if one exists.
-     * 
+     *
      * @return
      */
     public ForeignKeyConstraint removeSelfReferencingConstraint() {
         return remove(getSelfReferencingConstraint());
     }
-    
+
     /**
      * Remove the specified {@link ForeignKeyConstraint} from this table.<p>
-     * 
+     *
      * This is a more drastic removal solution that was proposed by Remke Rutgers
-     * 
+     *
      * @param constraint
      */
     private ForeignKeyConstraint remove(ForeignKeyConstraint constraint) {
@@ -536,7 +536,7 @@ public class Table implements Comparable<Table> {
 
     /**
      * Return a self referencing constraint if one exists
-     * 
+     *
      * @return
      */
     private ForeignKeyConstraint getSelfReferencingConstraint() {
@@ -552,21 +552,27 @@ public class Table implements Comparable<Table> {
 
     /**
      * Remove any non-real foreign keys
-     * 
+     *
      * @return
      */
     public List<ForeignKeyConstraint> removeNonRealForeignKeys() {
         List<ForeignKeyConstraint> nonReals = new ArrayList<ForeignKeyConstraint>();
-        
+
         for (TableColumn column : columns.values()) {
             for (TableColumn parentColumn : column.getParents()) {
                 ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn);
                 if (constraint != null && !constraint.isReal()) {
-                    nonReals.add(remove(constraint));
+                    nonReals.add(constraint);
                 }
             }
         }
-        
+
+        // remove constraints outside of above loop to prevent
+        // concurrent modification exceptions while iterating
+        for (ForeignKeyConstraint constraint : nonReals) {
+            remove(constraint);
+        }
+
         return nonReals;
     }
 
@@ -609,7 +615,7 @@ public class Table implements Comparable<Table> {
 
     /**
      * Returns the number of non-implied parents
-     * 
+     *
      * @return
      */
     public int getNumNonImpliedParents() {
@@ -659,7 +665,7 @@ public class Table implements Comparable<Table> {
     public boolean isView() {
         return false;
     }
-    
+
     /**
      * Returns <code>true</code> if this table is remote (in another schema), <code>false</code> otherwise
      * @return
@@ -681,7 +687,7 @@ public class Table implements Comparable<Table> {
     /**
      * Returns the number of rows contained in this table, or -1 if unable to determine
      * the number of rows.
-     * 
+     *
      * @return
      */
     public int getNumRows() {
@@ -695,14 +701,14 @@ public class Table implements Comparable<Table> {
      *
      * @param db Database
      * @return int
-     * @throws SQLException 
+     * @throws SQLException
      */
     protected int fetchNumRows(Database db, Properties properties) throws SQLException {
         if (properties == null) // some "meta" tables don't have associated properties
             return 0;
-        
+
         SQLException originalFailure = null;
-        
+
         String sql = properties.getProperty("selectRowCountSql");
         if (sql != null) {
             PreparedStatement stmt = null;
@@ -771,7 +777,7 @@ public class Table implements Comparable<Table> {
         } catch (SQLException exc) {
             if (forceQuotes) // we tried with and w/o quotes...fail this attempt
                 throw exc;
-            
+
             return fetchNumRows(db, clause, true);
         } finally {
             if (rs != null)
@@ -786,7 +792,7 @@ public class Table implements Comparable<Table> {
         if (newComments != null) {
             comments = newComments;
         }
-        
+
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
             if (col == null) {
@@ -795,7 +801,7 @@ public class Table implements Comparable<Table> {
                     System.err.print("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
                     continue;
                 }
-                
+
                 col = addColumn(colMeta);
             }
 
@@ -803,7 +809,7 @@ public class Table implements Comparable<Table> {
             col.update(colMeta);
         }
     }
-    
+
     /**
      * @param tableMeta
      */
@@ -836,7 +842,7 @@ public class Table implements Comparable<Table> {
             }
         }
     }
-    
+
     @Override
     public String toString() {
         return getName();
