@@ -32,13 +32,13 @@ import net.sourceforge.schemaspy.util.Dot;
 
 /**
  * Configuration of a SchemaSpy run
- * 
+ *
  * @author John Currier
  */
 public class Config
 {
     private static Config instance;
-    private List<String> options;
+    private final List<String> options;
     private Map<String, String> dbSpecificOptions;
     private Map<String, String> originalDbSpecificOptions;
     private boolean helpRequired;
@@ -76,6 +76,7 @@ public class Config
     private Boolean rankDirBugEnabled;
     private Boolean encodeCommentsEnabled;
     private Boolean numRowsEnabled;
+    private Boolean verboseExclusionsEnabled;
     private Boolean meterEnabled;
     private Boolean railsEnabled;
     private Boolean evaluteAll;
@@ -84,9 +85,9 @@ public class Config
     private Boolean adsEnabled;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
-    public static final String DOT_CHARSET = "UTF-8"; 
+    public static final String DOT_CHARSET = "UTF-8";
     private static final String ESCAPED_EQUALS = "\\=";
-    
+
     /**
      * Default constructor. Intended for when you want to inject properties
      * independently (i.e. not from a command line interface).
@@ -101,35 +102,35 @@ public class Config
     /**
      * Construct a configuration from an array of options (e.g. from a command
      * line interface).
-     * 
+     *
      * @param options
      */
     public Config(String[] argv)
     {
         setInstance(this);
         options = fixupArgs(Arrays.asList(argv));
-        
-        helpRequired =  options.remove("-?") || 
-                        options.remove("/?") || 
-                        options.remove("?") || 
-                        options.remove("-h") || 
-                        options.remove("-help") || 
+
+        helpRequired =  options.remove("-?") ||
+                        options.remove("/?") ||
+                        options.remove("?") ||
+                        options.remove("-h") ||
+                        options.remove("-help") ||
                         options.remove("--help");
         dbHelpRequired =  options.remove("-dbHelp") || options.remove("-dbhelp");
     }
-    
+
     public static Config getInstance() {
         if (instance == null)
             instance = new Config();
-        
+
         return instance;
     }
-    
+
     /**
      * Sets the global instance.
      *
      * Useful for things like selecting a specific configuration in a UI.
-     * 
+     *
      * @param config
      */
     public static void setInstance(Config config) {
@@ -139,41 +140,41 @@ public class Config
     public void setHtmlGenerationEnabled(boolean generateHtml) {
         this.generateHtml = generateHtml;
     }
-    
+
     public boolean isHtmlGenerationEnabled() {
         if (generateHtml == null)
             generateHtml = !options.remove("-nohtml");
 
         return generateHtml;
     }
-    
+
     public void setImpliedConstraintsEnabled(boolean includeImpliedConstraints) {
         this.includeImpliedConstraints = includeImpliedConstraints;
     }
-    
+
     public boolean isImpliedConstraintsEnabled() {
         if (includeImpliedConstraints == null)
             includeImpliedConstraints = !options.remove("-noimplied");
 
         return includeImpliedConstraints;
     }
-    
+
     public void setOutputDir(String outputDirName) {
         if (outputDirName.endsWith("\""))
             outputDirName = outputDirName.substring(0, outputDirName.length() - 1);
 
         setOutputDir(new File(outputDirName));
     }
-    
+
     public void setOutputDir(File outputDir) {
         this.outputDir = outputDir;
     }
-    
+
     public File getOutputDir() {
         if (outputDir == null) {
             setOutputDir(pullRequiredParam("-o"));
         }
-        
+
         return outputDir;
     }
 
@@ -181,70 +182,70 @@ public class Config
      * Meta files are XML-based files that provide additional metadata
      * about the schema being evaluated.<p>
      * <code>meta</code> is either the name of an individual XML file or
-     * the directory that contains meta files.<p>  
+     * the directory that contains meta files.<p>
      * If a directory is specified then it is expected to contain files
-     * matching the pattern <code>[schema].meta.xml</code>.  
+     * matching the pattern <code>[schema].meta.xml</code>.
      * For databases that don't have schema substitute database for schema.
      * @param meta
      */
     public void setMeta(String meta) {
         this.meta = meta;
     }
-    
+
     public String getMeta() {
         if (meta == null)
             meta = pullParam("-meta");
         return meta;
     }
-    
+
     public void setDbType(String dbType) {
         this.dbType = dbType;
     }
-    
+
     public String getDbType() {
         if (dbType == null) {
             dbType = pullParam("-t");
             if (dbType == null)
                 dbType = "ora";
         }
-        
+
         return dbType;
     }
-    
+
     public void setDb(String db) {
         this.db = db;
     }
-    
+
     public String getDb() {
         if (db == null)
             db = pullParam("-db");
         return db;
     }
-    
+
     public void setSchema(String schema) {
         this.schema = schema;
     }
-    
+
     public String getSchema() {
         if (schema == null)
             schema = pullParam("-s");
         return schema;
     }
-    
+
     public void setHost(String host) {
         this.host = host;
     }
-    
+
     public String getHost() {
         if (host == null)
             host = pullParam("-host");
         return host;
     }
-    
+
     public void setPort(Integer port) {
         this.port = port;
     }
-    
+
     public Integer getPort() {
         if (port == null)
             try {
@@ -252,25 +253,25 @@ public class Config
             } catch (Exception notSpecified) {}
         return port;
     }
-    
+
     public void setServer(String server) {
         this.server = server;
     }
-    
+
     public String getServer() {
         if (server == null) {
             server = pullParam("-server");
         }
-        
+
         return server;
     }
-    
+
     public void setUser(String user) {
         this.user = user;
     }
-    
+
     /**
-     * User used to connect to the database.  
+     * User used to connect to the database.
      * Required unless single sign-on is enabled
      * (see {@link #setSingleSignOn(boolean)}).
      * @return
@@ -287,13 +288,13 @@ public class Config
 
     /**
      * By default a "user" (as specified with -u) is required.
-     * This option allows disabling of that requirement for 
+     * This option allows disabling of that requirement for
      * single sign-on environments.
-     * 
+     *
      * @param enabled defaults to <code>false</code>
      */
     public void setSingleSignOn(boolean enabled) {
-        this.singleSignOn = enabled;
+        singleSignOn = enabled;
     }
 
     /**
@@ -302,10 +303,10 @@ public class Config
     public boolean isSingleSignOn() {
         if (singleSignOn == null)
             singleSignOn = options.remove("-sso");
-        
+
         return singleSignOn;
     }
-    
+
     /**
      * Set the password used to connect to the database.
      * @param password
@@ -313,7 +314,7 @@ public class Config
     public void setPassword(String password) {
         this.password = password;
     }
-    
+
     /**
      * @see #setPassword(String)
      * @return
@@ -323,31 +324,31 @@ public class Config
             password = pullParam("-p");
         return password;
     }
-    
+
     public void setMaxDetailedTabled(int maxDetailedTables) {
         this.maxDetailedTables = new Integer(maxDetailedTables);
     }
-    
+
     public int getMaxDetailedTables() {
         if (maxDetailedTables == null) {
             int max = 300; // default
             try {
                 max = Integer.parseInt(pullParam("-maxdet"));
             } catch (Exception notSpecified) {}
-            
+
             maxDetailedTables = new Integer(max);
         }
-        
+
         return maxDetailedTables.intValue();
     }
-    
+
     public String getConnectionPropertiesFile() {
         return userConnectionPropertiesFile;
     }
-    
+
     /**
      * Properties from this file (in key=value pair format) are passed to the
-     * database connection.<br> 
+     * database connection.<br>
      * user (from -u) and password (from -p) will be passed in the
      * connection properties if specified.
      * @param propertiesFilename
@@ -360,7 +361,7 @@ public class Config
         userConnectionProperties.load(new FileInputStream(propertiesFilename));
         userConnectionPropertiesFile = propertiesFilename;
     }
-    
+
     /**
      * Returns a {@link Properties} populated either from the properties file specified
      * by {@link #setConnectionPropertiesFile(String)}, the properties specified by
@@ -382,23 +383,23 @@ public class Config
             userConnectionProperties = new Properties();
         }
         }
-        
+
         return userConnectionProperties;
     }
-    
+
     /**
      * Specifies connection properties to use in the format:
      * <code>key1\=value1;key2\=value2</code><br>
      * user (from -u) and password (from -p) will be passed in the
      * connection properties if specified.<p>
-     * This is an alternative form of passing connection properties than by file 
+     * This is an alternative form of passing connection properties than by file
      * (see {@link #setConnectionPropertiesFile(String)})
-     * 
+     *
      * @param properties
      */
     public void setConnectionProperties(String properties) {
         userConnectionProperties = new Properties();
-        
+
         StringTokenizer tokenizer = new StringTokenizer(properties, ";");
         while (tokenizer.hasMoreElements()) {
             String pair = tokenizer.nextToken();
@@ -410,36 +411,36 @@ public class Config
             }
         }
     }
-    
+
     public void setDriverPath(String driverPath) {
         this.driverPath = driverPath;
     }
-    
+
     public String getDriverPath() {
         if (driverPath == null)
             driverPath = pullParam("-dp");
-        
+
         // was previously -cp:
         if (driverPath == null)
             driverPath = pullParam("-cp");
-        
+
         return driverPath;
     }
 
     /**
-     * The filename of the cascading style sheet to use.  
+     * The filename of the cascading style sheet to use.
      * Note that this file is parsed and used to determine characteristics
      * of the generated diagrams, so it must contain specific settings that
      * are documented within schemaSpy.css.<p>
-     * 
+     *
      * Defaults to <code>"schemaSpy.css"</code>.
-     *  
+     *
      * @param css
      */
     public void setCss(String css) {
         this.css = css;
     }
-    
+
     public String getCss() {
         if (css == null) {
             css = pullParam("-css");
@@ -448,10 +449,10 @@ public class Config
         }
         return css;
     }
-    
+
     /**
      * The font to use within diagrams.  Modify the .css to specify HTML fonts.
-     * 
+     *
      * @param font
      */
     public void setFont(String font) {
@@ -473,17 +474,17 @@ public class Config
     /**
      * The font size to use within diagrams.  This is the size of the font used for
      * 'large' (e.g. not 'compact') diagrams.<p>
-     *   
+     *
      * Modify the .css to specify HTML font sizes.<p>
-     * 
+     *
      * Defaults to 11.
-     * 
+     *
      * @param fontSize
      */
     public void setFontSize(int fontSize) {
         this.fontSize = new Integer(fontSize);
     }
-    
+
     /**
      * @see #setFontSize(int)
      * @return
@@ -494,16 +495,16 @@ public class Config
             try {
                 size = Integer.parseInt(pullParam("-fontsize"));
             } catch (Exception notSpecified) {}
-            
+
             fontSize = new Integer(size);
         }
-        
+
         return fontSize.intValue();
     }
 
     /**
      * The character set to use within HTML pages (defaults to <code>"ISO-8859-1"</code>).
-     * 
+     *
      * @param charset
      */
     public void setCharset(String charset) {
@@ -521,16 +522,16 @@ public class Config
         }
         return charset;
     }
-    
+
     /**
      * Description of schema that gets display on main pages.
-     * 
+     *
      * @param description
      */
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     /**
      * @see #setDescription(String)
      */
@@ -539,16 +540,16 @@ public class Config
             description = pullParam("-desc");
         return description;
     }
-    
+
     /**
      * Maximum number of threads to use when querying database metadata information.
-     * 
+     *
      * @param maxDbThreads
      */
     public void setMaxDbThreads(int maxDbThreads) {
         this.maxDbThreads = new Integer(maxDbThreads);
     }
-    
+
     /**
      * @see #setMaxDbThreads(int)
      */
@@ -560,7 +561,7 @@ public class Config
             } catch (IOException exc) {
                 throw new InvalidConfigurationException("Failed to load properties for " + getDbType() + ": " + exc);
             }
-            
+
             int max = Integer.MAX_VALUE;
             String threads = properties.getProperty("dbThreads");
             if (threads == null)
@@ -576,27 +577,27 @@ public class Config
                 max = Integer.MAX_VALUE;
             else if (max == 0)
                 max = 1;
-    
+
             maxDbThreads = new Integer(max);
         }
-        
+
         return maxDbThreads.intValue();
     }
-    
+
     public boolean isLogoEnabled() {
         if (logoEnabled == null)
             logoEnabled = !options.remove("-nologo");
-        
+
         return logoEnabled;
     }
-    
+
     /**
      * Don't use this unless absolutely necessary as it screws up the layout
-     * 
+     *
      * @param enabled
      */
     public void setRankDirBugEnabled(boolean enabled) {
-        this.rankDirBugEnabled = enabled;
+        rankDirBugEnabled = enabled;
     }
 
     /**
@@ -605,42 +606,42 @@ public class Config
     public boolean isRankDirBugEnabled() {
         if (rankDirBugEnabled == null)
             rankDirBugEnabled = options.remove("-rankdirbug");
-        
+
         return rankDirBugEnabled;
     }
-    
+
     /**
      * Look for Ruby on Rails-based naming conventions in
      * relationships between logical foreign keys and primary keys.<p>
-     * 
+     *
      * Basically all tables have a primary key named <code>ID</code>.
      * All tables are named plural names.
-     * The columns that logically reference that <code>ID</code> are the singular 
+     * The columns that logically reference that <code>ID</code> are the singular
      * form of the table name suffixed with <code>_ID</code>.<p>
-     *  
+     *
      * @param enabled
      */
     public void setRailsEnabled(boolean enabled) {
-        this.railsEnabled = enabled;
+        railsEnabled = enabled;
     }
-    
+
     /**
      * @see #setRailsEnabled(boolean)
-     * 
+     *
      * @return
      */
     public boolean isRailsEnabled() {
-        if (railsEnabled == null) 
+        if (railsEnabled == null)
             railsEnabled = options.remove("-rails");
-        
+
         return railsEnabled;
     }
-    
+
     /**
      * Allow Html In Comments - encode them unless otherwise specified
      */
     public void setEncodeCommentsEnabled(boolean enabled) {
-        this.encodeCommentsEnabled = enabled;
+        encodeCommentsEnabled = enabled;
     }
 
     /**
@@ -649,31 +650,70 @@ public class Config
     public boolean isEncodeCommentsEnabled() {
         if (encodeCommentsEnabled == null)
             encodeCommentsEnabled = !options.remove("-ahic");
-        
+
         return encodeCommentsEnabled;
     }
 
+    /**
+     * If enabled we'll attempt to query/render the number of rows that
+     * each table contains.<p/>
+     *
+     * Defaults to <code>true</code> (enabled).
+     *
+     * @param enabled
+     */
     public void setNumRowsEnabled(boolean enabled) {
-        this.numRowsEnabled = enabled;
+        numRowsEnabled = enabled;
     }
-    
+
+    /**
+     * @see #setNumRowsEnabled(boolean)
+     * @return
+     */
     public boolean isNumRowsEnabled() {
         if (numRowsEnabled == null)
             numRowsEnabled = !options.remove("-norows");
-        
+
         return numRowsEnabled;
     }
 
+    /**
+     * Enable verbose exclusions to debug regular expressions dealing
+     * with inclusion/exclusion of schemas/tables/views/columns.
+     *
+     * @param enabled
+     */
+    public void setVerboseExclusionsEnabled(boolean enabled) {
+        verboseExclusionsEnabled = enabled;
+    }
+
+    /**
+     * @see #setVerboseExclusionsEnabled(boolean)
+     * @return
+     */
+    public boolean isVerboseExclusionsEnabled() {
+        if (verboseExclusionsEnabled == null)
+            verboseExclusionsEnabled = options.remove("-vx");
+
+        return verboseExclusionsEnabled;
+    }
+
+    /**
+     * Returns <code>true</code> if metering should be embedded in
+     * the generated pages.<p/>
+     * Defaults to <code>false</code> (disabled).
+     * @return
+     */
     public boolean isMeterEnabled() {
         if (meterEnabled == null)
             meterEnabled = options.remove("-meter");
-        
+
         return meterEnabled;
     }
 
     /**
      * Set the columns to exclude from all relationship diagrams.
-     * 
+     *
      * @param columnExclusions regular expression of the columns to
      *        exclude
      */
@@ -700,14 +740,19 @@ public class Config
     /**
      * Set the columns to exclude from relationship diagrams where the specified
      * columns aren't directly referenced by the focal table.
-     * 
+     *
      * @param columnExclusions regular expression of the columns to
      *        exclude
      */
     public void setIndirectColumnExclusions(String fullColumnExclusions) {
-        this.indirectColumnExclusions = Pattern.compile(fullColumnExclusions);
+        indirectColumnExclusions = Pattern.compile(fullColumnExclusions);
     }
 
+    /**
+     * @see #setIndirectColumnExclusions(String)
+     *
+     * @return
+     */
     public Pattern getIndirectColumnExclusions() {
         if (indirectColumnExclusions == null) {
             String strExclusions = pullParam("-x");
@@ -730,7 +775,7 @@ public class Config
 
     /**
      * Get the regex {@link Pattern} for which tables to include in the analysis.
-     * 
+     *
      * @return
      */
     public Pattern getTableInclusions() {
@@ -755,7 +800,7 @@ public class Config
 
     /**
      * Get the regex {@link Pattern} for which tables to exclude from the analysis.
-     * 
+     *
      * @return
      */
     public Pattern getTableExclusions() {
@@ -780,22 +825,22 @@ public class Config
                 tmp = pullParam("-schemata");
             if (tmp != null) {
                 schemas = new ArrayList<String>();
-                
+
                 for (String name : tmp.split("[ ,\"]"))
                     schemas.add(name);
-                
+
                 if (schemas.isEmpty())
                     schemas = null;
             }
         }
-        
+
         return schemas;
     }
-    
+
     public void setEvaluateAllEnabled(boolean enabled) {
-        this.evaluteAll = enabled;
+        evaluteAll = enabled;
     }
-    
+
     public boolean isEvaluateAllEnabled() {
         if (evaluteAll == null)
             evaluteAll = options.remove("-all");
@@ -805,28 +850,28 @@ public class Config
     /**
      * Returns true if we're evaluating a bunch of schemas in one go and
      * at this point we're evaluating a specific schema.
-     * 
+     *
      * @return boolean
      */
     public boolean isOneOfMultipleSchemas() {
         // set by MultipleSchemaAnalyzer
         return Boolean.getBoolean("oneofmultipleschemas");
     }
-    
+
     /**
      * When -all (evaluateAll) is specified then this is the regular
      * expression that determines which schemas to evaluate.
-     * 
+     *
      * @param schemaSpec
      */
     public void setSchemaSpec(String schemaSpec) {
         this.schemaSpec = schemaSpec;
     }
-    
+
     public String getSchemaSpec() {
         if (schemaSpec == null)
             schemaSpec = pullParam("-schemaSpec");
-        
+
         return schemaSpec;
     }
 
@@ -842,7 +887,7 @@ public class Config
     public void setRenderer(String renderer) {
         Dot.getInstance().setRenderer(renderer);
     }
-    
+
     /**
      * @see #setRenderer(String)
      * @return
@@ -851,14 +896,14 @@ public class Config
         String renderer = pullParam("-renderer");
         if (renderer != null)
             setRenderer(renderer);
-        
+
         return Dot.getInstance().getRenderer();
     }
-    
+
     /**
      * If <code>false</code> then generate output of "lower quality"
      * than the default.
-     * Note that the default is intended to be "higher quality", 
+     * Note that the default is intended to be "higher quality",
      * but various installations of Graphviz may have have different abilities.
      * That is, some might not have the "lower quality" libraries and others might
      * not have the "higher quality" libraries.<p>
@@ -868,10 +913,10 @@ public class Config
      */
     public void setHighQuality(boolean highQuality) {
         this.highQuality = highQuality;
-        this.lowQuality = !highQuality;
+        lowQuality = !highQuality;
         Dot.getInstance().setHighQuality(highQuality);
     }
-    
+
     /**
      * @see #setHighQuality(boolean)
      */
@@ -885,9 +930,9 @@ public class Config
         }
 
         highQuality = Dot.getInstance().isHighQuality();
-        return highQuality; 
+        return highQuality;
     }
-    
+
     /**
      * @see #setHighQuality(boolean)
      */
@@ -899,51 +944,51 @@ public class Config
                 Dot.getInstance().setHighQuality(!lowQuality);
             }
         }
-        
+
         lowQuality = !Dot.getInstance().isHighQuality();
         return lowQuality;
     }
-    
+
     /**
-     * <code>true</code> if we should display advertisements.  
+     * <code>true</code> if we should display advertisements.
      * Defaults to <code>true</code>.<p>
      * <b>Please do not disable ads unless absolutely necessary</b>.
-     * 
+     *
      * @return
      */
     public void setAdsEnabled(boolean enabled) {
-        this.adsEnabled = enabled;
+        adsEnabled = enabled;
     }
-    
+
     /**
      * Returns <code>true</code> if we should display advertisements.<p>
      * <b>Please do not disable ads unless absolutely necessary</b>.
-     * 
+     *
      * @return
      */
     public boolean isAdsEnabled() {
         if (adsEnabled == null) {
             adsEnabled = !options.remove("-noads");
         }
-        
+
         return adsEnabled ;
     }
-    
+
     /**
      * Returns <code>true</code> if the options indicate that the user wants
      * to see some help information.
-     * 
+     *
      * @return
      */
     public boolean isHelpRequired() {
         return helpRequired;
     }
-    
+
     public boolean isDbHelpRequired() {
         return dbHelpRequired;
     }
-    
-    
+
+
     public static String getLoadedFromJar() {
         String classpath = System.getProperty("java.class.path");
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
@@ -979,25 +1024,25 @@ public class Config
                 }
             }
         }
-        
+
         Properties props = asProperties(bundle);
         bundle = null;
         String saveLoadedFrom = dbPropertiesLoadedFrom; // keep original thru recursion
-        
+
         // bring in key/values pointed to by the include directive
         // example: include.1=mysql::selectRowCountSql
         for (int i = 1; true; ++i) {
             String include = (String)props.remove("include." + i);
             if (include == null)
                 break;
-            
+
             int separator = include.indexOf("::");
             if (separator == -1)
                 throw new InvalidConfigurationException("include directive in " + dbPropertiesLoadedFrom + " must have '::' between dbType and key");
-            
+
             String refdType = include.substring(0, separator).trim();
             String refdKey = include.substring(separator + 2).trim();
-            
+
             // recursively resolve the ref'd properties file and the ref'd key
             Properties refdProps = getDbProperties(refdType);
             props.put(refdKey, refdProps.getProperty(refdKey));
@@ -1008,7 +1053,7 @@ public class Config
         if (baseDbType != null) {
             baseDbType = baseDbType.trim();
             Properties baseProps = getDbProperties(baseDbType);
-            
+
             // overlay our properties on top of the base's
             baseProps.putAll(props);
             props = baseProps;
@@ -1019,7 +1064,7 @@ public class Config
 
         return props;
     }
-    
+
     protected String getDbPropertiesLoadedFrom() throws IOException {
         if (dbPropertiesLoadedFrom == null)
             getDbProperties(getDbType());
@@ -1031,21 +1076,21 @@ public class Config
         try {
             populate();
         } catch (Exception exc) {}
-        
+
         return options;
     }
-    
+
     /**
      * Options that are specific to a type of database.  E.g. things like <code>host</code>,
      * <code>port</code> or <code>db</code>, but <b>don't</b> have a setter in this class.
-     *  
+     *
      * @param dbSpecificOptions
      */
     public void setDbSpecificOptions(Map<String, String> dbSpecificOptions) {
         this.dbSpecificOptions = dbSpecificOptions;
-        this.originalDbSpecificOptions = new HashMap<String, String>(dbSpecificOptions);
+        originalDbSpecificOptions = new HashMap<String, String>(dbSpecificOptions);
     }
-    
+
     public Map<String, String> getDbSpecificOptions() {
         if (dbSpecificOptions ==  null)
             dbSpecificOptions = new HashMap<String, String>();
@@ -1072,18 +1117,18 @@ public class Config
     /**
      * 'Pull' the specified parameter from the collection of options. Returns
      * null if the parameter isn't in the list and removes it if it is.
-     * 
+     *
      * @param paramId
      * @return
      */
     private String pullParam(String paramId) {
         return pullParam(paramId, false, false);
     }
-    
+
     private String pullRequiredParam(String paramId) {
         return pullParam(paramId, true, false);
     }
-    
+
     private String pullParam(String paramId, boolean required, boolean dbTypeSpecific) {
         int paramIndex = options.indexOf(paramId);
         if (paramIndex < 0) {
@@ -1096,20 +1141,20 @@ public class Config
         options.remove(paramIndex);
         return param;
     }
-    
+
     public static class MissingRequiredParameterException extends RuntimeException {
         private static final long serialVersionUID = 1L;
-        private boolean dbTypeSpecific;
+        private final boolean dbTypeSpecific;
 
         public MissingRequiredParameterException(String paramId, boolean dbTypeSpecific) {
             this(paramId, null, dbTypeSpecific);
         }
-        
+
         public MissingRequiredParameterException(String paramId, String description, boolean dbTypeSpecific) {
             super("Parameter '" + paramId + "' " + (description == null ? "" : "(" + description + ") ") + "missing." + (dbTypeSpecific ? "  It is required for this database type." : ""));
             this.dbTypeSpecific = dbTypeSpecific;
         }
-        
+
         public boolean isDbTypeSpecific() {
             return dbTypeSpecific;
         }
@@ -1118,7 +1163,7 @@ public class Config
     /**
      * Allow an equal sign in args...like "-o=foo.bar". Useful for things like
      * Ant and Maven.
-     * 
+     *
      * @param args
      *            List
      * @return List
@@ -1138,9 +1183,9 @@ public class Config
 
         // some OSes/JVMs do filename expansion with runtime.exec() and some don't,
         // so MultipleSchemaAnalyzer has to surround params with double quotes...
-        // strip them here for the OSes/JVMs that don't do anything with the params  
+        // strip them here for the OSes/JVMs that don't do anything with the params
         List<String> unquotedArgs = new ArrayList<String>();
-        
+
         for (String arg : expandedArgs) {
             if (arg.startsWith("\"") && arg.endsWith("\""))  // ".*" becomes .*
                 arg = arg.substring(1, arg.length() - 1);
@@ -1149,19 +1194,19 @@ public class Config
 
         return unquotedArgs;
     }
-    
+
     /**
      * Call all the getters to populate all the lazy initialized stuff.
-     * 
-     * @throws InvocationTargetException 
-     * @throws IllegalAccessException 
-     * @throws IllegalArgumentException 
-     * @throws IntrospectionException 
+     *
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws IllegalArgumentException
+     * @throws IntrospectionException
      */
     private void populate() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, IntrospectionException {
         if (!populating) { // prevent recursion
             populating = true;
-            
+
             BeanInfo beanInfo = Introspector.getBeanInfo(Config.class);
             PropertyDescriptor[] props = beanInfo.getPropertyDescriptors();
             for (int i = 0; i < props.length; ++i) {
@@ -1169,7 +1214,7 @@ public class Config
                 if (readMethod != null)
                     readMethod.invoke(this, (Object[])null);
             }
-            
+
             populating = false;
         }
     }
@@ -1199,7 +1244,7 @@ public class Config
 
         return databaseTypes;
     }
-    
+
     protected void dumpUsage(String errorMessage, boolean detailedDb) {
         if (errorMessage != null) {
             System.err.println("*** " + errorMessage + " ***");
@@ -1219,7 +1264,7 @@ public class Config
             System.out.println("   -o outputDirectory    directory to place the generated output in");
             System.out.println("   -dp pathToDrivers     optional - looks for JDBC drivers here before looking");
             System.out.println("                           in driverPath in [databaseType].properties.");
-            System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description"); 
+            System.out.println("Go to http://schemaspy.sourceforge.net for a complete list/description");
             System.out.println(" of additional parameters.");
             System.out.println();
         }
@@ -1243,11 +1288,11 @@ public class Config
         System.out.println();
         System.out.flush();
     }
-    
+
     /**
-     * Get the value of the specified parameter.  
+     * Get the value of the specified parameter.
      * Used for properties that are common to most db's, but aren't required.
-     *  
+     *
      * @param paramName
      * @return
      */
@@ -1265,20 +1310,20 @@ public class Config
         } catch (Exception failed) {
             failed.printStackTrace();
         }
-        
+
         return null;
     }
-    
+
     /**
      * Return all of the configuration options as a List of Strings, with
      * each parameter and its value as a separate element.
-     * 
+     *
      * @return
      * @throws IOException
      */
     public List<String> asList() throws IOException {
         List<String> params = new ArrayList<String>();
-        
+
         if (originalDbSpecificOptions != null) {
             for (String key : originalDbSpecificOptions.keySet()) {
                 String value = originalDbSpecificOptions.get(key);
@@ -1302,6 +1347,8 @@ public class Config
             params.add("-meter");
         if (!isNumRowsEnabled())
             params.add("-norows");
+        if (isVerboseExclusionsEnabled())
+            params.add("-vx");
         if (isRankDirBugEnabled())
             params.add("-rankdirbug");
         if (isRailsEnabled())
@@ -1310,7 +1357,7 @@ public class Config
             params.add("-sso");
         if (!isAdsEnabled())
             params.add("-noads");
-        
+
         String value = getDriverPath();
         if (value != null) {
             params.add("-dp");
@@ -1404,7 +1451,7 @@ public class Config
         params.add(String.valueOf(getMaxDetailedTables()));
         params.add("-o");
         params.add(getOutputDir().toString());
-        
+
         return params;
     }
 }

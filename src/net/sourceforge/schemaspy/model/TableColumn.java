@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
 
 public class TableColumn {
@@ -41,7 +42,7 @@ public class TableColumn {
      */
     TableColumn(Table table, ResultSet rs, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         this.table = table;
-        
+
         // names and types are typically reused *many* times in a database,
         // so keep a single instance of each distinct one
         // (thanks to Mike Barnes for the suggestion)
@@ -49,7 +50,7 @@ public class TableColumn {
         name = tmp == null ? null : tmp.intern();
         tmp = rs.getString("TYPE_NAME");
         type = tmp == null ? null : tmp.intern();
-        
+
         decimalDigits = rs.getInt("DECIMAL_DIGITS");
         Number bufLength = (Number)rs.getObject("BUFFER_LENGTH");
         if (bufLength != null && bufLength.shortValue() > 0)
@@ -69,15 +70,20 @@ public class TableColumn {
         defaultValue = rs.getString("COLUMN_DEF");
         setComments(rs.getString("REMARKS"));
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
-        
+
         isAllExcluded = matches(excludeColumns);
         isExcluded = isAllExcluded || matches(excludeIndirectColumns);
+        if (isExcluded && Config.getInstance().isVerboseExclusionsEnabled()) {
+            System.out.println("Excluding column " + getTable() + '.' + getName() +
+                    ": matches " + excludeColumns + ":" + isAllExcluded + " " +
+                    excludeIndirectColumns + ":" + matches(excludeIndirectColumns));
+        }
     }
 
     /**
      * A TableColumn that's derived from something other than traditional database metadata
      * (e.g. defined in XML).
-     * 
+     *
      * @param table
      * @param colMeta
      */
@@ -97,7 +103,7 @@ public class TableColumn {
 
     /**
      * Returns the {@link Table} that this column belongs to.
-     * 
+     *
      * @return
      */
     public Table getTable() {
@@ -106,7 +112,7 @@ public class TableColumn {
 
     /**
      * Returns the column's name.
-     * 
+     *
      * @return
      */
     public String getName() {
@@ -115,7 +121,7 @@ public class TableColumn {
 
     /**
      * Returns the ID of the column or <code>null</code> if the database doesn't support the concept.
-     * 
+     *
      * @return
      */
     public Object getId() {
@@ -140,11 +146,11 @@ public class TableColumn {
     public int getLength() {
         return length;
     }
-    
+
     /**
      * Decimal digits of the column.
      * See {@link DatabaseMetaData#getColumns(String, String, String, String)}'s <code>DECIMAL_DIGITS</code>.
-     * 
+     *
      * @return
      */
     public int getDecimalDigits() {
@@ -153,7 +159,7 @@ public class TableColumn {
 
     /**
      * String representation of length with optional decimal digits (if decimal digits &gt; 0).
-     * 
+     *
      * @return
      */
     public String getDetailedSize() {
@@ -171,7 +177,7 @@ public class TableColumn {
 
     /**
      * See {@link java.sql.ResultSetMetaData#isAutoIncrement(int)}
-     * 
+     *
      * @return
      */
     public boolean isAutoUpdated() {
@@ -204,7 +210,7 @@ public class TableColumn {
                     }
                 }
             }
-            
+
             if (isUnique == null) {
                 // if it's a single PK column then it's unique
                 isUnique = table.getPrimaryColumns().size() == 1 && isPrimary();
@@ -216,16 +222,16 @@ public class TableColumn {
 
     /**
      * Returns <code>true</code> if this column is a primary key
-     * 
+     *
      * @return
      */
     public boolean isPrimary() {
         return table.getPrimaryColumns().contains(this);
     }
-    
+
     /**
      * Returns <code>true</code> if this column points to another table's primary key.
-     * 
+     *
      * @return
      */
     public boolean isForeignKey() {
@@ -234,13 +240,13 @@ public class TableColumn {
 
     /**
      * Returns the value that the database uses for this column if one isn't provided.
-     * 
+     *
      * @return
      */
     public Object getDefaultValue() {
         return defaultValue;
     }
-    
+
     /**
      * @return Comments associated with this column, or <code>null</code> if none.
      */
@@ -255,28 +261,28 @@ public class TableColumn {
     public void setComments(String comments) {
         this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
     }
-    
+
     /**
      * Returns <code>true</code> if this column is to be excluded from relationship diagrams.
      * Unless {@link #isAllExcluded()} is true this column will be included in the detailed
      * diagrams of the containing table.
-     * 
+     *
      * <p>This is typically an attempt to reduce clutter that can be introduced when many tables
      * reference a given column.
-     * 
+     *
      * @return
      */
     public boolean isExcluded() {
         return isExcluded;
     }
-    
+
     /**
      * Returns <code>true</code> if this column is to be excluded from all relationships in
      * relationship diagrams.  This includes the detailed diagrams of the containing table.
-     * 
+     *
      * <p>This is typically an attempt to reduce clutter that can be introduced when many tables
      * reference a given column.
-     * 
+     *
      * @return
      */
     public boolean isAllExcluded() {
@@ -285,7 +291,7 @@ public class TableColumn {
 
     /**
      * Add a parent column (PK) to this column (FK) via the associated constraint
-     *  
+     *
      * @param parent
      * @param constraint
      */
@@ -296,7 +302,7 @@ public class TableColumn {
 
     /**
      * Remove the specified parent column from this column
-     * 
+     *
      * @param parent
      */
     public void removeParent(TableColumn parent) {
@@ -315,7 +321,7 @@ public class TableColumn {
 
     /**
      * Returns the {@link Set} of all {@link TableColumn parents} associated with this column
-     *  
+     *
      * @return
      */
     public Set<TableColumn> getParents() {
@@ -331,7 +337,7 @@ public class TableColumn {
 
     /**
      * Removes a parent constraint and returns it, or null if there are no parent constraints
-     * 
+     *
      * @return the removed {@link ForeignKeyConstraint}
      */
     public ForeignKeyConstraint removeAParentFKConstraint() {
@@ -346,7 +352,7 @@ public class TableColumn {
 
     /**
      * Remove one child {@link ForeignKeyConstraint} that points to this column.
-     * 
+     *
      * @return the removed constraint, or <code>null</code> if none were available to be removed
      */
     public ForeignKeyConstraint removeAChildFKConstraint() {
@@ -361,7 +367,7 @@ public class TableColumn {
 
     /**
      * Add a child column (FK) to this column (PK) via the associated constraint
-     * 
+     *
      * @param child
      * @param constraint
      */
@@ -372,7 +378,7 @@ public class TableColumn {
 
     /**
      * Remove the specified child column from this column
-     * 
+     *
      * @param child
      */
     public void removeChild(TableColumn child) {
@@ -408,7 +414,7 @@ public class TableColumn {
     /**
      * Returns <code>true</code> if tableName.columnName matches the supplied
      * regular expression.
-     * 
+     *
      * @param regex
      * @return
      */
@@ -419,18 +425,18 @@ public class TableColumn {
     /**
      * Update the state of this column with the supplied {@link TableColumnMeta}.
      * Intended to be used with instances created by {@link #TableColumn(Table, TableColumnMeta)}.
-     * 
+     *
      * @param colMeta
      */
     public void update(TableColumnMeta colMeta) {
         String newComments = colMeta.getComments();
         if (newComments != null)
             setComments(newComments);
-        
+
         if (!isPrimary() && colMeta.isPrimary()) {
             table.setPrimaryColumn(this);
         }
-  
+
         allowImpliedParents  = !colMeta.isImpliedParentsDisabled();
         allowImpliedChildren = !colMeta.isImpliedChildrenDisabled();
         isExcluded |= colMeta.isExcluded();
@@ -446,7 +452,7 @@ public class TableColumn {
     }
 
     /**
-     * Two {@link TableColumn}s are considered equal if their tables and names match. 
+     * Two {@link TableColumn}s are considered equal if their tables and names match.
      */
     private class ColumnComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
@@ -460,17 +466,17 @@ public class TableColumn {
     /**
      * Returns <code>true</code> if this column is permitted to be an implied FK
      * (based on name/type/size matches to PKs).
-     * 
+     *
      * @return
      */
     public boolean allowsImpliedParents() {
         return allowImpliedParents;
     }
-    
+
     /**
      * Returns <code>true</code> if this column is permitted to be a PK to an implied FK
      * (based on name/type/size matches to PKs).
-     * 
+     *
      * @return
      */
     public boolean allowsImpliedChildren() {

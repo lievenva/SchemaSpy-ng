@@ -45,7 +45,7 @@ public class DbAnalyzer {
             List<TableColumn> tablePrimaries = table.getPrimaryColumns();
             if (tablePrimaries.size() == 1) { // can't match up multiples...yet...
                 for (TableColumn primary : tablePrimaries) {
-                    if (primary.allowsImpliedChildren() && 
+                    if (primary.allowsImpliedChildren() &&
                         allPrimaries.put(primary, table) != null)
                         ++duplicatePrimaries;
                 }
@@ -87,17 +87,17 @@ public class DbAnalyzer {
      * Ruby on Rails-based databases typically have no real referential integrity
      * constraints.  Instead they have a somewhat unusual way of associating
      * columns to primary keys.<p>
-     * 
+     *
      * Basically all tables have a primary key named <code>ID</code>.
      * All tables are named plural names.
-     * The columns that logically reference that <code>ID</code> are the singular 
+     * The columns that logically reference that <code>ID</code> are the singular
      * form of the table name suffixed with <code>_ID</code>.<p>
-     * 
-     * A side-effect of calling this method is that the returned collection of 
+     *
+     * A side-effect of calling this method is that the returned collection of
      * constraints will be "tied into" the associated tables.
-     * 
+     *
      * @param tables
-     * @return List of {@link RailsForeignKeyConstraint}s  
+     * @return List of {@link RailsForeignKeyConstraint}s
      */
     public static List<RailsForeignKeyConstraint> getRailsConstraints(Map<String, Table> tables) {
         List<RailsForeignKeyConstraint> railsConstraints = new ArrayList<RailsForeignKeyConstraint>(tables.size());
@@ -120,7 +120,7 @@ public class DbAnalyzer {
                 }
             }
         }
-        
+
         return railsConstraints;
     }
 
@@ -133,7 +133,7 @@ public class DbAnalyzer {
      */
     public static List<ForeignKeyConstraint> getForeignKeyConstraints(Collection<Table> tables) {
         List<ForeignKeyConstraint> constraints = new ArrayList<ForeignKeyConstraint>();
-        
+
         for (Table table : tables) {
             constraints.addAll(table.getForeignKeys());
         }
@@ -323,6 +323,7 @@ public class DbAnalyzer {
     public static List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec) throws SQLException {
         Set<String> schemas = new TreeSet<String>(); // alpha sorted
         Pattern schemaRegex = Pattern.compile(schemaSpec);
+        boolean verbose = Config.getInstance().isVerboseExclusionsEnabled();
 
         Iterator<String> iter = getSchemas(meta).iterator();
         while (iter.hasNext()) {
@@ -331,12 +332,27 @@ public class DbAnalyzer {
                 ResultSet rs = null;
                 try {
                     rs = meta.getTables(null, schema, "%", null);
-                    if (rs.next())
+                    if (rs.next()) {
+                        if (verbose) {
+                            System.out.println("Including schema " + schema +
+                                    ": matches + \"" + schemaRegex + "\" and contains tables");
+                        }
                         schemas.add(schema);
+                    } else {
+                        if (verbose) {
+                            System.out.println("Excluding schema " + schema +
+                                    ": matches \"" + schemaRegex + "\" but contains no tables");
+                        }
+                    }
                 } catch (SQLException ignore) {
                 } finally {
                     if (rs != null)
                         rs.close();
+                }
+            } else {
+                if (verbose) {
+                    System.out.println("Excluding schema " + schema +
+                            ": doesn't match \"" + schemaRegex + '"');
                 }
             }
         }

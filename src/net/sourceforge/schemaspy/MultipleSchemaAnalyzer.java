@@ -42,7 +42,7 @@ public final class MultipleSchemaAnalyzer {
             genericCommand.add("-jar");
             genericCommand.add(loadedFrom);
         }
-        
+
         for (String next : args) {
             if (next.startsWith("-"))
                 genericCommand.add(next);
@@ -59,7 +59,7 @@ public final class MultipleSchemaAnalyzer {
             System.out.println("Analyzing schemas:");
             populatedSchemas = schemas;
         }
-        
+
         for (String populatedSchema : populatedSchemas)
             System.out.print(" " + populatedSchema);
         System.out.println();
@@ -105,7 +105,7 @@ public final class MultipleSchemaAnalyzer {
             String user, File outputDir, String charset, String loadedFromJar) throws SQLException, IOException {
         return analyze(dbName, null, null, schemas, args, user, outputDir, charset, loadedFromJar);
     }
-    
+
    private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
         if (populatedSchemas.size() > 0) {
             LineWriter index = new LineWriter(new File(outputDir, "index.html"), charset);
@@ -116,6 +116,7 @@ public final class MultipleSchemaAnalyzer {
 
     private List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, String user) throws SQLException {
         List<String> populatedSchemas;
+        boolean verbose = Config.getInstance().isVerboseExclusionsEnabled();
 
         if (meta.supportsSchemasInTableDefinitions()) {
             Pattern schemaRegex = Pattern.compile(schemaSpec);
@@ -124,8 +125,18 @@ public final class MultipleSchemaAnalyzer {
             Iterator<String> iter = populatedSchemas.iterator();
             while (iter.hasNext()) {
                 String schema = iter.next();
-                if (!schemaRegex.matcher(schema).matches())
+                if (!schemaRegex.matcher(schema).matches()) {
+                    if (verbose) {
+                        System.out.println("Excluding schema " + schema +
+                                ": doesn't match + \"" + schemaRegex + '"');
+                    }
                     iter.remove(); // remove those that we're not supposed to analyze
+                } else {
+                    if (verbose) {
+                        System.out.println("Including schema " + schema +
+                                ": matches + \"" + schemaRegex + '"');
+                    }
+                }
             }
         } else {
             populatedSchemas = Arrays.asList(new String[] {user});

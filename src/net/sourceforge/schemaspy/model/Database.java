@@ -42,9 +42,9 @@ public class Database {
     public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
-        this.databaseName = name;
+        databaseName = name;
         this.schema = schema;
-        this.description = config.getDescription();
+        description = config.getDescription();
         initTables(schema, meta, properties, config);
         initViews(schema, meta, properties, config);
         connectTables(properties);
@@ -58,23 +58,23 @@ public class Database {
     public String getSchema() {
         return schema;
     }
-    
+
     /**
      * Details of the database type that's running under the covers.
-     * 
+     *
      * @return null if a description wasn't specified.
      */
     public String getDescription() {
         return description;
     }
-    
+
     public Collection<Table> getTables() {
         return tables.values();
     }
-    
+
     /**
      * Return a {@link Map} of all {@link Table}s keyed by their name.
-     * 
+     *
      * @return
      */
     public Map<String, Table> getTablesByName() {
@@ -84,11 +84,11 @@ public class Database {
     public Collection<View> getViews() {
         return views.values();
     }
-    
+
     public Collection<Table> getRemoteTables() {
         return remoteTables.values();
     }
-    
+
     public Connection getConnection() {
         return connection;
     }
@@ -109,13 +109,17 @@ public class Database {
         }
     }
 
-    private void initTables(@SuppressWarnings("hiding") String schema, 
-                            final DatabaseMetaData metadata, 
+    private void initTables(@SuppressWarnings("hiding") String schema,
+                            final DatabaseMetaData metadata,
                             final Properties properties, final Config config) throws SQLException {
         String[] types = {"TABLE"};
         final Pattern include = config.getTableInclusions();
         final Pattern exclude = config.getTableExclusions();
         final int maxThreads = config.getMaxDbThreads();
+        final boolean verbose = config.isVerboseExclusionsEnabled();
+
+        if (verbose)
+            System.out.println();
 
         // "macro" to validate that a table is somewhat valid
         final class TableValidator {
@@ -123,22 +127,43 @@ public class Database {
                 // some databases (MySQL) return more than we wanted
                 if (!rs.getString("TABLE_TYPE").equalsIgnoreCase("TABLE"))
                     return false;
-                
+
                 // Oracle 10g introduced problematic flashback tables
                 // with bizarre illegal names
                 String tableName = rs.getString("TABLE_NAME");
-                if (tableName.indexOf("$") != -1)
+                if (tableName.indexOf("$") != -1) {
+                    if (verbose) {
+                        System.out.println("Excluding table " + tableName +
+                                ": embedded $ implies illegal name");
+                    }
                     return false;
+                }
 
-                if (exclude.matcher(tableName).matches())
+                if (exclude.matcher(tableName).matches()) {
+                    if (verbose) {
+                        System.out.println("Excluding table " + tableName +
+                                ": matches exclusion pattern \"" + exclude + '"');
+                    }
                     return false;
-                
-                return include.matcher(tableName).matches();
+                }
+
+                boolean valid = include.matcher(tableName).matches();
+                if (verbose) {
+                    if (valid) {
+                        System.out.println("Including table " + tableName +
+                                ": matches inclusion pattern \"" + include + '"');
+                    } else {
+                        System.out.println("Excluding table " + tableName +
+                                ": doesn't match inclusion pattern \"" + include + '"');
+                    }
+                }
+                return valid;
             }
         }
+
         TableValidator tableValidator = new TableValidator();
         ResultSet rs = null;
-        
+
         try {
             // creating tables takes a LONG time (based on JProbe analysis).
             // it's actually DatabaseMetaData.getIndexInfo() that's the pig.
@@ -182,7 +207,7 @@ public class Database {
         initTableComments(properties);
         initColumnComments(properties);
     }
-    
+
     /**
      * Some databases don't play nice with their metadata.
      * E.g. Oracle doesn't have a REMARKS column at all.
@@ -287,7 +312,7 @@ public class Database {
             }
         }
     }
-    
+
     private void initTableComments(Properties properties) throws SQLException {
         String sql = properties.getProperty("selectTableCommentsSql");
         if (sql != null) {
@@ -317,7 +342,7 @@ public class Database {
             }
         }
     }
-    
+
     private void initColumnComments(Properties properties) throws SQLException {
         String sql = properties.getProperty("selectColumnCommentsSql");
         if (sql != null) {
@@ -350,7 +375,7 @@ public class Database {
             }
         }
     }
-    
+
     /**
      * Create a <code>PreparedStatement</code> from the specified SQL.
      * The SQL can contain these named parameters (but <b>not</b> question marks).
@@ -380,7 +405,7 @@ public class Database {
 
         return stmt;
     }
-    
+
     public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         String fullName = remoteSchema + "." + remoteTableName;
         Table remoteTable = remoteTables.get(fullName);
@@ -389,24 +414,24 @@ public class Database {
                 remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties, excludeIndirectColumns, excludeColumns);
             else
                 remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
-            
+
             remoteTable.connectForeignKeys(tables, this, properties, excludeIndirectColumns, excludeColumns);
             remoteTables.put(fullName, remoteTable);
         }
-        
+
         return remoteTable;
     }
-    
+
     /**
      * Return an uppercased <code>Set</code> of all SQL keywords used by a database
-     * 
+     *
      * @return
      * @throws SQLException
      */
     public Set<String> getSqlKeywords() throws SQLException {
         if (sqlKeywords == null) {
             // from http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt:
-            String[] sql92Keywords =            
+            String[] sql92Keywords =
                 ("ADA" +
                 "| C | CATALOG_NAME | CHARACTER_SET_CATALOG | CHARACTER_SET_NAME" +
                 "| CHARACTER_SET_SCHEMA | CLASS_ORIGIN | COBOL | COLLATION_CATALOG" +
@@ -476,13 +501,13 @@ public class Database {
             sqlKeywords.addAll(Arrays.asList(sql92Keywords));
             sqlKeywords.addAll(Arrays.asList(nonSql92Keywords));
         }
-        
+
         return sqlKeywords;
     }
-    
+
     /**
      * Return <code>id</code> quoted if required, otherwise return <code>id</code>
-     * 
+     *
      * @param id
      * @return
      * @throws SQLException
@@ -490,19 +515,19 @@ public class Database {
     public String getQuotedIdentifier(String id) throws SQLException {
         // look for any character that isn't valid (then matcher.find() returns true)
         Matcher matcher = getInvalidIdentifierPattern().matcher(id);
-        
+
         boolean quotesRequired = matcher.find() || getSqlKeywords().contains(id.toUpperCase());
-        
+
         if (quotesRequired) {
             // name contains something that must be quoted
             String quote = getMetaData().getIdentifierQuoteString().trim();
             return quote + id + quote;
         }
-        
+
         // no quoting necessary
         return id;
     }
-    
+
     /**
      * Return a <code>Pattern</code> whose matcher will return <code>true</code>
      * when run against an identifier that contains a character that is not
@@ -522,7 +547,7 @@ public class Database {
 
             invalidIdentifierPattern = Pattern.compile("[^" + validChars + "]");
         }
-        
+
         return invalidIdentifierPattern;
     }
 
@@ -564,13 +589,24 @@ public class Database {
         return sqlParams;
     }
 
-    private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata, Properties properties, Config config) throws SQLException {
+    /**
+     * Create/initialize any views in the schema.
+     *
+     * @param schema
+     * @param metadata
+     * @param properties
+     * @param config
+     * @throws SQLException
+     */
+    private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata,
+                            Properties properties, Config config) throws SQLException {
         String[] types = {"VIEW"};
         ResultSet rs = null;
         Pattern includeTables = config.getTableInclusions();
         Pattern excludeTables = config.getTableExclusions();
         Pattern excludeColumns = config.getColumnExclusions();
         Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
+        boolean verbose = config.isVerboseExclusionsEnabled();
 
         try {
             rs = metadata.getTables(null, schema, "%", types);
@@ -578,12 +614,30 @@ public class Database {
             while (rs.next()) {
                 if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
                     System.out.print('.');
-                    
+
                     try {
                         View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeIndirectColumns, excludeColumns);
-                        
-                        if (includeTables.matcher(view.getName()).matches() &&
-                           !excludeTables.matcher(view.getName()).matches())
+
+                        if (excludeTables.matcher(view.getName()).matches()) {
+                            if (verbose) {
+                                System.out.println("Excluding view " + view.getName() +
+                                        ": matches exclusion pattern \"" + excludeTables + '"');
+                            }
+                            continue;
+                        }
+
+                        boolean valid = includeTables.matcher(view.getName()).matches();
+                        if (verbose) {
+                            if (valid) {
+                                System.out.println("Including view " + view.getName() +
+                                        ": matches inclusion pattern \"" + includeTables + '"');
+                            } else {
+                                System.out.println("Excluding view " + view.getName() +
+                                        ": doesn't match inclusion pattern \"" + includeTables + '"');
+                            }
+                        }
+
+                        if (valid)
                             views.put(view.getName(), view);
                     } catch (SQLException exc) {
                         System.out.flush();
@@ -600,13 +654,19 @@ public class Database {
         }
     }
 
+    /**
+     * Take the supplied XML-based metadata and update our model of the schema with it
+     *
+     * @param schemaMeta
+     * @throws SQLException
+     */
     private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
         if (schemaMeta != null) {
             final Pattern excludeNone = Pattern.compile("[^.]");
             final Properties noProps = new Properties();
-            
+
             description = schemaMeta.getComments();
-            
+
             // done in three passes:
             // 1: create any new tables
             // 2: add/mod columns
@@ -632,26 +692,26 @@ public class Database {
 
                 table.update(tableMeta);
             }
-    
+
             // then tie the tables together
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 Table table;
-                
+
                 if (tableMeta.getRemoteSchema() != null) {
                     table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
                 } else {
                     table = tables.get(tableMeta.getName());
                 }
-                
+
                 table.connect(tableMeta, tables, remoteTables);
             }
         }
     }
-    
+
     private void connectTables(Properties properties) throws SQLException {
         Pattern excludeColumns = Config.getInstance().getColumnExclusions();
         Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
-        
+
         for (Table table : tables.values()) {
             table.connectForeignKeys(tables, this, properties, excludeIndirectColumns, excludeColumns);
         }
@@ -663,7 +723,7 @@ public class Database {
     private class TableCreator {
         private final Pattern excludeColumns = Config.getInstance().getColumnExclusions();
         private final Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
-        
+
         /**
          * Create a table and put it into <code>tables</code>
          */

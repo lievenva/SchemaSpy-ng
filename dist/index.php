@@ -157,7 +157,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <th class="param">Parameter</th>
         <th class="param">Description</th>
       </tr>
-      <tr>
+      <tr id="tparam">
         <td>&nbsp;</td>
         <td class="param"><code>-t <i>databaseType</i></code></td>
         <td class="param">Type of database (e.g. ora, db2, etc.).
@@ -165,42 +165,42 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             Defaults to <code>ora</code>.
         </td>
       </tr>
-      <tr>
+      <tr id="dbparam">
         <td title='Required'>*</td>
         <td class="param"><code>-db <i>dbName</i></code></td>
         <td class="param">Name of database to connect to</td>
       </tr>
-      <tr>
+      <tr id="uparam">
         <td title='Required unless -sso specified'>*</td>
         <td class="param"><code>-u <i>user</i></code></td>
         <td class="param">Valid database user id with read access.  
             A user id is required unless <code>-sso</code> is specified.</td>
       </tr>
-      <tr>
+      <tr id="sparam">
         <td>&nbsp;</td>
         <td class="param"><code>-s <i>schema</i></code></td>
         <td class="param">Database schema 
             (optional if the same as user or isn't supported by your database)</td>
       </tr>
-      <tr>
+      <tr id="pparam">
         <td>&nbsp;</td>
         <td class="param"><code>-p <i>password</i></code></td>
         <td class="param">Password associated with that user.  
             Defaults to no password.</td>
       </tr>
-      <tr>
+      <tr id="oparam">
         <td title='Required'>*</td>
         <td class="param"><code>-o <i>outputDirectory</i></code></td>
         <td class="param">Directory to write the generated HTML/graphs to</td>
       </tr>
-      <tr>
+      <tr id="dpparam">
         <td>&nbsp;</td>
         <td class="param"><code>-dp <i>pathToDrivers</i></code></td>
         <td class="param">Looks for drivers here before looking in driverPath in [databaseType].properties.
         The drivers are usually contained in .jar or .zip files and are typically
         provided by your database vendor.</td>
       </tr>
-      <tr>
+      <tr id="descparam">
         <td>&nbsp;</td>
         <td class="param"><code>-desc <i>"Schema description"</i></code></td>
         <td class="param">Displays the specified textual description on summary pages.
@@ -209,7 +209,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             <code>-desc "&lt;a href\='http://schemaspy.sourceforge.net'&gt;SchemaSpy&lt;/a&gt;"</code>.
         </td>
       </tr>
-      <tr>
+      <tr id="allparam">
         <td>&nbsp;</td>
         <td class="param"><code>-all</code></td>
         <td class="param">Evaluate all schemas in a database.
@@ -219,7 +219,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             to narrow-down the schemas to include.
         </td>
       </tr>
-      <tr>
+      <tr id="schemasparam">
         <td>&nbsp;</td>
         <td class="param"><code>-schemas <i>"schema1,schema2"</i></code></td>
         <td class="param">Evaluate specified schemas.
@@ -241,7 +241,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             See <a href="#meta">Providing Additional Metadata</a> for details.
         </td>
       </tr>
-      <tr>
+      <tr id="connpropsparam">
         <td>&nbsp;</td>
         <td class="param"><code>-connprops <i>propsfile</i> or <i>key\=value;</i></code></td>
         <td class="param">
@@ -251,7 +251,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             each key\=value pair with a <code>;</code>.
         </td>
       </tr>
-      <tr>
+      <tr id="hqparam">
         <td>&nbsp;</td>
         <td class="param"><code>-hq<br>-lq</code></td>
         <td class="param">Generate either higher or lower-quality diagrams.
@@ -266,25 +266,28 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             but the resultant Entity Relationship diagrams generally look better.
         </td>
       </tr>
-      <tr id="includeparam">
+      <tr id="iparam">
         <td>&nbsp;</td>
         <td class="param"><code>-i <i>"tableNamesRegex"</i></code></td>
         <td class="param">Only include matching tables/views.
             This is a regular expression that's used to determine which
             tables/views to include.  <br>For example: <code>-i "(.*book.*)|(library.*)"</code> 
             includes only those tables/views with 'book' in their names or that start with 'library'.<br>
-            You might want to use -desc with this option to describe the subset of tables.
+            You might want to use <a href='#descparam'><code>-desc</code></a> 
+            with this option to describe the subset of tables.
+            <br>Add <a href='#vxparam'><code>-vx</code></a> to help diagnose any issues.
         </td>
       </tr>
-      <tr>
+      <tr id="capiparam">
         <td>&nbsp;</td>
         <td class="param"><code>-I <i>"tableNamesRegex"</i></code></td>
         <td class="param">Exclude matching tables/views.
             This regular expression excludes matching tables/views from the analysis.
-            Can be used in conjunction with <a href='#includeparam'><code>-i</code></a>.
+            Can be used in conjunction with <a href='#iparam'><code>-i</code></a>.
+            <br>Add <a href='#vxparam'><code>-vx</code></a> to help diagnose any issues.
         </td>
       </tr>
-      <tr>
+      <tr id="xparam">
         <td>&nbsp;</td>
         <td class="param"><code>-x <i>"columnNamesRegex"</i></code></td>
         <td class="param">Exclude matching columns from relationship analysis to
@@ -296,42 +299,53 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             Note that each column name regular expression must be surround by <code>()</code>'s and
             separated from other column names by a <code>|</code>.
             <br>Excluded relationships will still show up on detail pages.
+            <br>Add <a href='#vxparam'><code>-vx</code></a> to help diagnose any issues.
         </td>
       </tr>
-      <tr>
+      <tr id="capxparam">
         <td>&nbsp;</td>
         <td class="param"><code>-X <i>"columnNamesRegex"</i></code></td>
         <td class="param">
-            Same as <code>-x</code> but excluded relationships will not show up on detail pages.
+            Same as <a href='#xparam'><code>-x</code></a> but excluded relationships 
+            will <em>not</em> show up on detail pages.
         </td>
       </tr>
-      <tr>
+      <tr id="vxparam">
+        <td>&nbsp;</td>
+        <td class="param"><code>-vx</code></td>
+        <td class="param"><em>V</em>erbose e<em>X</em>clusions / inclusions.
+            Enables verbose output of why schemas, tables, views and columns
+            are excluded or included in the analysis of the schema.
+        </td>
+      </tr>
+      <tr id="ahicparam">
         <td>&nbsp;</td>
         <td class="param"><code>-ahic</code></td>
         <td class="param"><em>A</em>llow <em>H</em>TML <em>I</em>n <em>C</em>omments.<br>
             Any HTML embedded in comments normally gets encoded so that it's rendered as text.  
             This option allows it to be rendered as HTML.</td>
       </tr>
-      <tr>
+      <tr id="norowsparam">
         <td>&nbsp;</td>
         <td class="param"><code>-norows</code></td>
         <td class="param">Don't query or display row counts.</td>
       </tr>
-      <tr>
+      <tr id="noimpliedparam">
         <td>&nbsp;</td>
         <td class="param"><code>-noimplied</code></td>
-        <td class="param">Don't include implied foreign key relationships in the generated table details</td>
+        <td class="param">Don't include implied foreign key relationships in the 
+            generated table details</td>
       </tr>
-      <tr>
+      <tr id="ssoparam">
         <td>&nbsp;</td>
         <td class="param"><code>-sso</code></td>
         <td class="param">
             <em>S</em>ingle <em>S</em>ign-<em>O</em>n.
-            Don't require a user to be specified with <code>-u</code>
+            Don't require a user to be specified with <a href='#uparam'><code>-u</code></a>
             to simplify configuration when running in a single sign-on environment.
         </td>
       </tr>
-      <tr>
+      <tr id="nohtmlparam">
         <td>&nbsp;</td>
         <td class="param"><code>-nohtml</code></td>
         <td class="param">
