@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -49,6 +50,7 @@ public class Config
     private List<String> schemas;
     private String user;
     private Boolean singleSignOn;
+    private Boolean noSchema;
     private String password;
     private String db;
     private String host;
@@ -230,6 +232,20 @@ public class Config
         if (schema == null)
             schema = pullParam("-s");
         return schema;
+    }
+
+    /**
+     * Some databases types (e.g. older versions of Informix) don't really
+     * have the concept of a schema but still return true from
+     * {@link DatabaseMetaData#supportsSchemasInTableDefinitions()}.
+     * This option lets you ignore that and treat all the tables
+     * as if they were in one flat namespace.
+     */
+    public boolean isSchemaDisabled() {
+        if (noSchema == null)
+            noSchema = options.remove("-noschema");
+
+        return noSchema;
     }
 
     public void setHost(String host) {
@@ -1357,6 +1373,8 @@ public class Config
             params.add("-sso");
         if (!isAdsEnabled())
             params.add("-noads");
+        if (isSchemaDisabled())
+            params.add("-noschema");
 
         String value = getDriverPath();
         if (value != null) {

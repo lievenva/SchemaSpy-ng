@@ -179,8 +179,10 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       <tr id="sparam">
         <td>&nbsp;</td>
         <td class="param"><code>-s <i>schema</i></code></td>
-        <td class="param">Database schema 
-            (optional if the same as user or isn't supported by your database)</td>
+        <td class="param">Database schema. 
+            This is optional if it's the same as user or isn't supported by your database.<br>
+            Use <code>-noschema</code> if your database thinks it supports schemas but doesn't
+            (e.g. older versions of Informix).</td>
       </tr>
       <tr id="pparam">
         <td>&nbsp;</td>

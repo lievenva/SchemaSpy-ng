@@ -1,7 +1,5 @@
 package net.sourceforge.schemaspy;
 
-import net.sourceforge.schemaspy.model.InvalidConfigurationException;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.model.xml.SchemaMeta;
@@ -74,23 +73,23 @@ public class SchemaAnalyzer {
                     throw new IOException("Failed to create directory '" + outputDir + "'");
                 }
             }
-            
+
             List<String> schemas = config.getSchemas();
             if (schemas != null) {
                 List<String> args = config.asList();
-                
+
                 // following params will be replaced by something appropriate
                 yankParam(args, "-o");
                 yankParam(args, "-s");
                 args.remove("-all");
                 args.remove("-schemas");
                 args.remove("-schemata");
-                
+
                 String dbName = config.getDb();
-                
+
                 return MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
             }
-            
+
             Properties properties = config.getDbProperties(config.getDbType());
 
             ConnectionURLBuilder urlBuilder = new ConnectionURLBuilder(config, properties);
@@ -114,7 +113,7 @@ public class SchemaAnalyzer {
             Connection connection = getConnection(config, urlBuilder.getConnectionURL(), driverClass, driverPath);
             if (connection == null)
                 return 3;
-            
+
             DatabaseMetaData meta = connection.getMetaData();
             String dbName = config.getDb();
             String schema = config.getSchema();
@@ -138,7 +137,8 @@ public class SchemaAnalyzer {
                 return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
             }
 
-            if (schema == null && meta.supportsSchemasInTableDefinitions()) {
+            if (schema == null && meta.supportsSchemasInTableDefinitions() &&
+                    !config.isSchemaDisabled()) {
                 schema = config.getUser();
                 if (schema == null)
                     throw new InvalidConfigurationException("Either a schema ('-s') or a user ('-u') must be specified");
@@ -206,8 +206,8 @@ public class SchemaAnalyzer {
                     DbAnalyzer.getRailsConstraints(db.getTablesByName());
 
                 File diagramsDir = new File(outputDir, "diagrams/summary");
-                
-                // generate the compact form of the relationships .dot file 
+
+                // generate the compact form of the relationships .dot file
                 String dotBaseFilespec = "relationships";
                 out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
                 WriteStats stats = new WriteStats(tables);
@@ -216,7 +216,7 @@ public class SchemaAnalyzer {
                 out.close();
 
                 if (hasRealRelationships) {
-                    // real relationships exist so generate the 'big' form of the relationships .dot file 
+                    // real relationships exist so generate the 'big' form of the relationships .dot file
                     System.out.print(".");
                     out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
@@ -239,7 +239,7 @@ public class SchemaAnalyzer {
                 File impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                 boolean hasImplied = DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
-                
+
                 Set<TableColumn> excludedColumns = stats.getExcludedColumns();
                 out.close();
                 if (hasImplied) {
@@ -291,7 +291,7 @@ public class SchemaAnalyzer {
                 System.out.print("Writing/diagramming results");
 
                 HtmlTablePage tableFormatter = HtmlTablePage.getInstance();
-                for (Table table : tables) { 
+                for (Table table : tables) {
                     System.out.print('.');
                     out = new LineWriter(new File(outputDir, "tables/" + table.getName() + ".html"), 24 * 1024, config.getCharset());
                     tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
@@ -305,15 +305,15 @@ public class SchemaAnalyzer {
 
 
             XmlTableFormatter.getInstance().appendTables(rootNode, tables);
-            
+
             String xmlName = dbName;
 
             // some dbNames have path info in the name...strip it
             xmlName = new File(xmlName).getName();
-            
+
             if (schema != null)
                 xmlName += '.' + schema;
-            
+
             out = new LineWriter(new File(outputDir, xmlName + ".xml"), Config.DOT_CHARSET);
             document.getDocumentElement().normalize();
             DOMUtil.printDOM(document, out);
@@ -329,12 +329,12 @@ public class SchemaAnalyzer {
             properties = null;
             rootNode = null;
             urlBuilder = null;
-            
+
             List<ForeignKeyConstraint> recursiveConstraints = new ArrayList<ForeignKeyConstraint>();
 
             // create an orderer to be able to determine insertion and deletion ordering of tables
             TableOrderer orderer = new TableOrderer();
-            
+
             // side effect is that the RI relationships get trashed
             // also populates the recursiveConstraints collection
             List<Table> orderedTables = orderer.getTablesOrderedByRI(db.getTables(), recursiveConstraints);
@@ -374,7 +374,7 @@ public class SchemaAnalyzer {
                 System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
                 System.out.println("View the results by opening " + new File(config.getOutputDir(), "index.html"));
             }
-            
+
             return 0;
         } catch (Config.MissingRequiredParameterException missingParam) {
             config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());
