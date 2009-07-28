@@ -17,16 +17,16 @@ import org.w3c.dom.Node;
 
 /**
  * Formats {@link Table}s into an XML DOM tree.
- * 
+ *
  * @author John Currier
  */
 public class XmlTableFormatter {
     private static final XmlTableFormatter instance = new XmlTableFormatter();
-    
+
     // valid chars came from http://www.w3.org/TR/REC-xml/#charsets
     // and attempting to match 0x10000-0x10FFFF with the \p Unicode escapes
     // (from http://www.regular-expressions.info/unicode.html)
-    private static final Pattern validXmlChars = 
+    private static final Pattern validXmlChars =
         Pattern.compile("^[ -\uD7FF\uE000-\uFFFD\\p{L}\\p{M}\\p{Z}\\p{S}\\p{N}\\p{P}]*$");
 
     /**
@@ -36,7 +36,7 @@ public class XmlTableFormatter {
 
     /**
      * Singleton accessor
-     * 
+     *
      * @return
      */
     public static XmlTableFormatter getInstance() {
@@ -45,7 +45,7 @@ public class XmlTableFormatter {
 
     /**
      * Append the specified tables to the XML node
-     * 
+     *
      * @param schemaNode
      * @param tables
      */
@@ -66,7 +66,7 @@ public class XmlTableFormatter {
 
     /**
      * Append table details to the XML node
-     * 
+     *
      * @param tablesNode
      * @param table
      */
@@ -92,7 +92,7 @@ public class XmlTableFormatter {
 
     /**
      * Append all columns in the table to the XML node
-     * 
+     *
      * @param tableNode
      * @param table
      */
@@ -104,7 +104,7 @@ public class XmlTableFormatter {
 
     /**
      * Append column details to the XML node
-     * 
+     *
      * @param tableNode
      * @param column
      * @return
@@ -160,7 +160,7 @@ public class XmlTableFormatter {
 
     /**
      * Append primary key details to the XML node
-     * 
+     *
      * @param tableNode
      * @param table
      */
@@ -171,15 +171,15 @@ public class XmlTableFormatter {
         for (TableColumn primaryKeyColumn : table.getPrimaryColumns()) {
             Node primaryKeyNode = document.createElement("primaryKey");
             tableNode.appendChild(primaryKeyNode);
-            
+
             DOMUtil.appendAttribute(primaryKeyNode, "column", primaryKeyColumn.getName());
             DOMUtil.appendAttribute(primaryKeyNode, "sequenceNumberInPK", String.valueOf(index++));
         }
     }
-    
+
     /**
      * Append check constraint details to the XML node
-     * 
+     *
      * @param tableNode
      * @param table
      */
@@ -190,15 +190,16 @@ public class XmlTableFormatter {
             for (String name : constraints.keySet()) {
                 Node constraintNode = document.createElement("checkConstraint");
                 tableNode.appendChild(constraintNode);
-                DOMUtil.appendAttribute(tableNode, "name", name);
-                DOMUtil.appendAttribute(tableNode, "constraint", constraints.get(name).toString());
+
+                DOMUtil.appendAttribute(constraintNode, "name", name);
+                DOMUtil.appendAttribute(constraintNode, "constraint", constraints.get(name).toString());
             }
         }
     }
 
     /**
      * Append index details to the XML node
-     * 
+     *
      * @param tableNode
      * @param table
      */
@@ -211,13 +212,15 @@ public class XmlTableFormatter {
 
             for (TableIndex index : indexes) {
                 Node indexNode = document.createElement("index");
+
                 if (showId)
                     DOMUtil.appendAttribute(indexNode, "id", String.valueOf(index.getId()));
                 DOMUtil.appendAttribute(indexNode, "name", index.getName());
                 DOMUtil.appendAttribute(indexNode, "unique", String.valueOf(index.isUnique()));
-                
+
                 for (TableColumn column : index.getColumns()) {
                     Node columnNode = document.createElement("column");
+
                     DOMUtil.appendAttribute(columnNode, "name", column.getName());
                     DOMUtil.appendAttribute(columnNode, "ascending", String.valueOf(index.isAscending(column)));
                     indexNode.appendChild(columnNode);
@@ -229,7 +232,7 @@ public class XmlTableFormatter {
 
     /**
      * Append view SQL to the XML node
-     * 
+     *
      * @param tableNode
      * @param table
      */
@@ -243,7 +246,7 @@ public class XmlTableFormatter {
     /**
      * Returns <code>true</code> if the string contains binary data
      * (chars that are invalid for XML) per http://www.w3.org/TR/REC-xml/#charsets
-     * 
+     *
      * @param str
      * @return
      */
@@ -254,7 +257,7 @@ public class XmlTableFormatter {
     /**
      * Turns a string into its hex equivalent.
      * Intended to be used when {@link #isBinary(String)} returns <code>true</code>.
-     * 
+     *
      * @param str
      * @return
      */
