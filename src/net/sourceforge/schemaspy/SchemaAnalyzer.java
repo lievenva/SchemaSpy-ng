@@ -440,7 +440,7 @@ public class SchemaAnalyzer {
         while (tokenizer.hasMoreTokens()) {
             File pathElement = new File(tokenizer.nextToken());
             if (pathElement.exists())
-                classpath.add(pathElement.toURL());
+                classpath.add(pathElement.toURI().toURL());
             else
                 invalidClasspathEntries.add(pathElement);
         }
