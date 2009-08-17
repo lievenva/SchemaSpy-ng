@@ -45,6 +45,7 @@ public class Config
     private boolean helpRequired;
     private boolean dbHelpRequired;
     private File outputDir;
+    private File graphvizDir;
     private String dbType;
     private String schema;
     private List<String> schemas;
@@ -178,6 +179,49 @@ public class Config
         }
 
         return outputDir;
+    }
+
+    /**
+     * Set the path to Graphviz so we can find dot to generate ER diagrams
+     *
+     * @param graphvizDir
+     */
+    public void setGraphvizDir(String graphvizDir) {
+        if (graphvizDir.endsWith("\""))
+            graphvizDir = graphvizDir.substring(0, graphvizDir.length() - 1);
+
+        setGraphvizDir(new File(graphvizDir));
+    }
+
+    /**
+     * Set the path to Graphviz so we can find dot to generate ER diagrams
+     *
+     * @param graphvizDir
+     */
+    public void setGraphvizDir(File graphvizDir) {
+        this.graphvizDir = graphvizDir;
+    }
+
+    /**
+     * Return the path to Graphviz (used to find the dot executable to run to
+     * generate ER diagrams).<p/>
+     *
+     * Returns {@link #getDefaultGraphvizPath()} if a specific Graphviz path
+     * was not specified.
+     *
+     * @return
+     */
+    public File getGraphvizDir() {
+        if (graphvizDir == null) {
+            String gv = pullParam("-gv");
+            if (gv != null) {
+                setGraphvizDir(gv);
+            } else {
+                // expect to find Graphviz's bin directory on the PATH
+            }
+        }
+
+        return graphvizDir;
     }
 
     /**
@@ -1454,6 +1498,10 @@ public class Config
         if (value != null) {
             params.add("-meta");
             params.add(value);
+        }
+        if (getGraphvizDir() != null) {
+            params.add("-gv");
+            params.add(getGraphvizDir().toString());
         }
         params.add("-i");
         params.add(getTableInclusions().pattern());

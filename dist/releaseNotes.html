@@ -69,6 +69,11 @@
         they support schemas but really don't (e.g. older versions of Informix).<br>
         Thanks to Joao Batalha for reporting the problem.
     </li>
+    <li>There were scenarios where SchemaSpy had difficultly resolving
+        the dot executable though the PATH environment variable.
+        Added a -gv option to optionally remove the dependency on having your PATH
+        include Graphviz's bin directory.  
+    </li>
 </ul>
 </li>
 
