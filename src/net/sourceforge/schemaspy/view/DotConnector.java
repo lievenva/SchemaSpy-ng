@@ -75,6 +75,10 @@ public class DotConnector implements Comparable<DotConnector> {
     public String toString() {
         StringBuilder edge = new StringBuilder();
         edge.append("  \"");
+        if (childTable.isRemote()) {
+            edge.append(childTable.getSchema());
+            edge.append('.');
+        }
         edge.append(childTable.getName());
         edge.append("\":\"");
         edge.append(childPort);
@@ -82,6 +86,10 @@ public class DotConnector implements Comparable<DotConnector> {
         if (bottomJustify)
             edge.append("s");
         edge.append("w -> \"");
+        if (parentTable.isRemote()) {
+            edge.append(parentTable.getSchema());
+            edge.append('.');
+        }
         edge.append(parentTable.getName());
         edge.append("\":\"");
         edge.append(parentPort);

@@ -28,7 +28,7 @@ public class DotNode {
     public DotNode(Table table, String path) {
         this(table, path, new DotNodeConfig(true, true));
     }
-    
+
     public DotNode(Table table, String path, DotNodeConfig config) {
         this.table = table;
         this.path = path + (table.isRemote() ? ("../../" + table.getSchema() + "/tables/") : "");
@@ -50,7 +50,7 @@ public class DotNode {
     public void setShowImplied(boolean showImplied) {
         config.showImpliedRelationships = showImplied;
     }
-    
+
     public Table getTable() {
         return table;
     }
@@ -64,13 +64,15 @@ public class DotNode {
         StyleSheet css = StyleSheet.getInstance();
         StringBuilder buf = new StringBuilder();
         String tableName = table.getName();
+        // fully qualified table name (optionally prefixed with schema)
+        String fqTableName = (table.isRemote() ? table.getSchema() + "." : "") + tableName;
         String colspan = config.showColumnDetails ? "COLSPAN=\"2\" " : "COLSPAN=\"3\" ";
 
-        buf.append("  \"" + tableName + "\" [" + lineSeparator);
+        buf.append("  \"" + fqTableName + "\" [" + lineSeparator);
         buf.append("    label=<" + lineSeparator);
         buf.append("    <TABLE BORDER=\"" + (config.showColumnDetails ? "2" : "0") + "\" CELLBORDER=\"1\" CELLSPACING=\"0\" BGCOLOR=\"" + css.getTableBackground() + "\">" + lineSeparator);
         buf.append("      <TR>");
-        buf.append("<TD COLSPAN=\"3\" BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + (table.isRemote() ? table.getSchema() + "." : "") + tableName + "</TD>");
+        buf.append("<TD COLSPAN=\"3\" BGCOLOR=\"" + css.getTableHeadBackground() + "\" ALIGN=\"CENTER\">" + fqTableName + "</TD>");
         buf.append("</TR>" + lineSeparator);
 
         boolean skippedTrivial = false;
@@ -78,7 +80,7 @@ public class DotNode {
         if (config.showColumns) {
             List<TableColumn> primaryColumns = table.getPrimaryColumns();
             Set<TableColumn> indexColumns = new HashSet<TableColumn>();
-            
+
             for (TableIndex index : table.getIndexes()) {
                 indexColumns.addAll(index.getColumns());
             }
@@ -112,11 +114,11 @@ public class DotNode {
                 }
             }
         }
-        
+
         if (skippedTrivial || !config.showColumns) {
             buf.append("      <TR><TD PORT=\"elipses\" COLSPAN=\"3\" ALIGN=\"LEFT\">...</TD></TR>" + lineSeparator);
         }
-        
+
         buf.append("      <TR>");
         buf.append("<TD ALIGN=\"LEFT\" BGCOLOR=\"" + css.getBodyBackground() + "\">");
         int numParents = config.showImpliedRelationships ? table.getNumParents() : table.getNumNonImpliedParents();
@@ -132,7 +134,7 @@ public class DotNode {
             final int numRows = table.getNumRows();
             if (displayNumRows && numRows != -1) {
                 buf.append(NumberFormat.getInstance().format(numRows));
-                buf.append(" row"); 
+                buf.append(" row");
                 if (numRows != 1)
                     buf.append('s');
             } else {
@@ -150,18 +152,18 @@ public class DotNode {
 
         buf.append("    </TABLE>>" + lineSeparator);
         buf.append("    URL=\"" + path + toNCR(tableName) + ".html\"" + lineSeparator);
-        buf.append("    tooltip=\"" + toNCR(tableName) + "\"" + lineSeparator);
+        buf.append("    tooltip=\"" + toNCR(fqTableName) + "\"" + lineSeparator);
         buf.append("  ];");
 
         return buf.toString();
     }
-    
+
     /**
      * Translates specified string to Numeric Character Reference (NCR).
      * This (hopefully) allows Unicode languages to be displayed correctly.<p>
-     * The basis for this code was found 
+     * The basis for this code was found
      * <a href='http://d.hatena.ne.jp/etherealmaro/20060806#1154886500'>here</a>.
-     * 
+     *
      * @param str
      * @return
      */
@@ -179,22 +181,22 @@ public class DotNode {
         }
         return result.toString();
     }
-    
+
     public static class DotNodeConfig {
         private final boolean showColumns;
         private boolean showTrivialColumns;
         private final boolean showColumnDetails;
         private boolean showImpliedRelationships;
-        
+
         /**
          * Nothing but table name and counts are displayed
          */
         public DotNodeConfig() {
             showColumns = showTrivialColumns = showColumnDetails = showImpliedRelationships = false;
         }
-        
+
         public DotNodeConfig(boolean showTrivialColumns, boolean showColumnDetails) {
-            this.showColumns = true;
+            showColumns = true;
             this.showTrivialColumns = showTrivialColumns;
             this.showColumnDetails = showColumnDetails;
         }
