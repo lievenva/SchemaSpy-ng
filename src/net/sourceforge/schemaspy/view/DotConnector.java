@@ -14,8 +14,8 @@ public class DotConnector implements Comparable<DotConnector> {
     private final Table parentTable;
     private final TableColumn childColumn;
     private final Table childTable;
-    private boolean implied;
-    private boolean bottomJustify;
+    private final boolean implied;
+    private final boolean bottomJustify;
     private String parentPort;
     private String childPort;
 
@@ -30,11 +30,11 @@ public class DotConnector implements Comparable<DotConnector> {
         this.parentColumn = parentColumn;
         this.childColumn = childColumn;
         this.implied = implied;
-        this.parentPort = parentColumn.getName();
-        this.parentTable = parentColumn.getTable();
-        this.childPort = childColumn.getName();
-        this.childTable = childColumn.getTable();
-        this.bottomJustify = !Dot.getInstance().supportsCenteredEastWestEdges();
+        parentPort = parentColumn.getName();
+        parentTable = parentColumn.getTable();
+        childPort = childColumn.getName();
+        childTable = childColumn.getTable();
+        bottomJustify = !Dot.getInstance().supportsCenteredEastWestEdges();
     }
 
     /**
@@ -93,7 +93,7 @@ public class DotConnector implements Comparable<DotConnector> {
         // if enabled makes the diagram unreadable
         // have to figure out how to render these details in a readable manner
         final boolean fullErNotation = false;
-        
+
         // Thanks to Dan Zingaro for figuring out how to correctly annotate
         // these relationships
         if (fullErNotation) {
@@ -118,7 +118,7 @@ public class DotConnector implements Comparable<DotConnector> {
         if (implied)
             edge.append(" style=dashed");
         edge.append("];");
-        
+
         return edge.toString();
     }
 
@@ -130,6 +130,10 @@ public class DotConnector implements Comparable<DotConnector> {
             rc = parentTable.getName().compareToIgnoreCase(other.parentTable.getName());
         if (rc == 0)
             rc = parentColumn.getName().compareToIgnoreCase(other.parentColumn.getName());
+        if (rc == 0 && childTable.getSchema() != null && other.childTable.getSchema() != null)
+            rc = childTable.getSchema().compareToIgnoreCase(other.childTable.getSchema());
+        if (rc == 0 && parentTable.getSchema() != null && other.parentTable.getSchema() != null)
+            rc = parentTable.getSchema().compareToIgnoreCase(other.parentTable.getSchema());
         if (rc == 0 && implied != other.implied)
             rc = implied ? 1 : -1;
         return rc;
