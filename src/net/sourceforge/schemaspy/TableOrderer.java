@@ -14,14 +14,14 @@ import net.sourceforge.schemaspy.model.Table;
  * Sorts {@link Table}s by their referential integrity constraints.
  * The intent is to have a list of tables in an order that can be used
  * to insert or delete them from a database.
- * 
+ *
  * @author John Currier
  */
 public class TableOrderer {
     /**
      * Returns a list of <code>Table</code>s ordered such that parents are listed first
      * and child tables are listed last.
-     * 
+     *
      * <code>recursiveConstraints</code> gets populated with <code>TableConstraint</code>s
      * that had to be removed to resolve the returned list.
      * @param recursiveConstraints
@@ -64,11 +64,11 @@ public class TableOrderer {
                     for (Table table : remainingTables) {
                         table.removeNonRealForeignKeys();
                     }
-                    
+
                     prunedNonReals = true;
                     continue;
                 }
-                
+
                 boolean foundSimpleRecursion = false;
                 for (Table potentialRecursiveTable : remainingTables) {
                     ForeignKeyConstraint recursiveConstraint = potentialRecursiveTable.removeSelfReferencingConstraint();
@@ -87,7 +87,7 @@ public class TableOrderer {
                         public int compare(Table table1, Table table2) {
                             int rc = Math.abs(table2.getNumChildren() - table2.getNumParents()) - Math.abs(table1.getNumChildren() - table1.getNumParents());
                             if (rc == 0)
-                                rc = table1.getName().compareToIgnoreCase(table2.getName());
+                                rc = table1.compareTo(table2);
                             return rc;
                         }
                     });
@@ -101,7 +101,7 @@ public class TableOrderer {
 
         // we've gathered all the heads and tails, so combine them here moving 'unattached' tables to the end
         List<Table> ordered = new ArrayList<Table>(heads.size() + tails.size());
-        
+
         ordered.addAll(heads);
         heads = null; // allow gc ASAP
 
@@ -115,7 +115,7 @@ public class TableOrderer {
 
     /**
      * Remove the root nodes (tables w/o parents)
-     * 
+     *
      * @param tables
      * @return tables removed
      */
@@ -145,7 +145,7 @@ public class TableOrderer {
 
     /**
      * Remove the leaf nodes (tables w/o children)
-     * 
+     *
      * @param tables
      * @return tables removed
      */
@@ -193,7 +193,7 @@ public class TableOrderer {
                 if (rc == 0)
                     rc = table1.getMaxParents() - table2.getMaxParents();
                 if (rc == 0)
-                    rc = table1.getName().compareToIgnoreCase(table2.getName());
+                    rc = table1.compareTo(table2);
                 return rc;
             }
         }

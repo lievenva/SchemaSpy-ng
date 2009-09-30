@@ -243,7 +243,7 @@ public class DbAnalyzer {
     public static List<Table> sortTablesByName(List<Table> tables) {
         Collections.sort(tables, new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
-                return table1.getName().compareToIgnoreCase(table2.getName());
+                return table1.compareTo(table2);
             }
         });
 
@@ -253,7 +253,7 @@ public class DbAnalyzer {
     public static List<TableColumn> sortColumnsByTable(List<TableColumn> columns) {
         Collections.sort(columns, new Comparator<TableColumn>() {
             public int compare(TableColumn column1, TableColumn column2) {
-                int rc = column1.getTable().getName().compareToIgnoreCase(column2.getTable().getName());
+                int rc = column1.getTable().compareTo(column2.getTable());
                 if (rc == 0)
                     rc = column1.getName().compareToIgnoreCase(column2.getName());
                 return rc;

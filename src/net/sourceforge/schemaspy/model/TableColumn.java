@@ -456,7 +456,7 @@ public class TableColumn {
      */
     private class ColumnComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = column1.getTable().getName().compareToIgnoreCase(column2.getTable().getName());
+            int rc = column1.getTable().compareTo(column2.getTable());
             if (rc == 0)
                 rc = column1.getName().compareToIgnoreCase(column2.getName());
             return rc;

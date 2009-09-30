@@ -18,7 +18,7 @@ import net.sourceforge.schemaspy.util.LineWriter;
  */
 public class HtmlMainIndexPage extends HtmlFormatter {
     private static HtmlMainIndexPage instance = new HtmlMainIndexPage();
-    private NumberFormat integerFormatter = NumberFormat.getIntegerInstance();
+    private final NumberFormat integerFormatter = NumberFormat.getIntegerInstance();
 
     /**
      * Singleton: Don't allow instantiation
@@ -38,7 +38,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
     public void write(Database database, Collection<Table> tables, boolean showOrphansDiagram, LineWriter html) throws IOException {
         Set<Table> byName = new TreeSet<Table>(new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
-                return table1.getName().compareToIgnoreCase(table2.getName());
+                return table1.compareTo(table2);
             }
         });
         byName.addAll(tables);

@@ -871,8 +871,29 @@ public class Table implements Comparable<Table> {
         return true;
     }
 
-    public int compareTo(Table table) {
-        return getName().compareToIgnoreCase(table.getName());
+    /**
+     * Compare this table to another table.
+     * Results are based on 1: identity, 2: table name, 3: schema name
+     * @see {@link Comparable#compareTo(Object)}
+     */
+    public int compareTo(Table other) {
+        if (other == this)  // fast way out
+            return 0;
+
+        int rc = getName().compareToIgnoreCase(other.getName());
+        if (rc == 0) {
+            // should only get here if we're dealing with cross-schema references (rare)
+            String ours = getSchema();
+            String theirs = other.getSchema();
+            if (ours != null && theirs != null)
+                rc = ours.compareToIgnoreCase(theirs);
+            else if (ours == null)
+                rc = -1;
+            else
+                rc = 1;
+        }
+
+        return rc;
     }
 
     private static class ByIndexColumnComparator implements Comparator<TableColumn> {

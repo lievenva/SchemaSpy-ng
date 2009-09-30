@@ -131,17 +131,13 @@ public class DotConnector implements Comparable<DotConnector> {
     }
 
     public int compareTo(DotConnector other) {
-        int rc = childTable.getName().compareToIgnoreCase(other.childTable.getName());
+        int rc = childTable.compareTo(other.childTable);
         if (rc == 0)
             rc = childColumn.getName().compareToIgnoreCase(other.childColumn.getName());
         if (rc == 0)
-            rc = parentTable.getName().compareToIgnoreCase(other.parentTable.getName());
+            rc = parentTable.compareTo(other.parentTable);
         if (rc == 0)
             rc = parentColumn.getName().compareToIgnoreCase(other.parentColumn.getName());
-        if (rc == 0 && childTable.getSchema() != null && other.childTable.getSchema() != null)
-            rc = childTable.getSchema().compareToIgnoreCase(other.childTable.getSchema());
-        if (rc == 0 && parentTable.getSchema() != null && other.parentTable.getSchema() != null)
-            rc = parentTable.getSchema().compareToIgnoreCase(other.parentTable.getSchema());
         if (rc == 0 && implied != other.implied)
             rc = implied ? 1 : -1;
         return rc;
