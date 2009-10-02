@@ -3,7 +3,6 @@ package net.sourceforge.schemaspy.view;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,11 +65,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
      * @throws IOException
      */
     private void writeForeignKeyConstraints(List<ForeignKeyConstraint> constraints, LineWriter html) throws IOException {
-        Set<ForeignKeyConstraint> constraintsByName = new TreeSet<ForeignKeyConstraint>(new Comparator<ForeignKeyConstraint>() {
-            public int compare(ForeignKeyConstraint cons1, ForeignKeyConstraint cons2) {
-                return cons1.getName().compareToIgnoreCase(cons2.getName());
-            }
-        });
+        Set<ForeignKeyConstraint> constraintsByName = new TreeSet<ForeignKeyConstraint>();
         constraintsByName.addAll(constraints);
 
         html.writeln("<table width='100%'>");
