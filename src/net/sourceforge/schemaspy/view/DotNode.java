@@ -151,7 +151,8 @@ public class DotNode {
         buf.append("</TD></TR>" + lineSeparator);
 
         buf.append("    </TABLE>>" + lineSeparator);
-        buf.append("    URL=\"" + path + toNCR(tableName) + ".html\"" + lineSeparator);
+        if (!table.isRemote() || Config.getInstance().isOneOfMultipleSchemas())
+            buf.append("    URL=\"" + path + toNCR(tableName) + ".html\"" + lineSeparator);
         buf.append("    tooltip=\"" + toNCR(fqTableName) + "\"" + lineSeparator);
         buf.append("  ];");
 

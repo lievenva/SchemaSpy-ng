@@ -33,7 +33,7 @@ public class HtmlTablePage extends HtmlFormatter {
     private Set<String> keywords = null;
     private int columnCounter = 0;
 
-    private Map<String, String> defaultValueAliases = new HashMap<String, String>();
+    private final Map<String, String> defaultValueAliases = new HashMap<String, String>();
     {
         defaultValueAliases.put("CURRENT TIMESTAMP", "now"); // DB2
         defaultValueAliases.put("CURRENT TIME", "now");      // DB2
@@ -243,12 +243,15 @@ public class HtmlTablePage extends HtmlFormatter {
             out.write(constraint.toString());
             out.write("\">");
             out.write("<a href='");
-            out.write(path);
-            if (column.getTable().isRemote()) {
-                out.write("../../" + column.getTable().getSchema() + "/tables/");
+            if (!column.getTable().isRemote() || Config.getInstance().isOneOfMultipleSchemas()) {
+                out.write(path);
+                if (column.getTable().isRemote()) {
+                    out.write("../../" + column.getTable().getSchema() + "/tables/");
+                }
+                out.write(columnTableName);
+                out.write(".html");
             }
-            out.write(columnTableName);
-            out.write(".html'>");
+            out.write("'");
             out.write(columnTableName);
             out.write("</a>");
             out.write("<span class='relatedKey'>.");

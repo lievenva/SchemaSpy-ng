@@ -47,7 +47,7 @@ public class HtmlOrphansPage extends HtmlDiagramFormatter {
             }
         }
 
-        writeHeader(db, "Utility Tables View", !orphansWithImpliedRelationships.isEmpty(), html);
+        writeHeader(db, "Utility Tables", !orphansWithImpliedRelationships.isEmpty(), html);
 
         html.writeln("<a name='diagram'>");
         try {

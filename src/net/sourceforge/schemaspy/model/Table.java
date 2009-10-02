@@ -92,10 +92,10 @@ public class Table implements Comparable<Table> {
                 rs.close();
         }
 
-        // if we're one of multiples then also find all of the 'remote' tables in other
-        // schemas that point to our primary keys (not necessary in the normal case
+        // also try to find all of the 'remote' tables in other schemas that
+        // point to our primary keys (not necessary in the normal case
         // as we infer this from the opposite direction)
-        if (getSchema() != null && Config.getInstance().isOneOfMultipleSchemas()) {
+        if (getSchema() != null) {
             try {
                 rs = db.getMetaData().getExportedKeys(null, getSchema(), getName());
 
@@ -142,36 +142,32 @@ public class Table implements Comparable<Table> {
      * @param db
      * @throws SQLException
      */
-    protected void addForeignKey(String fkName, String fkColName, String pkTableSchema,
-                        String pkTableName, String pkColName, Map<String, Table> tables,
-                        Database db, Properties properties,
+    protected void addForeignKey(String fkName, String fkColName,
+                        String pkTableSchema, String pkTableName, String pkColName,
+                        Map<String, Table> tables, Database db, Properties properties,
                         Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         if (fkName == null)
             return;
 
-        TableColumn childColumn = getColumn(fkColName);
-
-        // include schema as part of key to deal with multiple schemas that
-        // have identically named foreign key constraints (yes, it happens)
-        String fkSchema = childColumn != null ? String.valueOf(childColumn.getTable().getSchema() + '.') : "";
-
-        ForeignKeyConstraint foreignKey = foreignKeys.get(fkSchema + fkName);
+        ForeignKeyConstraint foreignKey = foreignKeys.get(fkName);
 
         if (foreignKey == null) {
             foreignKey = new ForeignKeyConstraint(this, fkName);
 
-            foreignKeys.put(fkSchema + fkName, foreignKey);
+            foreignKeys.put(fkName, foreignKey);
         }
 
+        TableColumn childColumn = getColumn(fkColName);
         if (childColumn != null) {
             foreignKey.addChildColumn(childColumn);
 
             Table parentTable = tables.get(pkTableName);
-            if (parentTable == null) {
-                String otherSchema = pkTableSchema;
-                if (otherSchema != null && !otherSchema.equals(getSchema()) && Config.getInstance().isOneOfMultipleSchemas()) {
-                    parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(), properties, excludeIndirectColumns, excludeColumns);
-                }
+            String otherSchema = pkTableSchema;
+            // if named table doesn't exist in this schema
+            // or exists here but really referencing same named table in another schema
+            if (parentTable == null || (otherSchema != null && !otherSchema.equals(getSchema()))) {
+                parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(),
+                                        properties, excludeIndirectColumns, excludeColumns);
             }
 
             if (parentTable != null) {
@@ -182,13 +178,16 @@ public class Table implements Comparable<Table> {
                     childColumn.addParent(parentColumn, foreignKey);
                     parentColumn.addChild(childColumn, foreignKey);
                 } else {
-                    System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this + "' - Column '" + pkColName + "' doesn't exist in table '" + parentTable + "'");
+                    System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
+                                        "' - Column '" + pkColName + "' doesn't exist in table '" + parentTable + "'");
                 }
             } else {
-                System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this + "' - Unknown Referenced Table '" + pkTableName + "'");
+                System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
+                                    "' - Unknown Referenced Table '" + pkTableName + "'");
             }
         } else {
-            System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this + "' - Column '" + fkColName + "' doesn't exist");
+            System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
+                                "' - Column '" + fkColName + "' doesn't exist");
         }
     }
 
