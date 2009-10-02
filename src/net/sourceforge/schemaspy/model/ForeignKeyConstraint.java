@@ -9,7 +9,7 @@ import java.util.List;
  * Foreign Key Constraint</a> that "ties" a child table to a parent table
  * via foreign and primary keys.
  */
-public class ForeignKeyConstraint {
+public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     private final String name;
     private Table parentTable;
     private final List<TableColumn> parentColumns = new ArrayList<TableColumn>();
@@ -172,6 +172,34 @@ public class ForeignKeyConstraint {
      */
     public boolean isReal() {
         return getClass() == ForeignKeyConstraint.class;
+    }
+
+    /**
+     * Custom comparison method to deal with foreign key names that aren't
+     * unique across all schemas being evaluated
+     *
+     * @param other ForeignKeyConstraint
+     *
+     * @return
+     */
+    public int compareTo(ForeignKeyConstraint other) {
+        if (other == this)
+            return 0;
+
+        int rc = getName().compareToIgnoreCase(other.getName());
+        if (rc == 0) {
+            // should only get here if we're dealing with cross-schema references (rare)
+            String ours = getChildColumns().get(0).getTable().getSchema();
+            String theirs = other.getChildColumns().get(0).getTable().getSchema();
+            if (ours != null && theirs != null)
+                rc = ours.compareToIgnoreCase(theirs);
+            else if (ours == null)
+                rc = -1;
+            else
+                rc = 1;
+        }
+
+        return rc;
     }
 
     /**
