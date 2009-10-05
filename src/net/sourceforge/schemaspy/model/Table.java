@@ -162,11 +162,15 @@ public class Table implements Comparable<Table> {
             foreignKey.addChildColumn(childColumn);
 
             Table parentTable = tables.get(pkTableName);
-            String otherSchema = pkTableSchema;
+            String parentSchema = pkTableSchema;
+            String baseSchema = Config.getInstance().getSchema();
+
             // if named table doesn't exist in this schema
             // or exists here but really referencing same named table in another schema
-            if (parentTable == null || (otherSchema != null && !otherSchema.equals(getSchema()))) {
-                parentTable = db.addRemoteTable(otherSchema, pkTableName, getSchema(),
+            if (parentTable == null ||
+                    (baseSchema != null && parentSchema != null &&
+                     !baseSchema.equals(parentSchema))) {
+                parentTable = db.addRemoteTable(parentSchema, pkTableName, baseSchema,
                                         properties, excludeIndirectColumns, excludeColumns);
             }
 
