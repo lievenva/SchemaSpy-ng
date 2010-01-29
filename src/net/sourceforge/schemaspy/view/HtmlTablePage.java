@@ -251,7 +251,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.write(columnTableName);
                 out.write(".html");
             }
-            out.write("'");
+            out.write("'>");
             out.write(columnTableName);
             out.write("</a>");
             out.write("<span class='relatedKey'>.");
