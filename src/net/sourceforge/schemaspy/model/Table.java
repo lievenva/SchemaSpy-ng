@@ -85,7 +85,9 @@ public class Table implements Comparable<Table> {
             while (rs.next()) {
                 addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
                         rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
-                        rs.getString("PKCOLUMN_NAME"), tables, db, properties, excludeIndirectColumns, excludeColumns);
+                        rs.getString("PKCOLUMN_NAME"),
+                        rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
+                        tables, db, properties, excludeIndirectColumns, excludeColumns);
             }
         } finally {
             if (rs != null)
@@ -144,6 +146,7 @@ public class Table implements Comparable<Table> {
      */
     protected void addForeignKey(String fkName, String fkColName,
                         String pkTableSchema, String pkTableName, String pkColName,
+                        int updateRule, int deleteRule,
                         Map<String, Table> tables, Database db, Properties properties,
                         Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         if (fkName == null)
@@ -152,7 +155,7 @@ public class Table implements Comparable<Table> {
         ForeignKeyConstraint foreignKey = foreignKeys.get(fkName);
 
         if (foreignKey == null) {
-            foreignKey = new ForeignKeyConstraint(this, fkName);
+            foreignKey = new ForeignKeyConstraint(this, fkName, updateRule, deleteRule);
 
             foreignKeys.put(fkName, foreignKey);
         }

@@ -39,7 +39,9 @@ public class RemoteTable extends Table {
                 if (otherSchema != null && otherSchema.equals(baseSchema)) {
                     addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
                             rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
-                            rs.getString("PKCOLUMN_NAME"), tables, db, properties, excludeIndirectColumns, excludeColumns);
+                            rs.getString("PKCOLUMN_NAME"),
+                            rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
+                            tables, db, properties, excludeIndirectColumns, excludeColumns);
                 }
             }
         } catch (SQLException sqlExc) {

@@ -1,5 +1,8 @@
 package net.sourceforge.schemaspy.model;
 
+import static java.sql.DatabaseMetaData.importedKeyCascade;
+import static java.sql.DatabaseMetaData.importedKeyNoAction;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,8 +18,8 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     private final List<TableColumn> parentColumns = new ArrayList<TableColumn>();
     private final Table childTable;
     private final List<TableColumn> childColumns = new ArrayList<TableColumn>();
-    private final char deleteRule;
-    private final char updateRule;
+    private final int deleteRule;
+    private final int updateRule;
 
     /**
      * Construct a foreign key for the specified child table.
@@ -24,12 +27,13 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      *
      * @param child
      * @param name
+     * @param deleteRule
      */
-    ForeignKeyConstraint(Table child, String name) {
+    ForeignKeyConstraint(Table child, String name, int updateRule, int deleteRule) {
         this.name = name; // implied constraints will have a null name and override getName()
         childTable = child;
-        deleteRule = 'D';
-        updateRule = 'U';
+        this.deleteRule = deleteRule;
+        this.updateRule = updateRule;
     }
 
     /**
@@ -40,14 +44,27 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      * @param parentColumn
      * @param childColumn
      */
-    public ForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) {
-        this(childColumn.getTable(), null);
+    public ForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn,
+                                int updateRule, int deleteRule) {
+        this(childColumn.getTable(), null, updateRule, deleteRule);
 
         addChildColumn(childColumn);
         addParentColumn(parentColumn);
 
         childColumn.addParent(parentColumn, this);
         parentColumn.addChild(childColumn, this);
+    }
+
+    /**
+     * Same as {@link #ForeignKeyConstraint(TableColumn, TableColumn, int, int)},
+     * but defaults updateRule and deleteRule to
+     * {@link java.sql.DatabaseMetaData#importedKeyNoAction}.
+     *
+     * @param parentColumn
+     * @param childColumn
+     */
+    public ForeignKeyConstraint(TableColumn parentColumn, TableColumn childColumn) {
+        this(parentColumn, childColumn, importedKeyNoAction, importedKeyNoAction);
     }
 
     /**
@@ -122,10 +139,9 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     /**
      * Returns the delete rule for this constraint.
      *
-     * @return
+     * @see {@link java.sql.DatabaseMetaData#importedKeyCascade}
      */
-    public char getDeleteRule() {
-        //TODO Needs to be further clarified / implemented.
+    public int getDeleteRule() {
         return deleteRule;
     }
 
@@ -136,16 +152,15 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      * @return
      */
     public boolean isOnDeleteCascade() {
-        return getDeleteRule() == 'C';
+        return getDeleteRule() == importedKeyCascade;
     }
 
     /**
      * Returns the update rule for this constraint.
      *
-     * @return
+     * @see {@link java.sql.DatabaseMetaData#importedKeyCascade}
      */
-    public char getUpdateRule() {
-        //TODO Needs to be further clarified / implemented.
+    public int getUpdateRule() {
         return updateRule;
     }
 
