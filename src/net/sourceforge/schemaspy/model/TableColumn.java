@@ -32,7 +32,6 @@ public class TableColumn {
     private boolean allowImpliedChildren = true;
     private boolean isExcluded = false;
     private boolean isAllExcluded = false;
-    private boolean isOnDeleteCascade = false;
 
     /**
      * Create a column associated with a table.
@@ -221,10 +220,6 @@ public class TableColumn {
         return isUnique;
     }
 
-    public boolean isOnDeleteCascade() {
-        return isOnDeleteCascade ;
-    }
-
     /**
      * Returns <code>true</code> if this column is a primary key
      *
@@ -303,7 +298,6 @@ public class TableColumn {
     public void addParent(TableColumn parent, ForeignKeyConstraint constraint) {
         parents.put(parent, constraint);
         table.addedParent();
-        isOnDeleteCascade |= constraint.isOnDeleteCascade();
     }
 
     /**

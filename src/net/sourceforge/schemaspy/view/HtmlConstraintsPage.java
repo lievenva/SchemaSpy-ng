@@ -90,6 +90,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.writeln("  <th>Constraint Name</th>");
         html.writeln("  <th>Child Column</th>");
         html.writeln("  <th>Parent Column</th>");
+        html.writeln("  <th>Delete Rule</th>");
         html.writeln("</tr>");
         html.writeln("</thead>");
         html.writeln("<tbody>");
@@ -98,7 +99,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         }
         if (constraints.size() == 0) {
             html.writeln(" <tr>");
-            html.writeln("  <td class='detail' valign='top' colspan='3'>None detected</td>");
+            html.writeln("  <td class='detail' valign='top' colspan='4'>None detected</td>");
             html.writeln(" </tr>");
         }
         html.writeln("</tbody>");
@@ -144,6 +145,11 @@ public class HtmlConstraintsPage extends HtmlFormatter {
             if (iter.hasNext())
                 html.write("<br>");
         }
+        html.writeln("</td>");
+        html.write("  <td class='detail'>");
+        String ruleText = constraint.getDeleteRuleDescription();
+        String ruleName = constraint.getDeleteRuleName();
+        html.write("<span title='" + ruleText + "'>" + ruleName + "&nbsp;</span>");
         html.writeln("</td>");
         html.writeln(" </tr>");
     }

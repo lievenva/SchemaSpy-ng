@@ -2,6 +2,8 @@ package net.sourceforge.schemaspy.model;
 
 import static java.sql.DatabaseMetaData.importedKeyCascade;
 import static java.sql.DatabaseMetaData.importedKeyNoAction;
+import static java.sql.DatabaseMetaData.importedKeyRestrict;
+import static java.sql.DatabaseMetaData.importedKeySetNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -151,8 +153,79 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      *
      * @return
      */
-    public boolean isOnDeleteCascade() {
+    public boolean isCascadeOnDelete() {
         return getDeleteRule() == importedKeyCascade;
+    }
+
+    /**
+     * Returns <code>true</code> if the constraint prevents the parent table
+     * from being deleted if child tables exist.
+     *
+     * @return
+     */
+    public boolean isRestrictDelete() {
+        return getDeleteRule() == importedKeyNoAction || getDeleteRule() == importedKeyRestrict;
+    }
+
+    /**
+     * Returns <code>true</code> if the constraint indicates that the foreign key
+     * will be set to <code>null</code> when the parent key is deleted.
+     *
+     * @return
+     */
+    public boolean isNullOnDelete() {
+        return getDeleteRule() == importedKeySetNull;
+    }
+
+    public String getDeleteRuleName() {
+        switch (getDeleteRule()) {
+            case importedKeyCascade:
+                return "Cascade on delete";
+
+            case importedKeyRestrict:
+            case importedKeyNoAction:
+                return "Restrict delete";
+
+            case importedKeySetNull:
+                return "Null on delete";
+
+            default:
+                return "";
+        }
+    }
+
+    public String getDeleteRuleDescription() {
+        switch (getDeleteRule()) {
+            case importedKeyCascade:
+                return "Cascade on delete:\n Deletion of parent deletes child";
+
+            case importedKeyRestrict:
+            case importedKeyNoAction:
+                return "Restrict delete:\n Parent cannot be deleted if children exist";
+
+            case importedKeySetNull:
+                return "Null on delete:\n Foreign key to parent set to NULL when parent deleted";
+
+            default:
+                return "";
+        }
+    }
+
+    public String getDeleteRuleAlias() {
+        switch (getDeleteRule()) {
+            case importedKeyCascade:
+                return "C";
+
+            case importedKeyRestrict:
+            case importedKeyNoAction:
+                return "R";
+
+            case importedKeySetNull:
+                return "N";
+
+            default:
+                return "";
+        }
     }
 
     /**

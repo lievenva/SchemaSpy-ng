@@ -68,14 +68,14 @@ public class HtmlTablePage extends HtmlFormatter {
         out.writeln("</td><td class='container' rowspan='2' align='right' valign='top'>");
         writeLegend(true, out);
         out.writeln("</td><tr valign='top'><td class='container' align='left' valign='top'>");
-        boolean onCascadeDelete = writeMainTable(table, out);
+        writeMainTable(table, out);
         writeNumRows(db, table, out);
         out.writeln("</td></tr></table>");
         writeCheckConstraints(table, out);
         writeIndexes(table, out);
         writeView(table, db, out);
         writeDiagram(table, stats, diagramsDir, out);
-        writeFooter(onCascadeDelete, out);
+        writeFooter(out);
 
         return stats;
     }
@@ -99,15 +99,13 @@ public class HtmlTablePage extends HtmlFormatter {
         }
 
         html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
-        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraint names</label>");
+        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraints</label>");
         html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially  ? "checked " : "") + "id='showComments'>Comments</label>");
         html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
     }
 
-    public boolean writeMainTable(Table table, LineWriter out) throws IOException {
-        boolean onCascadeDelete = false;
-
+    public void writeMainTable(Table table, LineWriter out) throws IOException {
         HtmlColumnsPage.getInstance().writeMainTableHeader(table.getId() != null, null, out);
 
         out.writeln("<tbody valign='top'>");
@@ -119,14 +117,12 @@ public class HtmlTablePage extends HtmlFormatter {
 
         boolean showIds = table.getId() != null;
         for (TableColumn column : table.getColumns()) {
-            onCascadeDelete = writeColumn(column, null, primaries, indexedColumns, onCascadeDelete, showIds, out);
+            writeColumn(column, null, primaries, indexedColumns, showIds, out);
         }
         out.writeln("</table>");
-
-        return onCascadeDelete;
     }
 
-    public boolean writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set<TableColumn> indexedColumns, boolean onCascadeDelete, boolean showIds, LineWriter out) throws IOException {
+    public void writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set<TableColumn> indexedColumns, boolean showIds, LineWriter out) throws IOException {
         if (tableName != null) {
             if (++columnCounter % 2 == 0)
                 out.writeln("<tr class='odd'>");
@@ -194,10 +190,10 @@ public class HtmlTablePage extends HtmlFormatter {
         }
         out.write(" <td class='detail'>");
         String path = tableName == null ? "" : "tables/";
-        onCascadeDelete |= writeRelatives(column, false, path, out);
+        writeRelatives(column, false, path, out);
         out.writeln("</td>");
         out.write(" <td class='detail'>");
-        onCascadeDelete |= writeRelatives(column, true, path, out);
+        writeRelatives(column, true, path, out);
         out.writeln(" </td>");
         out.write(" <td class='comment detail'>");
         String comments = column.getComments();
@@ -210,7 +206,6 @@ public class HtmlTablePage extends HtmlFormatter {
         }
         out.writeln("</td>");
         out.writeln("</tr>");
-        return onCascadeDelete;
     }
 
     /**
@@ -220,10 +215,8 @@ public class HtmlTablePage extends HtmlFormatter {
      * @param dumpParents boolean
      * @param out LineWriter
      * @throws IOException
-     * @return boolean - true if relatives are involved in an on cascade delete relationships
      */
-    private boolean writeRelatives(TableColumn baseRelative, boolean dumpParents, String path, LineWriter out) throws IOException {
-        boolean onCascadeDelete = false;
+    private void writeRelatives(TableColumn baseRelative, boolean dumpParents, String path, LineWriter out) throws IOException {
         Set<TableColumn> columns = dumpParents ? baseRelative.getParents() : baseRelative.getChildren();
         final int numColumns = columns.size();
 
@@ -257,14 +250,16 @@ public class HtmlTablePage extends HtmlFormatter {
             out.write("<span class='relatedKey'>.");
             out.write(column.getName());
             out.writeln("</span>");
-            if (constraint.isOnDeleteCascade()) {
-                out.write("<span title='On Delete Cascade\n Automatically deletes child tables when their parent is deleted'>*</span>");
-                onCascadeDelete = true;
-            }
             out.writeln("    </td>");
 
             out.write("    <td class='constraint'>");
             out.write(constraint.getName());
+            String ruleText = constraint.getDeleteRuleDescription();
+            if (ruleText.length() > 0)
+            {
+                String ruleAlias = constraint.getDeleteRuleAlias();
+                out.write("<span title='" + ruleText + "'> " + ruleAlias + "</span>");
+            }
             out.writeln("</td>");
 
             out.writeln("   </tr>");
@@ -272,8 +267,6 @@ public class HtmlTablePage extends HtmlFormatter {
         if (numColumns > 0) {
             out.writeln("  </table>");
         }
-
-        return onCascadeDelete;
     }
 
     private void writeNumRows(Database db, Table table, LineWriter out) throws IOException {
@@ -592,12 +585,6 @@ public class HtmlTablePage extends HtmlFormatter {
                 writeInvalidGraphvizInstallation(html);
             }
         }
-    }
-
-    protected void writeFooter(boolean onCascadeDelete, LineWriter out) throws IOException {
-        if (onCascadeDelete)
-            out.writeln("<br><span style='font-size: 85%;'>Related tables marked with * are involved in an 'on delete cascade' relationship.</span>");
-        super.writeFooter(out);
     }
 
     @Override

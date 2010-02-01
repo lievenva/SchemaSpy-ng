@@ -141,7 +141,7 @@ public class XmlTableFormatter {
             DOMUtil.appendAttribute(childNode, "table", childColumn.getTable().getName());
             DOMUtil.appendAttribute(childNode, "column", childColumn.getName());
             DOMUtil.appendAttribute(childNode, "implied", String.valueOf(constraint.isImplied()));
-            DOMUtil.appendAttribute(childNode, "onDeleteCascade", String.valueOf(constraint.isOnDeleteCascade()));
+            DOMUtil.appendAttribute(childNode, "onDeleteCascade", String.valueOf(constraint.isCascadeOnDelete()));
         }
 
         for (TableColumn parentColumn : column.getParents()) {
@@ -152,7 +152,7 @@ public class XmlTableFormatter {
             DOMUtil.appendAttribute(parentNode, "table", parentColumn.getTable().getName());
             DOMUtil.appendAttribute(parentNode, "column", parentColumn.getName());
             DOMUtil.appendAttribute(parentNode, "implied", String.valueOf(constraint.isImplied()));
-            DOMUtil.appendAttribute(parentNode, "onDeleteCascade", String.valueOf(constraint.isOnDeleteCascade()));
+            DOMUtil.appendAttribute(parentNode, "onDeleteCascade", String.valueOf(constraint.isCascadeOnDelete()));
         }
 
         return columnNode;

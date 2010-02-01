@@ -118,7 +118,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
         for (TableColumn column : columns) {
-            formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, false, false, html);
+            formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, false, html);
         }
 
         writeFooter(html);
@@ -137,7 +137,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<p>");
         html.writeln("<form name='options' action=''>");
         html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
-        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraint names</label>");
+        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraints</label>");
         html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially ? "checked " : "") + " id='showComments'>Comments</label>");
         html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
