@@ -21,7 +21,7 @@ create table PUBLISHER (
   primary key(publisherId),
   foreign key(address) references ADDRESS(addressId),
   index(name)
-) type=InnoDB COMMENT='<a href="http://en.wikipedia.org/wiki/Publisher">Publisher</a>';
+) type=InnoDB;
 
 create table BOOK (
   isbn bigint,
@@ -290,10 +290,8 @@ insert into book_author values(106, 7);
 insert into book_author values(107, 8);
 
 
---select branchname, count(*)
---from library_branch
---group by branchname, branchid;
+-- select branchname, count(*) from library_branch group by branchname, branchid;
 
---insert into borrower values(null, 'akshai', 9, '456');
+-- insert into borrower values(null, 'akshai', 9, '456');
 
 commit;

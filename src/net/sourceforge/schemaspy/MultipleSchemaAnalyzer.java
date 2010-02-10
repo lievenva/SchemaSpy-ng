@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.model.ProcessExecutionException;
 import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.view.HtmlMultipleSchemasIndexPage;
 
@@ -29,7 +30,7 @@ public final class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public int analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas, List<String> args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
+    public void analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas, List<String> args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
         List<String> genericCommand = new ArrayList<String>();
         genericCommand.add("java");
@@ -84,11 +85,12 @@ public final class MultipleSchemaAnalyzer {
             try {
                 int rc = java.waitFor();
                 if (rc != 0) {
-                    System.err.println("Failed to execute this process (rc " + rc + "):");
-                    for (String chunk : command)
-                        System.err.print(" " + chunk);
-                    System.err.println();
-                    return rc;
+                    StringBuilder err = new StringBuilder("Failed to execute this process (rc " + rc + "):");
+                    for (String chunk : command) {
+                        err.append(" ");
+                        err.append(chunk);
+                    }
+                    throw new ProcessExecutionException(err.toString());
                 }
             } catch (InterruptedException exc) {
             }
@@ -98,12 +100,11 @@ public final class MultipleSchemaAnalyzer {
         System.out.println();
         System.out.println("Wrote relationship details of " + populatedSchemas.size() + " schema" + (populatedSchemas.size() == 1 ? "" : "s") + " in " + (end - start) / 1000 + " seconds.");
         System.out.println("Start with " + new File(outputDir, "index.html"));
-        return 0;
     }
 
-    public int analyze(String dbName, List<String> schemas, List<String> args,
+    public void analyze(String dbName, List<String> schemas, List<String> args,
             String user, File outputDir, String charset, String loadedFromJar) throws SQLException, IOException {
-        return analyze(dbName, null, null, schemas, args, user, outputDir, charset, loadedFromJar);
+        analyze(dbName, null, null, schemas, args, user, outputDir, charset, loadedFromJar);
     }
 
    private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {

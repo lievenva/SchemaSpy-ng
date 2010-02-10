@@ -1,6 +1,9 @@
 package net.sourceforge.schemaspy;
 
+import net.sourceforge.schemaspy.model.ConnectionFailure;
+import net.sourceforge.schemaspy.model.EmptySchemaException;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
+import net.sourceforge.schemaspy.model.ProcessExecutionException;
 import net.sourceforge.schemaspy.ui.MainFrame;
 
 /**
@@ -12,20 +15,28 @@ public class Main {
             new MainFrame().setVisible(true);
             return;
         }
-        
+
         SchemaAnalyzer analyzer = new SchemaAnalyzer();
 
         int rc = 1;
 
         try {
-            rc = analyzer.analyze(new Config(argv));
+            rc = analyzer.analyze(new Config(argv)) == null ? 1 : 0;
+        } catch (ConnectionFailure couldntConnect) {
+            // failure already logged
+            rc = 3;
+        } catch (EmptySchemaException noData) {
+            // failure already logged
+            rc = 2;
         } catch (InvalidConfigurationException badConfig) {
             System.err.println();
             System.err.println(badConfig.getClass().getSimpleName() + ": " + badConfig.getMessage());
+        } catch (ProcessExecutionException badLaunch) {
+            System.err.println(badLaunch.getMessage());
         } catch (Exception exc) {
             exc.printStackTrace();
         }
-        
+
         System.exit(rc);
     }
 }

@@ -88,6 +88,15 @@
         Now shows details about foreign key constraint deletion rules:
         cascade on delete, null on delete and restrict delete.
     </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/?func=detail&atid=737990&aid=2949120&group_id=137197">
+        feature request 2949120</a> - Expose object model.<br/>
+        SchemaAnalyzer.analyze() now returns the gathered database metadata.
+        This would typically be used with HTML-generation disabled.
+        Eventually all error reporting would occur in the calling class, but
+        that hasn't been implemented yet nor has the ability to generate no
+        files at all.<br>
+        Thanks to Dominique De Vito for the suggestion.
+    </li>
 </ul>
 </li>
 

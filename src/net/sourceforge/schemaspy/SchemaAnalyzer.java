@@ -18,7 +18,9 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import net.sourceforge.schemaspy.model.ConnectionFailure;
 import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.EmptySchemaException;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
@@ -51,16 +53,16 @@ import org.w3c.dom.Element;
  * @author John Currier
  */
 public class SchemaAnalyzer {
-    public int analyze(Config config) throws Exception {
+    public Database analyze(Config config) throws Exception {
         try {
             if (config.isHelpRequired()) {
                 config.dumpUsage(null, false);
-                return 1;
+                return null;
             }
 
             if (config.isDbHelpRequired()) {
                 config.dumpUsage(null, true);
-                return 1;
+                return null;
             }
 
             long start = System.currentTimeMillis();
@@ -87,7 +89,8 @@ public class SchemaAnalyzer {
 
                 String dbName = config.getDb();
 
-                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                return null;
             }
 
             Properties properties = config.getDbProperties(config.getDbType());
@@ -111,8 +114,6 @@ public class SchemaAnalyzer {
                 driverPath = config.getDriverPath() + File.pathSeparator + driverPath;
 
             Connection connection = getConnection(config, urlBuilder.getConnectionURL(), driverClass, driverPath);
-            if (connection == null)
-                return 3;
 
             DatabaseMetaData meta = connection.getMetaData();
             String dbName = config.getDb();
@@ -134,7 +135,8 @@ public class SchemaAnalyzer {
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
-                return MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                return null;    // no database to return
             }
 
             if (schema == null && meta.supportsSchemasInTableDefinitions() &&
@@ -172,7 +174,7 @@ public class SchemaAnalyzer {
             if (tables.isEmpty()) {
                 dumpNoTablesMessage(schema, config.getUser(), meta, config.getTableInclusions() != null);
                 if (!config.isOneOfMultipleSchemas()) // don't bail if we're doing the whole enchilada
-                    return 2;
+                    throw new EmptySchemaException();
             }
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -375,10 +377,10 @@ public class SchemaAnalyzer {
                 System.out.println("View the results by opening " + new File(config.getOutputDir(), "index.html"));
             }
 
-            return 0;
+            return db;
         } catch (Config.MissingRequiredParameterException missingParam) {
             config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());
-            return 1;
+            return null;
         }
     }
 
@@ -471,7 +473,7 @@ public class SchemaAnalyzer {
             System.err.println("Use the -dp option to specify the location of the database");
             System.err.println("drivers for your database (usually in a .jar or .zip/.Z).");
             System.err.println();
-            return null;
+            throw new ConnectionFailure(exc);
         }
 
         Properties connectionProperties = new Properties();
@@ -493,6 +495,7 @@ public class SchemaAnalyzer {
                 System.err.println();
                 System.err.println("Additional connection information may be available in ");
                 System.err.println("  " + config.getDbPropertiesLoadedFrom());
+                throw new ConnectionFailure("Cannot connect to '" + connectionURL +"' with driver '" + driverClass + "'");
             }
         } catch (UnsatisfiedLinkError badPath) {
             System.err.println();
@@ -502,11 +505,13 @@ public class SchemaAnalyzer {
             System.err.println("found by your PATH (or LIB*PATH) environment variable");
             System.err.println();
             badPath.printStackTrace();
+            throw new ConnectionFailure(badPath);
         } catch (Exception exc) {
             System.err.println();
             System.err.println("Failed to connect to database URL [" + connectionURL + "]");
             System.err.println();
             exc.printStackTrace();
+            throw new ConnectionFailure(exc);
         }
 
         return connection;
