@@ -42,15 +42,19 @@ public class Dot {
             if (matcher.find()) {
                 versionText = matcher.group();
             } else {
-                System.err.println();
-                System.err.println("Invalid dot configuration detected.  '" +
-                                    getDisplayableCommand(dotCommand) + "' returned:");
-                System.err.println("   " + versionLine);
+                if (Config.getInstance().isHtmlGenerationEnabled()) {
+                    System.err.println();
+                    System.err.println("Invalid dot configuration detected.  '" +
+                                        getDisplayableCommand(dotCommand) + "' returned:");
+                    System.err.println("   " + versionLine);
+                }
             }
         } catch (Exception validDotDoesntExist) {
-            System.err.println("Failed to query Graphviz version information");
-            System.err.println("  with: " + getDisplayableCommand(dotCommand));
-            System.err.println("  " + validDotDoesntExist);
+            if (Config.getInstance().isHtmlGenerationEnabled()) {
+                System.err.println("Failed to query Graphviz version information");
+                System.err.println("  with: " + getDisplayableCommand(dotCommand));
+                System.err.println("  " + validDotDoesntExist);
+            }
         }
 
         version = new Version(versionText);
