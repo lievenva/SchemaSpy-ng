@@ -130,10 +130,13 @@ public class TableIndex implements Comparable<TableIndex> {
             return -1;
         if (!isPrimaryKey() && other.isPrimaryKey())
             return 1;
-        if (getId() == null)
+
+        Object thisId = getId();
+        Object otherId = other.getId();
+        if (thisId == null || otherId == null)
             return getName().compareToIgnoreCase(other.getName());
-        if (getId() instanceof Number)
-            return ((Number)getId()).intValue() - ((Number)other.getId()).intValue();
-        return getId().toString().compareToIgnoreCase(other.getId().toString());
+        if (thisId instanceof Number)
+            return ((Number)thisId).intValue() - ((Number)otherId).intValue();
+        return thisId.toString().compareToIgnoreCase(otherId.toString());
     }
 }
