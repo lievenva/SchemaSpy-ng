@@ -38,7 +38,9 @@ public class Table implements Comparable<Table> {
     private final CaseInsensitiveMap<TableIndex> indexes = new CaseInsensitiveMap<TableIndex>();
     private       Object id;
     private final Map<String, String> checkConstraints = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-    private final int numRows;
+    private Integer numRows;
+    protected final Database db;
+    protected final Properties properties;
     private       String comments;
     private int maxChildren;
     private int maxParents;
@@ -58,11 +60,12 @@ public class Table implements Comparable<Table> {
     public Table(Database db, String schema, String name, String comments, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         this.schema = schema;
         this.name = name;
+        this.db = db;
+        this.properties = properties;
         setComments(comments);
-        initColumns(db, excludeIndirectColumns, excludeColumns);
-        initIndexes(db, properties);
-        initPrimaryKeys(db.getMetaData(), properties);
-        numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows(db, properties) : -1;
+        initColumns(excludeIndirectColumns, excludeColumns);
+        initIndexes();
+        initPrimaryKeys(db.getMetaData());
     }
 
     /**
@@ -70,13 +73,11 @@ public class Table implements Comparable<Table> {
      * (and, in some cases, do the reverse as well).
      *
      * @param tables
-     * @param db
-     * @param properties
      * @param excludeIndirectColumns
      * @param excludeColumns
      * @throws SQLException
      */
-    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+    public void connectForeignKeys(Map<String, Table> tables, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
         try {
@@ -87,7 +88,7 @@ public class Table implements Comparable<Table> {
                         rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
                         rs.getString("PKCOLUMN_NAME"),
                         rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
-                        tables, db, properties, excludeIndirectColumns, excludeColumns);
+                        tables, excludeIndirectColumns, excludeColumns);
             }
         } finally {
             if (rs != null)
@@ -147,7 +148,7 @@ public class Table implements Comparable<Table> {
     protected void addForeignKey(String fkName, String fkColName,
                         String pkTableSchema, String pkTableName, String pkColName,
                         int updateRule, int deleteRule,
-                        Map<String, Table> tables, Database db, Properties properties,
+                        Map<String, Table> tables,
                         Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         if (fkName == null)
             return;
@@ -200,10 +201,9 @@ public class Table implements Comparable<Table> {
 
     /**
      * @param meta
-     * @param properties
      * @throws SQLException
      */
-    private void initPrimaryKeys(DatabaseMetaData meta, Properties properties) throws SQLException {
+    private void initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
         if (properties == null)
             return;
 
@@ -247,12 +247,11 @@ public class Table implements Comparable<Table> {
     }
 
     /**
-     * @param db
      * @param excludeIndirectColumns
      * @param excludeColumns
      * @throws SQLException
      */
-    private void initColumns(Database db, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+    private void initColumns(Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
         synchronized (Table.class) {
@@ -279,15 +278,14 @@ public class Table implements Comparable<Table> {
         }
 
         if (!isView() && !isRemote())
-            initColumnAutoUpdate(db, false);
+            initColumnAutoUpdate(false);
     }
 
     /**
-     * @param db
      * @param forceQuotes
      * @throws SQLException
      */
-    private void initColumnAutoUpdate(Database db, boolean forceQuotes) throws SQLException {
+    private void initColumnAutoUpdate(boolean forceQuotes) throws SQLException {
         ResultSet rs = null;
         PreparedStatement stmt = null;
 
@@ -323,7 +321,7 @@ public class Table implements Comparable<Table> {
                 System.err.println("Failed to determine auto increment status: " + exc);
                 System.err.println("SQL: " + sql.toString());
             } else {
-                initColumnAutoUpdate(db, true);
+                initColumnAutoUpdate(true);
             }
         } finally {
             if (rs != null)
@@ -371,14 +369,14 @@ public class Table implements Comparable<Table> {
      *
      * @throws SQLException
      */
-    private void initIndexes(Database db, Properties properties) throws SQLException {
+    private void initIndexes() throws SQLException {
         if (isView() || isRemote())
             return;
 
         // first try to initialize using the index query spec'd in the .properties
         // do this first because some DB's (e.g. Oracle) do 'bad' things with getIndexInfo()
         // (they try to do a DDL analyze command that has some bad side-effects)
-        if (initIndexes(db, properties.getProperty("selectIndexesSql")))
+        if (initIndexes(properties.getProperty("selectIndexesSql")))
             return;
 
         // couldn't, so try the old fashioned approach
@@ -404,7 +402,7 @@ public class Table implements Comparable<Table> {
      *
      * @return boolean <code>true</code> if it worked, otherwise <code>false</code>
      */
-    private boolean initIndexes(Database db, String selectIndexesSql) {
+    private boolean initIndexes(String selectIndexesSql) {
         if (selectIndexesSql == null)
             return false;
 
@@ -876,7 +874,20 @@ public class Table implements Comparable<Table> {
      * @return
      */
     public int getNumRows() {
+        if (numRows == null) {
+            numRows = Config.getInstance().isNumRowsEnabled() ? fetchNumRows() : -1;
+        }
+
         return numRows;
+    }
+
+    /**
+     * Explicitly set the number of rows in this table
+     *
+     * @param numRows
+     */
+    public void setNumRows(int numRows) {
+        this.numRows = numRows;
     }
 
     /**
@@ -888,7 +899,7 @@ public class Table implements Comparable<Table> {
      * @return int
      * @throws SQLException
      */
-    protected int fetchNumRows(Database db, Properties properties) throws SQLException {
+    protected int fetchNumRows() {
         if (properties == null) // some "meta" tables don't have associated properties
             return 0;
 
@@ -910,21 +921,27 @@ public class Table implements Comparable<Table> {
                 // don't die just because this failed
             	originalFailure = sqlException;
             } finally {
-                if (rs != null)
-                    rs.close();
-                if (stmt != null)
-                    stmt.close();
+                if (rs != null) {
+                    try {
+                        rs.close();
+                    } catch (SQLException exc) {}
+                }
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException exc) {}
+                }
             }
         }
 
         // if we get here then we either didn't have custom SQL or it didn't work
         try {
             // '*' should work best for the majority of cases
-            return fetchNumRows(db, "count(*)", false);
+            return fetchNumRows("count(*)", false);
         } catch (SQLException try2Exception) {
             try {
                 // except nested tables...try using '1' instead
-                return fetchNumRows(db, "count(1)", false);
+                return fetchNumRows("count(1)", false);
             } catch (SQLException try3Exception) {
                 System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
                 System.err.println(originalFailure);
@@ -935,7 +952,7 @@ public class Table implements Comparable<Table> {
         }
     }
 
-    protected int fetchNumRows(Database db, String clause, boolean forceQuotes) throws SQLException {
+    protected int fetchNumRows(String clause, boolean forceQuotes) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         StringBuilder sql = new StringBuilder("select ");
@@ -963,7 +980,7 @@ public class Table implements Comparable<Table> {
             if (forceQuotes) // we tried with and w/o quotes...fail this attempt
                 throw exc;
 
-            return fetchNumRows(db, clause, true);
+            return fetchNumRows(clause, true);
         } finally {
             if (rs != null)
                 rs.close();

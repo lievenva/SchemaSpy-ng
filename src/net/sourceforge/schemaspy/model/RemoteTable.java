@@ -23,11 +23,13 @@ public class RemoteTable extends Table {
 
     /**
      * Connect to the PK's referenced by this table that live in the original schema
-     * @param db
      * @param tables
+     * @param excludeIndirectColumns
+     * @param excludeColumns
+     * @throws SQLException
      */
     @Override
-    public void connectForeignKeys(Map<String, Table> tables, Database db, Properties properties,
+    public void connectForeignKeys(Map<String, Table> tables,
                                     Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
 
@@ -41,7 +43,7 @@ public class RemoteTable extends Table {
                             rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
                             rs.getString("PKCOLUMN_NAME"),
                             rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
-                            tables, db, properties, excludeIndirectColumns, excludeColumns);
+                            tables, excludeIndirectColumns, excludeColumns);
                 }
             }
         } catch (SQLException sqlExc) {

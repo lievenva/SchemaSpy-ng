@@ -6,18 +6,34 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+/**
+ * Treat views as tables that have no rows and are represented by the SQL that
+ * defined them.
+ */
 public class View extends Table {
-    private final String viewSql;
+    private String viewSql;
 
     /**
      * @param db
-     * @param rs
-     * @param selectViewSql
-     * @throws java.sql.SQLException
+     * @param schema
+     * @param name
+     * @param remarks
+     * @param viewSql
+     * @param properties
+     * @param excludeIndirectColumns
+     * @param excludeColumns
+     * @throws SQLException
      */
-    public View(Database db, ResultSet rs, String selectViewSql, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), db.getOptionalString(rs, "REMARKS"), null, excludeIndirectColumns, excludeColumns);
-        viewSql = getViewSql(db, selectViewSql);
+    public View(Database db, String schema, String name, String remarks, String viewSql,
+                Properties properties,
+                Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+        super(db, schema, name, remarks, properties, excludeIndirectColumns, excludeColumns);
+
+        if (viewSql == null)
+            viewSql = fetchViewSql();
+
+        if (viewSql != null && viewSql.trim().length() > 0)
+            this.viewSql = viewSql;
     }
 
     /**
@@ -34,11 +50,18 @@ public class View extends Table {
     }
 
     @Override
-    protected int fetchNumRows(Database database, Properties properties) {
+    protected int fetchNumRows() {
         return 0;
     }
 
-    private String getViewSql(Database db, String selectViewSql) throws SQLException {
+    /**
+     * Extract the SQL that describes this view from the database
+     *
+     * @return
+     * @throws SQLException
+     */
+    private String fetchViewSql() throws SQLException {
+        String selectViewSql = properties.getProperty("selectViewSql");
         if (selectViewSql == null)
             return null;
 
@@ -48,8 +71,13 @@ public class View extends Table {
         try {
             stmt = db.prepareStatement(selectViewSql, getName());
             rs = stmt.executeQuery();
-            while (rs.next())
-                return rs.getString("text");
+            while (rs.next()) {
+                try {
+                    return rs.getString("view_definition");
+                } catch (SQLException tryOldName) {
+                    return rs.getString("text");
+                }
+            }
             return null;
         } catch (SQLException sqlException) {
             System.err.println(selectViewSql);

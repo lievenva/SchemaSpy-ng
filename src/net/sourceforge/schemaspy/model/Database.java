@@ -45,9 +45,9 @@ public class Database {
         databaseName = name;
         this.schema = schema;
         description = config.getDescription();
-        initTables(schema, meta, properties, config);
-        initViews(schema, meta, properties, config);
-        connectTables(properties);
+        initTables(meta, properties, config);
+        initViews(meta, properties, config);
+        connectTables();
         updateFromXmlMetadata(schemaMeta);
     }
 
@@ -109,10 +109,90 @@ public class Database {
         }
     }
 
-    private void initTables(@SuppressWarnings("hiding") String schema,
-                            final DatabaseMetaData metadata,
-                            final Properties properties, final Config config) throws SQLException {
-        String[] types = {"TABLE"};
+    /**
+     *  "macro" to validate that a table is somewhat valid
+     */
+    class NameValidator {
+        private final String clazz;
+        private final Pattern include;
+        private final Pattern exclude;
+        private final boolean verbose;
+        private final Set<String> validTypes;
+
+        /**
+         * @param clazz table or view
+         * @param include
+         * @param exclude
+         * @param verbose
+         * @param validTypes
+         */
+        NameValidator(String clazz, Pattern include, Pattern exclude, boolean verbose,
+                        String[] validTypes) {
+            this.clazz = clazz;
+            this.include = include;
+            this.exclude = exclude;
+            this.verbose = verbose;
+            this.validTypes = new HashSet<String>();
+            for (String type : validTypes)
+            {
+                this.validTypes.add(type.toUpperCase());
+            }
+        }
+
+        /**
+         * Returns <code>true</code> if the table/view name is deemed "valid"
+         *
+         * @param name name of the table or view
+         * @param type type as returned by metadata.getTables():TABLE_TYPE
+         * @return
+         */
+        boolean isValid(String name, String type) {
+            // some databases (MySQL) return more than we wanted
+            if (!validTypes.contains(type.toUpperCase()))
+                return false;
+
+            // Oracle 10g introduced problematic flashback tables
+            // with bizarre illegal names
+            if (name.indexOf("$") != -1) {
+                if (verbose) {
+                    System.out.println("Excluding " + clazz + " " + name +
+                            ": embedded $ implies illegal name");
+                }
+                return false;
+            }
+
+            if (exclude.matcher(name).matches()) {
+                if (verbose) {
+                    System.out.println("Excluding " + clazz + " " + name +
+                            ": matches exclusion pattern \"" + exclude + '"');
+                }
+                return false;
+            }
+
+            boolean valid = include.matcher(name).matches();
+            if (verbose) {
+                if (valid) {
+                    System.out.println("Including " + clazz + " " + name +
+                            ": matches inclusion pattern \"" + include + '"');
+                } else {
+                    System.out.println("Excluding " + clazz + " " + name +
+                            ": doesn't match inclusion pattern \"" + include + '"');
+                }
+            }
+            return valid;
+        }
+    }
+
+    /**
+     * Create/initialize any tables in the schema.
+
+     * @param metadata
+     * @param properties
+     * @param config
+     * @throws SQLException
+     */
+    private void initTables(final DatabaseMetaData metadata, final Properties properties,
+                            final Config config) throws SQLException {
         final Pattern include = config.getTableInclusions();
         final Pattern exclude = config.getTableExclusions();
         final int maxThreads = config.getMaxDbThreads();
@@ -121,91 +201,194 @@ public class Database {
         if (verbose)
             System.out.println();
 
-        // "macro" to validate that a table is somewhat valid
-        final class TableValidator {
-            boolean isValid(ResultSet rs) throws SQLException {
-                // some databases (MySQL) return more than we wanted
-                if (!rs.getString("TABLE_TYPE").equalsIgnoreCase("TABLE"))
-                    return false;
+        String[] types = {"TABLE"};
+        NameValidator validator = new NameValidator("table", include, exclude, verbose, types);
+        List<BasicTableMeta> entries = getBasicTableMeta(metadata, true, properties, types);
 
-                // Oracle 10g introduced problematic flashback tables
-                // with bizarre illegal names
-                String tableName = rs.getString("TABLE_NAME");
-                if (tableName.indexOf("$") != -1) {
-                    if (verbose) {
-                        System.out.println("Excluding table " + tableName +
-                                ": embedded $ implies illegal name");
-                    }
-                    return false;
-                }
+        TableCreator creator;
+        if (maxThreads == 1) {
+            creator = new TableCreator();
+        } else {
+            // creating tables takes a LONG time (based on JProbe analysis),
+            // so attempt to speed it up by doing several in parallel.
+            // note that it's actually DatabaseMetaData.getIndexInfo() that's expensive
 
-                if (exclude.matcher(tableName).matches()) {
-                    if (verbose) {
-                        System.out.println("Excluding table " + tableName +
-                                ": matches exclusion pattern \"" + exclude + '"');
-                    }
-                    return false;
-                }
+            creator = new ThreadedTableCreator(maxThreads);
 
-                boolean valid = include.matcher(tableName).matches();
-                if (verbose) {
-                    if (valid) {
-                        System.out.println("Including table " + tableName +
-                                ": matches inclusion pattern \"" + include + '"');
-                    } else {
-                        System.out.println("Excluding table " + tableName +
-                                ": doesn't match inclusion pattern \"" + include + '"');
-                    }
+            // "prime the pump" so if there's a database problem we'll probably see it now
+            // and not in a secondary thread
+            while (!entries.isEmpty()) {
+                BasicTableMeta entry = entries.remove(0);
+
+                if (validator.isValid(entry.name, entry.type)) {
+                    new TableCreator().create(entry, properties);
+                    break;
                 }
-                return valid;
             }
         }
 
-        TableValidator tableValidator = new TableValidator();
-        ResultSet rs = null;
-
-        try {
-            // creating tables takes a LONG time (based on JProbe analysis).
-            // it's actually DatabaseMetaData.getIndexInfo() that's the pig.
-
-            rs = metadata.getTables(null, schema, "%", types);
-            boolean moreTables = true;
-
-            TableCreator creator;
-            if (maxThreads == 1) {
-                creator = new TableCreator();
-            } else {
-                creator = new ThreadedTableCreator(maxThreads);
-
-                // "prime the pump" so if there's a database problem we'll probably see it now
-                // and not in a secondary thread
-                while (moreTables = rs.next()) {
-                    if (tableValidator.isValid(rs)) {
-                        new TableCreator().create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
-                        break;
-                    }
-                }
+        // kick off the secondary threads to do the creation in parallel
+        for (BasicTableMeta entry : entries) {
+            if (validator.isValid(entry.name, entry.type)) {
+                creator.create(entry, properties);
             }
-
-            if (moreTables) { // this prevents an exception if an invalid schema is specified
-                while (rs.next()) {
-                    if (tableValidator.isValid(rs)) {
-                        creator.create(rs.getString("TABLE_SCHEM"), rs.getString("TABLE_NAME"), getOptionalString(rs, "REMARKS"), properties);
-                    }
-                }
-            }
-
-            creator.join();
-        } finally {
-            if (rs != null)
-                rs.close();
         }
+
+        // wait for everyone to finish
+        creator.join();
 
         initCheckConstraints(properties);
         initTableIds(properties);
         initIndexIds(properties);
         initTableComments(properties);
         initColumnComments(properties);
+    }
+
+    /**
+     * Create/initialize any views in the schema.
+     *
+     * @param metadata
+     * @param properties
+     * @param config
+     * @throws SQLException
+     */
+    private void initViews(DatabaseMetaData metadata, Properties properties,
+                            Config config) throws SQLException {
+        Pattern includeTables = config.getTableInclusions();
+        Pattern excludeTables = config.getTableExclusions();
+        Pattern excludeColumns = config.getColumnExclusions();
+        Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
+        boolean verbose = config.isVerboseExclusionsEnabled();
+
+        if (verbose)
+            System.out.println();
+
+        String[] types = {"VIEW"};
+        NameValidator validator = new NameValidator("view", includeTables, excludeTables, verbose, types);
+
+        for (BasicTableMeta entry : getBasicTableMeta(metadata, false, properties, types)) {
+            if (validator.isValid(entry.name, entry.type)) {
+                View view = new View(this, entry.schema, entry.name, entry.remarks,
+                                    entry.viewSql, properties,
+                                    excludeIndirectColumns, excludeColumns);
+                views.put(view.getName(), view);
+                System.out.print('.');
+            }
+        }
+    }
+
+    /**
+     * Collection of fundamental table/view metadata
+     */
+    private class BasicTableMeta
+    {
+        @SuppressWarnings("hiding")
+        final String schema;
+        final String name;
+        final String type;
+        final String remarks;
+        final String viewSql;
+        final int numRows;  // -1 if not determined
+
+        /**
+         * @param schema
+         * @param name
+         * @param type typically "TABLE" or "VIEW"
+         * @param remarks
+         * @param text optional textual SQL used to create the view
+         * @param numRows number of rows, or -1 if not determined
+         */
+        BasicTableMeta(String schema, String name, String type, String remarks, String text, int numRows)
+        {
+            this.schema = schema;
+            this.name = name;
+            this.type = type;
+            this.remarks = remarks;
+            viewSql = text;
+            this.numRows = numRows;
+        }
+    }
+
+    /**
+     * Return a list of basic details of the tables in the schema.
+     *
+     * @param metadata
+     * @param forTables true if we're getting table data, false if getting view data
+     * @param properties
+     * @return
+     * @throws SQLException
+     */
+    private List<BasicTableMeta> getBasicTableMeta(DatabaseMetaData metadata,
+                                                    boolean forTables,
+                                                    Properties properties,
+                                                    String... types) throws SQLException {
+        String queryName = forTables ? "selectTablesSql" : "selectViewsSql";
+        String sql = properties.getProperty(queryName);
+        List<BasicTableMeta> basics = new ArrayList<BasicTableMeta>();
+        ResultSet rs = null;
+
+        if (sql != null) {
+            String clazz = forTables ? "table" : "view";
+            PreparedStatement stmt = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String name = rs.getString(clazz + "_name");
+                    String sch = getOptionalString(rs, clazz + "_schema");
+                    if (sch == null)
+                        sch = schema;
+                    String remarks = getOptionalString(rs, clazz + "_comment");
+                    String text = forTables ? null : getOptionalString(rs, "view_definition");
+                    String rows = forTables ? getOptionalString(rs, "table_rows") : null;
+                    int numRows = rows == null ? -1 : Integer.parseInt(rows);
+
+                    basics.add(new BasicTableMeta(sch, name, clazz, remarks, text, numRows));
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                System.out.flush();
+                System.err.println();
+                System.err.println("Failed to retrieve " + clazz + " names with custom SQL: " + sqlException);
+                System.err.println(sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+
+        if (basics.isEmpty()) {
+            rs = metadata.getTables(null, schema, "%", types);
+
+            try {
+                while (rs.next()) {
+                    String name = rs.getString("TABLE_NAME");
+                    String type = rs.getString("TABLE_TYPE");
+                    String schem = rs.getString("TABLE_SCHEM");
+                    String remarks = getOptionalString(rs, "REMARKS");
+
+                    basics.add(new BasicTableMeta(schem, name, type, remarks, null, -1));
+                }
+            } catch (SQLException exc) {
+                if (forTables)
+                    throw exc;
+
+                System.out.flush();
+                System.err.println();
+                System.err.println("Ignoring view " + rs.getString("TABLE_NAME") + " due to exception:");
+                exc.printStackTrace();
+                System.err.println("Continuing analysis.");
+            } finally {
+                if (rs != null)
+                    rs.close();
+            }
+        }
+
+        return basics;
     }
 
     /**
@@ -415,7 +598,7 @@ public class Database {
             else
                 remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
 
-            remoteTable.connectForeignKeys(tables, this, properties, excludeIndirectColumns, excludeColumns);
+            remoteTable.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
             remoteTables.put(fullName, remoteTable);
         }
 
@@ -590,71 +773,6 @@ public class Database {
     }
 
     /**
-     * Create/initialize any views in the schema.
-     *
-     * @param schema
-     * @param metadata
-     * @param properties
-     * @param config
-     * @throws SQLException
-     */
-    private void initViews(@SuppressWarnings("hiding")String schema, DatabaseMetaData metadata,
-                            Properties properties, Config config) throws SQLException {
-        String[] types = {"VIEW"};
-        ResultSet rs = null;
-        Pattern includeTables = config.getTableInclusions();
-        Pattern excludeTables = config.getTableExclusions();
-        Pattern excludeColumns = config.getColumnExclusions();
-        Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
-        boolean verbose = config.isVerboseExclusionsEnabled();
-
-        try {
-            rs = metadata.getTables(null, schema, "%", types);
-
-            while (rs.next()) {
-                if (rs.getString("TABLE_TYPE").equals("VIEW")) {  // some databases (MySQL) return more than we wanted
-                    System.out.print('.');
-
-                    try {
-                        View view = new View(this, rs, properties.getProperty("selectViewSql"), excludeIndirectColumns, excludeColumns);
-
-                        if (excludeTables.matcher(view.getName()).matches()) {
-                            if (verbose) {
-                                System.out.println("Excluding view " + view.getName() +
-                                        ": matches exclusion pattern \"" + excludeTables + '"');
-                            }
-                            continue;
-                        }
-
-                        boolean valid = includeTables.matcher(view.getName()).matches();
-                        if (verbose) {
-                            if (valid) {
-                                System.out.println("Including view " + view.getName() +
-                                        ": matches inclusion pattern \"" + includeTables + '"');
-                            } else {
-                                System.out.println("Excluding view " + view.getName() +
-                                        ": doesn't match inclusion pattern \"" + includeTables + '"');
-                            }
-                        }
-
-                        if (valid)
-                            views.put(view.getName(), view);
-                    } catch (SQLException exc) {
-                        System.out.flush();
-                        System.err.println();
-                        System.err.println("Ignoring view " + rs.getString("TABLE_NAME") + " due to exception:");
-                        exc.printStackTrace();
-                        System.err.println("Continuing analysis.");
-                    }
-                }
-            }
-        } finally {
-            if (rs != null)
-                rs.close();
-        }
-    }
-
-    /**
      * Take the supplied XML-based metadata and update our model of the schema with it
      *
      * @param schemaMeta
@@ -708,12 +826,12 @@ public class Database {
         }
     }
 
-    private void connectTables(Properties properties) throws SQLException {
+    private void connectTables() throws SQLException {
         Pattern excludeColumns = Config.getInstance().getColumnExclusions();
         Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
 
         for (Table table : tables.values()) {
-            table.connectForeignKeys(tables, this, properties, excludeIndirectColumns, excludeColumns);
+            table.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
         }
     }
 
@@ -727,12 +845,14 @@ public class Database {
         /**
          * Create a table and put it into <code>tables</code>
          */
-        void create(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
-            createImpl(schemaName, tableName, remarks, properties);
+        void create(BasicTableMeta tableMeta, Properties properties) throws SQLException {
+            createImpl(tableMeta, properties);
         }
 
-        protected void createImpl(String schemaName, String tableName, String remarks, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, schemaName, tableName, remarks, properties, excludeIndirectColumns, excludeColumns);
+        protected void createImpl(BasicTableMeta tableMeta, Properties properties) throws SQLException {
+            Table table = new Table(Database.this, tableMeta.schema, tableMeta.name, tableMeta.remarks, properties, excludeIndirectColumns, excludeColumns);
+            if (tableMeta.numRows != -1)
+                table.setNumRows(tableMeta.numRows);
             tables.put(table.getName(), table);
             System.out.print('.');
         }
@@ -757,12 +877,12 @@ public class Database {
         }
 
         @Override
-        void create(final String schemaName, final String tableName, final String remarks, final Properties properties) throws SQLException {
+        void create(final BasicTableMeta tableMeta, final Properties properties) throws SQLException {
             Thread runner = new Thread() {
                 @Override
                 public void run() {
                     try {
-                        createImpl(schemaName, tableName, remarks, properties);
+                        createImpl(tableMeta, properties);
                     } catch (SQLException exc) {
                         exc.printStackTrace(); // nobody above us in call stack...dump it here
                     } finally {

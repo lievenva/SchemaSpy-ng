@@ -96,25 +96,43 @@ They will be substituted with appropriate values at runtime.
 <table class="sqlQueries" border="1" cellpadding="0" cellspacing="1">
  <tr>
   <th>Name</th>
-  <th>Req'd Column(s)</th>
+  <th>Required Columns</th>
+  <th>Optional Columns</th>
   <th>Returns</th>
   <th>Scope of query</th>
  </tr>
  <tr>
+  <td>selectTablesSql</td>
+  <td>table_name</td>
+  <td>table_schema, table_comment, table_rows</td>
+  <td>Basic information about all tables in a specific schema.
+  <td>Database</td>
+ </tr>
+ <tr>
+  <td>selectViewsSql</td>
+  <td>view_name, view_definition</td>
+  <td>view_schema, view_comment</td>
+  <td>Basic information about all views in a specific schema.
+  <td>Database</td>
+ </tr>
+ <tr>
   <td>selectIndexesSql</td>
   <td>index_name, column_name, type, asc_or_desc (<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String,%20java.lang.String,%20java.lang.String,%20boolean,%20boolean)">docs</a>)</td>
+  <td>&nbsp;</td>
   <td>Information about indexes in a specific table.
   <td>Single table</td>
  </tr>
  <tr>
   <td>selectRowCountSql</td>
   <td>row_count</td>
+  <td>&nbsp;</td>
   <td>Number of rows in a specific table.
   <td>Single table</td>
  </tr>
  <tr>
   <td>selectTableCommentsSql</td>
   <td>table_name, comments</td>
+  <td>&nbsp;</td>
   <td>Comments associated with tables.  
   Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
   <td>Database</td>
@@ -122,6 +140,7 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectColumnCommentsSql</td>
   <td>table_name, column_name, comments</td>
+  <td>&nbsp;</td>
   <td>Comments associated with table columns.
   Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
   <td>Database</td>
@@ -129,6 +148,7 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectCheckConstraintsSql</td>
   <td>constraint_name, table_name, text</td>
+  <td>&nbsp;</td>
   <td>Check constraint details of all check constraints, where 'text' is usually 
       the SQL used to create the constraint.
       These details will be displayed on the table detail pages.
@@ -137,7 +157,8 @@ They will be substituted with appropriate values at runtime.
  </tr>
  <tr>
   <td>selectViewSql</td>
-  <td>text</td>
+  <td>view_definition</td>
+  <td>&nbsp;</td>
   <td>Details of a specific view, usually the SQL used to create the view.
       These details will be displayed on the view detail pages.
   </td>
@@ -146,6 +167,7 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectTableIdsSql</td>
   <td>table_id, table_name</td>
+  <td>&nbsp;</td>
   <td>Unique ID for each table.  
   This is useful for databases (such as DB2) that may give error messages with just 
   table IDs instead of names.</td>
@@ -154,6 +176,7 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectIndexIdsSql</td>
   <td>index_id, index_name, table_name</td>
+  <td>&nbsp;</td>
   <td>Unique ID for each table index.  
   This is useful for databases (such as DB2) that may give error messages with just 
   index IDs instead of names.</td>
