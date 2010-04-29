@@ -401,31 +401,48 @@ public class HtmlTablePage extends HtmlFormatter {
                 tables.put(v.getName(), v);
 
             out.writeln("<div class='indent'>");
-            out.writeln("View SQL:");
+            out.writeln("View Definition:");
             out.writeln("<table class='dataTable' border='1' width='100%'>");
             out.writeln("<tbody>");
             out.writeln(" <tr>");
-            out.write("  <td class='detail'>");
 
-            @SuppressWarnings("hiding")
-            Set<String> keywords = getKeywords(db.getMetaData());
-            StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.,", true);
-            while (tokenizer.hasMoreTokens()) {
-                String nextToken = tokenizer.nextToken();
-                if (keywords.contains(nextToken.toUpperCase())) {
-                    out.write("<b>");
-                    out.write(nextToken);
-                    out.write("</b>");
-                } else {
-                    Table t = tables.get(nextToken);
-                    if (t != null) {
-                        out.write("<a href='");
-                        out.write(t.getName());
-                        out.write(".html'>");
-                        out.write(t.getName());
-                        out.write("</a>");
+            boolean alreadyFormatted = sql.contains("\n") || sql.contains("\r");
+            if (alreadyFormatted)
+            {
+                out.write("  <td class='viewDefinition preFormatted'>");
+
+                int len = sql.length();
+                for (int i = 0; i < len; i++) {
+                    char ch = sql.charAt(i);
+                    if (Character.isWhitespace(ch))
+                        out.write(ch);
+                    else
+                        out.write(HtmlEncoder.encodeToken(ch));
+                }
+            }
+            else
+            {
+                out.write("  <td class='viewDefinition'>");
+                @SuppressWarnings("hiding")
+                Set<String> keywords = getKeywords(db.getMetaData());
+                StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.,", true);
+                while (tokenizer.hasMoreTokens()) {
+                    String nextToken = tokenizer.nextToken();
+                    if (keywords.contains(nextToken.toUpperCase())) {
+                        out.write("<b>");
+                        out.write(nextToken);
+                        out.write("</b>");
                     } else {
-                        out.write(HtmlEncoder.encodeToken(nextToken));
+                        Table t = tables.get(nextToken);
+                        if (t != null) {
+                            out.write("<a href='");
+                            out.write(t.getName());
+                            out.write(".html'>");
+                            out.write(t.getName());
+                            out.write("</a>");
+                        } else {
+                            out.write(HtmlEncoder.encodeToken(nextToken));
+                        }
                     }
                 }
             }
