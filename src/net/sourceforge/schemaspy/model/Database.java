@@ -201,7 +201,7 @@ public class Database {
         if (verbose)
             System.out.println();
 
-        String[] types = {"TABLE"};
+        String[] types = getTypes("tableTypes", "TABLE", properties);
         NameValidator validator = new NameValidator("table", include, exclude, verbose, types);
         List<BasicTableMeta> entries = getBasicTableMeta(metadata, true, properties, types);
 
@@ -263,7 +263,7 @@ public class Database {
         if (verbose)
             System.out.println();
 
-        String[] types = {"VIEW"};
+        String[] types = getTypes("viewTypes", "VIEW", properties);
         NameValidator validator = new NameValidator("view", includeTables, excludeTables, verbose, types);
 
         for (BasicTableMeta entry : getBasicTableMeta(metadata, false, properties, types)) {
@@ -389,6 +389,27 @@ public class Database {
         }
 
         return basics;
+    }
+
+    /**
+     * Return a database-specific array of types from the .properties file
+     * with the specified property name.
+     *
+     * @param propName
+     * @param defaultValue
+     * @param props
+     * @return
+     */
+    private String[] getTypes(String propName, String defaultValue, Properties props) {
+        String value = props.getProperty(propName, defaultValue);
+        List<String> types = new ArrayList<String>();
+        for (String type : value.split(",")) {
+            type = type.trim();
+            if (type.length() > 0)
+                types.add(type);
+        }
+
+        return types.toArray(new String[types.size()]);
     }
 
     /**
