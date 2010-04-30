@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.util.DbSpecificConfig;
 import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.view.DefaultSqlFormatter;
+import net.sourceforge.schemaspy.view.SqlFormatter;
 
 /**
  * Configuration of a SchemaSpy run
@@ -73,6 +75,8 @@ public class Config
     private Integer fontSize;
     private String description;
     private String dbPropertiesLoadedFrom;
+    private SqlFormatter sqlFormatter;
+    private String sqlFormatterClass;
     private Boolean generateHtml;
     private Boolean includeImpliedConstraints;
     private Boolean logoEnabled;
@@ -612,6 +616,7 @@ public class Config
 
     /**
      * @see #setMaxDbThreads(int)
+     * @throws InvalidConfigurationException if unable to load properties
      */
     public int getMaxDbThreads() throws InvalidConfigurationException {
         if (maxDbThreads == null) {
@@ -897,6 +902,56 @@ public class Config
         return schemas;
     }
 
+    /**
+     * Set the name of the {@link SqlFormatter SQL formatter} class to use to
+     * format SQL into HTML.<p/>
+     * The implementation of the class must be made available to the class
+     * loader, typically by specifying the path to its jar with <em>-dp</em>
+     * ({@link #setDriverPath(String)}).
+     */
+    public void setSqlFormatter(String formatterClassName) {
+        sqlFormatterClass = formatterClassName;
+        sqlFormatter = null;
+    }
+
+    /**
+     * Set the {@link SqlFormatter SQL formatter} to use to format
+     * SQL into HTML.
+     */
+    public void setSqlFormatter(SqlFormatter sqlFormatter) {
+        this.sqlFormatter = sqlFormatter;
+        if (sqlFormatter != null)
+            sqlFormatterClass = sqlFormatter.getClass().getName();
+    }
+
+    /**
+     * Returns an implementation of {@link SqlFormatter SQL formatter} to use to format
+     * SQL into HTML.  The default implementation is {@link DefaultSqlFormatter}.
+     *
+     * @return
+     * @throws InvalidConfigurationException if unable to instantiate an instance
+     */
+    @SuppressWarnings("unchecked")
+    public SqlFormatter getSqlFormatter() throws InvalidConfigurationException {
+        if (sqlFormatter == null) {
+            if (sqlFormatterClass == null) {
+                sqlFormatterClass = pullParam("-sqlFormatter");
+
+                if (sqlFormatterClass == null)
+                    sqlFormatterClass = DefaultSqlFormatter.class.getName();
+            }
+
+            try {
+                Class<SqlFormatter> clazz = (Class<SqlFormatter>)Class.forName(sqlFormatterClass);
+                sqlFormatter = clazz.newInstance();
+            } catch (Exception exc) {
+                throw new InvalidConfigurationException("Failed to initialize instance of " + sqlFormatterClass, exc);
+            }
+        }
+
+        return sqlFormatter;
+    }
+
     public void setEvaluateAllEnabled(boolean enabled) {
         evaluteAll = enabled;
     }
@@ -1048,13 +1103,18 @@ public class Config
         return dbHelpRequired;
     }
 
-
     public static String getLoadedFromJar() {
         String classpath = System.getProperty("java.class.path");
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
     }
 
-    public Properties getDbProperties(String type) throws IOException {
+    /**
+     * @param type
+     * @return
+     * @throws IOException
+     * @throws InvalidConfigurationException if db properties are incorrectly formed
+     */
+    public Properties getDbProperties(String type) throws IOException, InvalidConfigurationException {
         ResourceBundle bundle = null;
 
         try {
@@ -1189,7 +1249,15 @@ public class Config
         return pullParam(paramId, true, false);
     }
 
-    private String pullParam(String paramId, boolean required, boolean dbTypeSpecific) {
+    /**
+     * @param paramId
+     * @param required
+     * @param dbTypeSpecific
+     * @return
+     * @throws MissingRequiredParameterException
+     */
+    private String pullParam(String paramId, boolean required, boolean dbTypeSpecific)
+                                throws MissingRequiredParameterException {
         int paramIndex = options.indexOf(paramId);
         if (paramIndex < 0) {
             if (required)
@@ -1202,6 +1270,9 @@ public class Config
         return param;
     }
 
+    /**
+     * Thrown to indicate that a required parameter is missing
+     */
     public static class MissingRequiredParameterException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         private final boolean dbTypeSpecific;

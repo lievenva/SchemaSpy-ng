@@ -111,6 +111,15 @@
         information or not (MySQL does not).
         Thanks to Reiner Kräutle for the suggestion.
     </li>
+    <li>Added the ability to specify a custom SQL formatter via the -sqlFormatter
+        option.  
+        This formatter must implement the
+        <a href='http://schemaspy.svn.sourceforge.net/viewvc/schemaspy/trunk/src/net/sourceforge/schemaspy/view/SqlFormatter.java?view=log'>
+        SqlFormatter</a> interface and return the SQL formatted appropriately in HTML.
+        Implementing a "good" formatter is basically a project in itself and beyond
+        the scope of SchemaSpy, so plug in your own if desired.
+        Use -dp to make the specified class visible to SchemaSpy's class loader. 
+    </li>
 </ul>
 </li>
 

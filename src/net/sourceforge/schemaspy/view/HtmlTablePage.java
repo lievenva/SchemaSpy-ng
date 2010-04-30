@@ -2,15 +2,12 @@ package net.sourceforge.schemaspy.view;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.DatabaseMetaData;
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.TreeSet;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
@@ -30,7 +27,6 @@ import net.sourceforge.schemaspy.util.LineWriter;
  */
 public class HtmlTablePage extends HtmlFormatter {
     private static final HtmlTablePage instance = new HtmlTablePage();
-    private Set<String> keywords = null;
     private int columnCounter = 0;
 
     private final Map<String, String> defaultValueAliases = new HashMap<String, String>();
@@ -270,11 +266,14 @@ public class HtmlTablePage extends HtmlFormatter {
     }
 
     private void writeNumRows(Database db, Table table, LineWriter out) throws IOException {
-        if (displayNumRows && !table.isView())
-            out.write("<p>Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at ");
-        else
-            out.write("<p>Analyzed at ");
-        out.writeln(db.getConnectTime());
+        out.write("<p title='" + table.getColumns().size() + " columns'>");
+        if (displayNumRows && !table.isView()) {
+            out.write("Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at ");
+        } else {
+            out.write("Analyzed at ");
+        }
+        out.write(db.getConnectTime());
+        out.writeln("<p/>");
     }
 
     private void writeCheckConstraints(Table table, LineWriter out) throws IOException {
@@ -400,135 +399,33 @@ public class HtmlTablePage extends HtmlFormatter {
             for (View v : db.getViews())
                 tables.put(v.getName(), v);
 
-            out.writeln("<div class='indent'>");
-            out.writeln("View Definition:");
-            out.writeln("<table class='dataTable' border='1' width='100%'>");
-            out.writeln("<tbody>");
-            out.writeln(" <tr>");
+            Set<Table> references = new TreeSet<Table>();
+            String formatted = Config.getInstance().getSqlFormatter().format(sql, db, references);
 
-            boolean alreadyFormatted = sql.contains("\n") || sql.contains("\r");
-            if (alreadyFormatted)
-            {
-                out.write("  <td class='viewDefinition preFormatted'>");
-
-                int len = sql.length();
-                for (int i = 0; i < len; i++) {
-                    char ch = sql.charAt(i);
-                    if (Character.isWhitespace(ch))
-                        out.write(ch);
-                    else
-                        out.write(HtmlEncoder.encodeToken(ch));
-                }
-            }
-            else
-            {
-                out.write("  <td class='viewDefinition'>");
-                @SuppressWarnings("hiding")
-                Set<String> keywords = getKeywords(db.getMetaData());
-                StringTokenizer tokenizer = new StringTokenizer(sql, " \t\n\r\f()<>|.,", true);
-                while (tokenizer.hasMoreTokens()) {
-                    String nextToken = tokenizer.nextToken();
-                    if (keywords.contains(nextToken.toUpperCase())) {
-                        out.write("<b>");
-                        out.write(nextToken);
-                        out.write("</b>");
-                    } else {
-                        Table t = tables.get(nextToken);
-                        if (t != null) {
-                            out.write("<a href='");
-                            out.write(t.getName());
-                            out.write(".html'>");
-                            out.write(t.getName());
-                            out.write("</a>");
-                        } else {
-                            out.write(HtmlEncoder.encodeToken(nextToken));
-                        }
-                    }
-                }
-            }
-
-            out.writeln("</td>");
-            out.writeln(" </tr>");
-            out.writeln("</table>");
+            out.writeln("<div class='indent spacer'>");
+            out.writeln("  View Definition:");
+            out.writeln(formatted);
             out.writeln("</div>");
-        }
-    }
+            out.writeln("<div class='spacer'>&nbsp;</div>");
 
-    /**
-     * getSqlKeywords
-     *
-     * @return Object
-     */
-    private Set<String> getKeywords(DatabaseMetaData meta) {
-        if (keywords == null) {
-            keywords = new HashSet<String>(Arrays.asList(new String[] {
-                "ABSOLUTE", "ACTION", "ADD", "ALL", "ALLOCATE", "ALTER", "AND",
-                "ANY", "ARE", "AS", "ASC", "ASSERTION", "AT", "AUTHORIZATION", "AVG",
-                "BEGIN", "BETWEEN", "BIT", "BIT_LENGTH", "BOTH", "BY",
-                "CASCADE", "CASCADED", "CASE", "CAST", "CATALOG", "CHAR", "CHARACTER",
-                "CHAR_LENGTH", "CHARACTER_LENGTH", "CHECK", "CLOSE", "COALESCE",
-                "COLLATE", "COLLATION", "COLUMN", "COMMIT", "CONNECT", "CONNECTION",
-                "CONSTRAINT", "CONSTRAINTS", "CONTINUE", "CONVERT", "CORRESPONDING",
-                "COUNT", "CREATE", "CROSS", "CURRENT", "CURRENT_DATE", "CURRENT_TIME",
-                "CURRENT_TIMESTAMP", "CURRENT_USER", "CURSOR",
-                "DATE", "DAY", "DEALLOCATE", "DEC", "DECIMAL", "DECLARE", "DEFAULT",
-                "DEFERRABLE", "DEFERRED", "DELETE", "DESC", "DESCRIBE", "DESCRIPTOR",
-                "DIAGNOSTICS", "DISCONNECT", "DISTINCT", "DOMAIN", "DOUBLE", "DROP",
-                "ELSE", "END", "END - EXEC", "ESCAPE", "EXCEPT", "EXCEPTION", "EXEC",
-                "EXECUTE", "EXISTS", "EXTERNAL", "EXTRACT",
-                "FALSE", "FETCH", "FIRST", "FLOAT", "FOR", "FOREIGN", "FOUND", "FROM", "FULL",
-                "GET", "GLOBAL", "GO", "GOTO", "GRANT", "GROUP",
-                "HAVING", "HOUR",
-                "IDENTITY", "IMMEDIATE", "IN", "INDICATOR", "INITIALLY", "INNER", "INPUT",
-                "INSENSITIVE", "INSERT", "INT", "INTEGER", "INTERSECT", "INTERVAL", "INTO",
-                "IS", "ISOLATION",
-                "JOIN",
-                "KEY",
-                "LANGUAGE", "LAST", "LEADING", "LEFT", "LEVEL", "LIKE", "LOCAL", "LOWER",
-                "MATCH", "MAX", "MIN", "MINUTE", "MODULE", "MONTH",
-                "NAMES", "NATIONAL", "NATURAL", "NCHAR", "NEXT", "NO", "NOT", "NULL",
-                "NULLIF", "NUMERIC",
-                "OCTET_LENGTH", "OF", "ON", "ONLY", "OPEN", "OPTION", "OR", "ORDER",
-                "OUTER", "OUTPUT", "OVERLAPS",
-                "PAD", "PARTIAL", "POSITION", "PRECISION", "PREPARE", "PRESERVE", "PRIMARY",
-                "PRIOR", "PRIVILEGES", "PROCEDURE", "PUBLIC",
-                "READ", "REAL", "REFERENCES", "RELATIVE", "RESTRICT", "REVOKE", "RIGHT",
-                "ROLLBACK", "ROWS",
-                "SCHEMA", "SCROLL", "SECOND", "SECTION", "SELECT", "SESSION", "SESSION_USER",
-                "SET", "SIZE", "SMALLINT", "SOME", "SPACE", "SQL", "SQLCODE", "SQLERROR",
-                "SQLSTATE", "SUBSTRING", "SUM", "SYSTEM_USER",
-                "TABLE", "TEMPORARY", "THEN", "TIME", "TIMESTAMP", "TIMEZONE_HOUR",
-                "TIMEZONE_MINUTE", "TO", "TRAILING", "TRANSACTION", "TRANSLATE",
-                "TRANSLATION", "TRIM", "TRUE",
-                "UNION", "UNIQUE", "UNKNOWN", "UPDATE", "UPPER", "USAGE", "USER", "USING",
-                "VALUE", "VALUES", "VARCHAR", "VARYING", "VIEW",
-                "WHEN", "WHENEVER", "WHERE", "WITH", "WORK", "WRITE",
-                "YEAR",
-                "ZONE"
-            }));
-
-            try {
-                String keywordsArray[] = new String[] {
-                    meta.getSQLKeywords(),
-                    meta.getSystemFunctions(),
-                    meta.getNumericFunctions(),
-                    meta.getStringFunctions(),
-                    meta.getTimeDateFunctions()
-                };
-                for (int i = 0; i < keywordsArray.length; ++i) {
-                    StringTokenizer tokenizer = new StringTokenizer(keywordsArray[i].toUpperCase(), ",");
-
-                    while (tokenizer.hasMoreTokens()) {
-                        keywords.add(tokenizer.nextToken().trim());
-                    }
+            if (!references.isEmpty()) {
+                out.writeln("<div class='indent'>");
+                out.writeln("  Possibly Referenced Tables/Views:");
+                out.writeln("  <div class='viewReferences'>");
+                out.write("  ");
+                for (Table t : references) {
+                    out.write("<a href='");
+                    out.write(t.getName());
+                    out.write(".html'>");
+                    out.write(t.getName());
+                    out.write("</a>&nbsp;");
                 }
-            } catch (Exception exc) {
-                // don't totally fail just because we can't extract these details...
-                System.err.println(exc);
-            }
-        }
 
-        return keywords;
+                out.writeln("  </div>");
+                out.writeln("</div><p/>");
+            }
+
+        }
     }
 
     /**
