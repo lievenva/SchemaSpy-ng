@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.util.DbSpecificConfig;
 import net.sourceforge.schemaspy.util.Dot;
@@ -624,7 +625,8 @@ public class Config
             try {
                 properties = getDbProperties(getDbType());
             } catch (IOException exc) {
-                throw new InvalidConfigurationException("Failed to load properties for " + getDbType() + ": " + exc);
+                throw new InvalidConfigurationException("Failed to load properties for " + getDbType() + ": " + exc)
+                                .setParamName("-type");
             }
 
             int max = Integer.MAX_VALUE;
@@ -849,7 +851,11 @@ public class Config
             if (strInclusions == null)
                 strInclusions = ".*";     // match anything
 
-            tableInclusions = Pattern.compile(strInclusions);
+            try {
+                tableInclusions = Pattern.compile(strInclusions);
+            } catch (PatternSyntaxException badPattern) {
+                throw new InvalidConfigurationException(badPattern).setParamName("-i");
+            }
         }
 
         return tableInclusions;
@@ -874,7 +880,11 @@ public class Config
             if (strExclusions == null)
                 strExclusions = "";  // match nothing
 
-            tableExclusions = Pattern.compile(strExclusions);
+            try {
+                tableExclusions = Pattern.compile(strExclusions);
+            } catch (PatternSyntaxException badPattern) {
+                throw new InvalidConfigurationException(badPattern).setParamName("-I");
+            }
         }
 
         return tableExclusions;
@@ -945,7 +955,8 @@ public class Config
                 Class<SqlFormatter> clazz = (Class<SqlFormatter>)Class.forName(sqlFormatterClass);
                 sqlFormatter = clazz.newInstance();
             } catch (Exception exc) {
-                throw new InvalidConfigurationException("Failed to initialize instance of " + sqlFormatterClass, exc);
+                throw new InvalidConfigurationException("Failed to initialize instance of SQL formatter: ", exc)
+                            .setParamName("-sqlFormatter");
             }
         }
 
@@ -1195,7 +1206,17 @@ public class Config
     {
         try {
             populate();
-        } catch (Exception exc) {}
+        } catch (IllegalArgumentException exc) {
+            throw new InvalidConfigurationException(exc);
+        } catch (IllegalAccessException exc) {
+            throw new InvalidConfigurationException(exc);
+        } catch (InvocationTargetException exc) {
+            if (exc.getCause() instanceof InvalidConfigurationException)
+                throw (InvalidConfigurationException)exc.getCause();
+            throw new InvalidConfigurationException(exc.getCause());
+        } catch (IntrospectionException exc) {
+            throw new InvalidConfigurationException(exc);
+        }
 
         return options;
     }
@@ -1282,7 +1303,10 @@ public class Config
         }
 
         public MissingRequiredParameterException(String paramId, String description, boolean dbTypeSpecific) {
-            super("Parameter '" + paramId + "' " + (description == null ? "" : "(" + description + ") ") + "missing." + (dbTypeSpecific ? "  It is required for this database type." : ""));
+            super("Required parameter '" + paramId + "' " +
+                    (description == null ? "" : "(" + description + ") ") +
+                    "was not specified." +
+                    (dbTypeSpecific ? "  It is required for this database type." : ""));
             this.dbTypeSpecific = dbTypeSpecific;
         }
 
@@ -1378,10 +1402,13 @@ public class Config
 
     protected void dumpUsage(String errorMessage, boolean detailedDb) {
         if (errorMessage != null) {
+            System.out.flush();
             System.err.println("*** " + errorMessage + " ***");
+        } else {
+            System.out.println("SchemaSpy generates an HTML representation of a database schema's relationships.");
         }
 
-        System.out.println("SchemaSpy generates an HTML representation of a database schema's relationships.");
+        System.err.flush();
         System.out.println();
 
         if (!detailedDb) {

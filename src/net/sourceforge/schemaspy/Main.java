@@ -30,7 +30,11 @@ public class Main {
             rc = 2;
         } catch (InvalidConfigurationException badConfig) {
             System.err.println();
-            System.err.println(badConfig.getClass().getSimpleName() + ": " + badConfig.getMessage());
+            if (badConfig.getParamName() != null)
+                System.err.println("Bad parameter specified for " + badConfig.getParamName());
+            System.err.println(badConfig.getMessage());
+            if (badConfig.getCause() != null && !badConfig.getMessage().endsWith(badConfig.getMessage()))
+                System.err.println(" caused by " + badConfig.getCause().getMessage());
         } catch (ProcessExecutionException badLaunch) {
             System.err.println(badLaunch.getMessage());
         } catch (Exception exc) {
