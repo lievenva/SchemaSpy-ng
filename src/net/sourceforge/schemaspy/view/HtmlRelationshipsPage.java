@@ -3,6 +3,8 @@ package net.sourceforge.schemaspy.view;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.util.Dot;
@@ -14,7 +16,8 @@ import net.sourceforge.schemaspy.util.LineWriter;
  * @author John Currier
  */
 public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
-    private static HtmlRelationshipsPage instance = new HtmlRelationshipsPage();
+    private static final HtmlRelationshipsPage instance = new HtmlRelationshipsPage();
+    private static final boolean fineEnabled = Logger.getLogger(HtmlRelationshipsPage.class.getName()).isLoggable(Level.FINE);
 
     /**
      * Singleton: Don't allow instantiation
@@ -56,7 +59,9 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
 
             if (hasRealRelationships) {
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
+
                 html.writeln(dot.generateDiagram(compactRelationshipsDotFile, compactRelationshipsDiagramFile));
                 html.writeln("  <a name='diagram'><img id='realCompactImg' src='diagrams/summary/" + compactRelationshipsDiagramFile.getName() + "' usemap='#compactRelationshipsDiagram' class='diagram' border='0' alt=''></a>");
 
@@ -64,7 +69,9 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
                 // dot fails on the second one...try to recover from that scenario 'somewhat'
                 // gracefully
                 try {
-                    System.out.print(".");
+                    if (!fineEnabled)
+                        System.out.print(".");
+
                     html.writeln(dot.generateDiagram(largeRelationshipsDotFile, largeRelationshipsDiagramFile));
                     html.writeln("  <a name='diagram'><img id='realLargeImg' src='diagrams/summary/" + largeRelationshipsDiagramFile.getName() + "' usemap='#largeRelationshipsDiagram' class='diagram' border='0' alt=''></a>");
                 } catch (Dot.DotFailure dotFailure) {
@@ -76,11 +83,15 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
 
             try {
                 if (hasImpliedRelationships) {
-                    System.out.print(".");
+                    if (!fineEnabled)
+                        System.out.print(".");
+
                     html.writeln(dot.generateDiagram(compactImpliedDotFile, compactImpliedDiagramFile));
                     html.writeln("  <a name='diagram'><img id='impliedCompactImg' src='diagrams/summary/" + compactImpliedDiagramFile.getName() + "' usemap='#compactImpliedRelationshipsDiagram' class='diagram' border='0' alt=''></a>");
 
-                    System.out.print(".");
+                    if (!fineEnabled)
+                        System.out.print(".");
+
                     html.writeln(dot.generateDiagram(largeImpliedDotFile, largeImpliedDiagramFile));
                     html.writeln("  <a name='diagram'><img id='impliedLargeImg' src='diagrams/summary/" + largeImpliedDiagramFile.getName() + "' usemap='#largeImpliedRelationshipsDiagram' class='diagram' border='0' alt=''></a>");
                 }
@@ -90,7 +101,8 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
                 System.err.println("...but the relationships page may still be usable.");
             }
 
-            System.out.print(".");
+            if (!fineEnabled)
+                System.out.print(".");
             html.writeln("</td></tr></table>");
             writeExcludedColumns(excludedColumns, null, html);
 

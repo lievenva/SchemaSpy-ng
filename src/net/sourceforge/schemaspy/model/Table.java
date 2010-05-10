@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.ForeignKeyMeta;
@@ -44,6 +45,7 @@ public class Table implements Comparable<Table> {
     private       String comments;
     private int maxChildren;
     private int maxParents;
+    private final static Logger logger = Logger.getLogger(Table.class.getName());
 
     /**
      * Construct a table that knows everything about the database table's metadata
@@ -62,6 +64,8 @@ public class Table implements Comparable<Table> {
         this.name = name;
         this.db = db;
         this.properties = properties;
+        logger.fine("Creating " + getClass().getSimpleName().toLowerCase() + " " +
+                schema == null ? name : (schema + '.' + name));
         setComments(comments);
         initColumns(excludeIndirectColumns, excludeColumns);
         initIndexes();
@@ -186,15 +190,15 @@ public class Table implements Comparable<Table> {
                     childColumn.addParent(parentColumn, foreignKey);
                     parentColumn.addChild(childColumn, foreignKey);
                 } else {
-                    System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
+                    logger.warning("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
                                         "' - Column '" + pkColName + "' doesn't exist in table '" + parentTable + "'");
                 }
             } else {
-                System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
+                logger.warning("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
                                     "' - Unknown Referenced Table '" + pkTableName + "'");
             }
         } else {
-            System.err.println("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
+            logger.warning("Couldn't add FK '" + foreignKey.getName() + "' to table '" + this +
                                 "' - Column '" + fkColName + "' doesn't exist");
         }
     }
@@ -318,8 +322,8 @@ public class Table implements Comparable<Table> {
         } catch (SQLException exc) {
             if (forceQuotes) {
                 // don't completely choke just because we couldn't do this....
-                System.err.println("Failed to determine auto increment status: " + exc);
-                System.err.println("SQL: " + sql.toString());
+                logger.warning("Failed to determine auto increment status: " + exc);
+                logger.warning("SQL: " + sql.toString());
             } else {
                 initColumnAutoUpdate(true);
             }
@@ -390,7 +394,7 @@ public class Table implements Comparable<Table> {
                     addIndex(rs);
             }
         } catch (SQLException exc) {
-            System.err.println("Unable to extract index info for table '" + getName() + "' in schema '" + getSchema() + "': " + exc);
+            logger.warning("Unable to extract index info for table '" + getName() + "' in schema '" + getSchema() + "': " + exc);
         } finally {
             if (rs != null)
                 rs.close();
@@ -418,8 +422,8 @@ public class Table implements Comparable<Table> {
                     addIndex(rs);
             }
         } catch (SQLException sqlException) {
-            System.err.println("Failed to query index information with SQL: " + selectIndexesSql);
-            System.err.println(sqlException);
+            logger.warning("Failed to query index information with SQL: " + selectIndexesSql);
+            logger.warning(sqlException.toString());
             return false;
         } finally {
             if (rs != null) {
@@ -943,10 +947,11 @@ public class Table implements Comparable<Table> {
                 // except nested tables...try using '1' instead
                 return fetchNumRows("count(1)", false);
             } catch (SQLException try3Exception) {
-                System.err.println("Unable to extract the number of rows for table " + getName() + ", using '-1'");
-                System.err.println(originalFailure);
-                System.err.println(try2Exception);
-                System.err.println(try3Exception);
+                logger.warning("Unable to extract the number of rows for table " + getName() + ", using '-1'");
+                if (originalFailure != null)
+                    logger.warning(originalFailure.toString());
+                logger.warning(try2Exception.toString());
+                logger.warning(try3Exception.toString());
                 return -1;
             }
         }
@@ -1004,8 +1009,7 @@ public class Table implements Comparable<Table> {
             TableColumn col = getColumn(colMeta.getName());
             if (col == null) {
                 if (tableMeta.getRemoteSchema() == null) {
-                    System.err.println();
-                    System.err.print("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
+                    logger.warning("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
                     continue;
                 }
 
@@ -1037,8 +1041,7 @@ public class Table implements Comparable<Table> {
                     TableColumn parentColumn = parent.getColumn(fk.getColumnName());
 
                     if (parentColumn == null) {
-                        System.err.println();
-                        System.err.println(parent.getName() + '.' + fk.getColumnName() + " doesn't exist");
+                        logger.warning(parent.getName() + '.' + fk.getColumnName() + " doesn't exist");
                     } else {
                         /**
                          * Merely instantiating a foreign key constraint ties it
@@ -1052,8 +1055,7 @@ public class Table implements Comparable<Table> {
                         };
                     }
                 } else {
-                    System.err.println();
-                    System.err.print("Undefined table '" + fk.getTableName() + "' referenced by '" + getName() + '.' + col.getName() + '\'');
+                    logger.warning("Undefined table '" + fk.getTableName() + "' referenced by '" + getName() + '.' + col.getName() + '\'');
                 }
             }
         }

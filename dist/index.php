@@ -284,7 +284,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             includes only those tables/views with 'book' in their names or that start with 'library'.<br>
             You might want to use <a href='#descparam'><code>-desc</code></a> 
             with this option to describe the subset of tables.
-            <br>Add <a href='#vxparam'><code>-vx</code></a> to help diagnose any issues.
         </td>
       </tr>
       <tr id="capiparam">
@@ -293,7 +292,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <td class="param">Exclude matching tables/views.
             This regular expression excludes matching tables/views from the analysis.
             Can be used in conjunction with <a href='#iparam'><code>-i</code></a>.
-            <br>Add <a href='#vxparam'><code>-vx</code></a> to help diagnose any issues.
         </td>
       </tr>
       <tr id="xparam">
@@ -308,7 +306,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             Note that each column name regular expression must be surround by <code>()</code>'s and
             separated from other column names by a <code>|</code>.
             <br>Excluded relationships will still show up on detail pages.
-            <br>Add <a href='#vxparam'><code>-vx</code></a> to help diagnose any issues.
         </td>
       </tr>
       <tr id="capxparam">
@@ -317,14 +314,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <td class="param">
             Same as <a href='#xparam'><code>-x</code></a> but excluded relationships 
             will <em>not</em> show up on detail pages.
-        </td>
-      </tr>
-      <tr id="vxparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-vx</code></td>
-        <td class="param"><em>V</em>erbose e<em>X</em>clusions / inclusions.
-            Enables verbose output of why schemas, tables, views and columns
-            are excluded or included in the analysis of the schema.
         </td>
       </tr>
       <tr id="ahicparam">
@@ -360,6 +349,23 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <td class="param">
             Only generate files needed for insertion/deletion of data (e.g. for scripts)
             and an XML representation of the schema.
+        </td>
+      </tr>
+      <tr id="loglevelparam">
+        <td>&nbsp;</td>
+        <td class="param"><code>-loglevel</code></td>
+        <td class="param">
+            Specifies how verbose logging of programmatic flow should be.<br/>
+            The levels in descending order are:
+	        <ul>
+	         <li><code>severe</code> (highest - least detail)
+	         <li><code>warning</code> (default)
+	         <li><code>info</code>
+	         <li><code>config</code>
+	         <li><code>fine</code>
+	         <li><code>finer</code>
+	         <li><code>finest</code> (lowest - most detail)
+	        </ul>
         </td>
       </tr>
     </tbody>

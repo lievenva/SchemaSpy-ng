@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
 
 public class TableColumn {
@@ -32,6 +33,8 @@ public class TableColumn {
     private boolean allowImpliedChildren = true;
     private boolean isExcluded = false;
     private boolean isAllExcluded = false;
+    private static final Logger logger = Logger.getLogger(TableColumn.class.getName());
+    private static final boolean finerEnabled = logger.isLoggable(Level.FINER);
 
     /**
      * Create a column associated with a table.
@@ -73,10 +76,10 @@ public class TableColumn {
 
         isAllExcluded = matches(excludeColumns);
         isExcluded = isAllExcluded || matches(excludeIndirectColumns);
-        if (isExcluded && Config.getInstance().isVerboseExclusionsEnabled()) {
-            System.out.println("Excluding column " + getTable() + '.' + getName() +
-                    ": matches " + excludeColumns + ":" + isAllExcluded + " " +
-                    excludeIndirectColumns + ":" + matches(excludeIndirectColumns));
+        if (isExcluded && finerEnabled) {
+            logger.finer("Excluding column " + getTable() + '.' + getName() +
+                        ": matches " + excludeColumns + ":" + isAllExcluded + " " +
+                        excludeIndirectColumns + ":" + matches(excludeIndirectColumns));
         }
     }
 

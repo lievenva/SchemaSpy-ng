@@ -3,6 +3,7 @@ package net.sourceforge.schemaspy.util;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Logger;
 import net.sourceforge.schemaspy.Config;
 
 /**
@@ -10,7 +11,8 @@ import net.sourceforge.schemaspy.Config;
  */
 public class ConnectionURLBuilder {
     private final String connectionURL;
-    private List<DbSpecificOption> options;
+    private final List<DbSpecificOption> options;
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
      * @param config
@@ -18,19 +20,19 @@ public class ConnectionURLBuilder {
      */
     public ConnectionURLBuilder(Config config, Properties properties) {
         List<String> opts = new ArrayList<String>();
-        
+
         for (String key : config.getDbSpecificOptions().keySet()) {
             opts.add((key.startsWith("-") ? "" : "-") + key);
             opts.add(config.getDbSpecificOptions().get(key));
         }
         opts.addAll(config.getRemainingParameters());
-        
+
         DbSpecificConfig dbConfig = new DbSpecificConfig(config.getDbType());
         options = dbConfig.getOptions();
         connectionURL = buildUrl(opts, properties, config);
-        
+
         List<String> remaining = config.getRemainingParameters();
-        
+
         for (DbSpecificOption option : options) {
             int idx = remaining.indexOf("-" + option.getName());
             if (idx >= 0) {
@@ -38,29 +40,31 @@ public class ConnectionURLBuilder {
                 remaining.remove(idx);  // paramValue
             }
         }
+
+        logger.config("connectionURL: " + connectionURL);
     }
 
     private String buildUrl(List<String> args, Properties properties, Config config) {
         String connectionSpec = properties.getProperty("connectionSpec");
-        
+
         for (DbSpecificOption option : options) {
             option.setValue(getParam(args, option, config));
-            
+
             // replace e.g. <host> with <myDbHost>
-            connectionSpec = connectionSpec.replaceAll("\\<" + option.getName() + "\\>", option.getValue().toString()); 
+            connectionSpec = connectionSpec.replaceAll("\\<" + option.getName() + "\\>", option.getValue().toString());
         }
-        
+
         return connectionSpec;
     }
-    
+
     public String getConnectionURL() {
         return connectionURL;
     }
 
     /**
-     * Returns a {@link List} of populated {@link DbSpecificOption}s that are applicable to 
+     * Returns a {@link List} of populated {@link DbSpecificOption}s that are applicable to
      * the specified database type.
-     * 
+     *
      * @return
      */
     public List<DbSpecificOption> getOptions() {
@@ -82,7 +86,7 @@ public class ConnectionURLBuilder {
             param = args.get(paramIndex).toString();
             args.remove(paramIndex);
         }
-        
+
         return param;
     }
 }

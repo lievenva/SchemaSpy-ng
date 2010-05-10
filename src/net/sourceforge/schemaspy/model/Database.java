@@ -19,6 +19,8 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.Config;
@@ -38,6 +40,8 @@ public class Database {
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
     private Set<String> sqlKeywords;
     private Pattern invalidIdentifierPattern;
+    private final Logger logger = Logger.getLogger(getClass().getName());
+    private final boolean fineEnabled = logger.isLoggable(Level.FINE);
 
     public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
@@ -116,7 +120,6 @@ public class Database {
         private final String clazz;
         private final Pattern include;
         private final Pattern exclude;
-        private final boolean verbose;
         private final Set<String> validTypes;
 
         /**
@@ -126,12 +129,10 @@ public class Database {
          * @param verbose
          * @param validTypes
          */
-        NameValidator(String clazz, Pattern include, Pattern exclude, boolean verbose,
-                        String[] validTypes) {
+        NameValidator(String clazz, Pattern include, Pattern exclude, String[] validTypes) {
             this.clazz = clazz;
             this.include = include;
             this.exclude = exclude;
-            this.verbose = verbose;
             this.validTypes = new HashSet<String>();
             for (String type : validTypes)
             {
@@ -154,29 +155,29 @@ public class Database {
             // Oracle 10g introduced problematic flashback tables
             // with bizarre illegal names
             if (name.indexOf("$") != -1) {
-                if (verbose) {
-                    System.out.println("Excluding " + clazz + " " + name +
-                            ": embedded $ implies illegal name");
+                if (fineEnabled) {
+                    logger.fine("Excluding " + clazz + " " + name +
+                                ": embedded $ implies illegal name");
                 }
                 return false;
             }
 
             if (exclude.matcher(name).matches()) {
-                if (verbose) {
-                    System.out.println("Excluding " + clazz + " " + name +
-                            ": matches exclusion pattern \"" + exclude + '"');
+                if (fineEnabled) {
+                    logger.fine("Excluding " + clazz + " " + name +
+                                ": matches exclusion pattern \"" + exclude + '"');
                 }
                 return false;
             }
 
             boolean valid = include.matcher(name).matches();
-            if (verbose) {
+            if (fineEnabled) {
                 if (valid) {
-                    System.out.println("Including " + clazz + " " + name +
-                            ": matches inclusion pattern \"" + include + '"');
+                    logger.fine("Including " + clazz + " " + name +
+                                ": matches inclusion pattern \"" + include + '"');
                 } else {
-                    System.out.println("Excluding " + clazz + " " + name +
-                            ": doesn't match inclusion pattern \"" + include + '"');
+                    logger.fine("Excluding " + clazz + " " + name +
+                                ": doesn't match inclusion pattern \"" + include + '"');
                 }
             }
             return valid;
@@ -196,13 +197,9 @@ public class Database {
         final Pattern include = config.getTableInclusions();
         final Pattern exclude = config.getTableExclusions();
         final int maxThreads = config.getMaxDbThreads();
-        final boolean verbose = config.isVerboseExclusionsEnabled();
-
-        if (verbose)
-            System.out.println();
 
         String[] types = getTypes("tableTypes", "TABLE", properties);
-        NameValidator validator = new NameValidator("table", include, exclude, verbose, types);
+        NameValidator validator = new NameValidator("table", include, exclude, types);
         List<BasicTableMeta> entries = getBasicTableMeta(metadata, true, properties, types);
 
         TableCreator creator;
@@ -258,13 +255,9 @@ public class Database {
         Pattern excludeTables = config.getTableExclusions();
         Pattern excludeColumns = config.getColumnExclusions();
         Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
-        boolean verbose = config.isVerboseExclusionsEnabled();
-
-        if (verbose)
-            System.out.println();
 
         String[] types = getTypes("viewTypes", "VIEW", properties);
-        NameValidator validator = new NameValidator("view", includeTables, excludeTables, verbose, types);
+        NameValidator validator = new NameValidator("view", includeTables, excludeTables, types);
 
         for (BasicTableMeta entry : getBasicTableMeta(metadata, false, properties, types)) {
             if (validator.isValid(entry.name, entry.type)) {
@@ -272,7 +265,11 @@ public class Database {
                                     entry.viewSql, properties,
                                     excludeIndirectColumns, excludeColumns);
                 views.put(view.getName(), view);
-                System.out.print('.');
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine("Found details of view " + view.getName());
+                } else {
+                    System.out.print('.');
+                }
             }
         }
     }
@@ -619,6 +616,7 @@ public class Database {
             else
                 remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
 
+            logger.fine("Adding remote table " + fullName);
             remoteTable.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
             remoteTables.put(fullName, remoteTable);
         }
@@ -823,6 +821,9 @@ public class Database {
                 } else {
                     table = tables.get(tableMeta.getName());
 
+                    if (table == null)
+                        table = views.get(tableMeta.getName());
+
                     if (table == null) {
                         table = new Table(Database.this, getSchema(), tableMeta.getName(), null, noProps, excludeNone, excludeNone);
                         tables.put(table.getName(), table);
@@ -840,6 +841,8 @@ public class Database {
                     table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
                 } else {
                     table = tables.get(tableMeta.getName());
+                    if (table == null)
+                        table = views.get(tableMeta.getName());
                 }
 
                 table.connect(tableMeta, tables, remoteTables);
@@ -872,10 +875,19 @@ public class Database {
 
         protected void createImpl(BasicTableMeta tableMeta, Properties properties) throws SQLException {
             Table table = new Table(Database.this, tableMeta.schema, tableMeta.name, tableMeta.remarks, properties, excludeIndirectColumns, excludeColumns);
-            if (tableMeta.numRows != -1)
+            if (tableMeta.numRows != -1) {
                 table.setNumRows(tableMeta.numRows);
-            tables.put(table.getName(), table);
-            System.out.print('.');
+            }
+
+            synchronized (tables) {
+                tables.put(table.getName(), table);
+            }
+
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine("Found details of table " + table.getName());
+            } else {
+                System.out.print('.');
+            }
         }
 
         /**

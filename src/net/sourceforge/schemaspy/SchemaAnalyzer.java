@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.sourceforge.schemaspy.model.ConnectionFailure;
@@ -32,6 +36,7 @@ import net.sourceforge.schemaspy.util.DOMUtil;
 import net.sourceforge.schemaspy.util.DbSpecificOption;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.LineWriter;
+import net.sourceforge.schemaspy.util.LogFormatter;
 import net.sourceforge.schemaspy.util.ResourceWriter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesPage;
@@ -53,6 +58,9 @@ import org.w3c.dom.Element;
  * @author John Currier
  */
 public class SchemaAnalyzer {
+    private final Logger logger = Logger.getLogger(getClass().getName());
+    private boolean fineEnabled;
+
     public Database analyze(Config config) throws Exception {
         try {
             if (config.isHelpRequired()) {
@@ -64,6 +72,20 @@ public class SchemaAnalyzer {
                 config.dumpUsage(null, true);
                 return null;
             }
+
+            // set the log level for the root logger
+            Logger.getLogger("").setLevel(config.getLogLevel());
+
+            // clean-up console output a bit
+            for (Handler handler : Logger.getLogger("").getHandlers()) {
+                if (handler instanceof ConsoleHandler) {
+                    ((ConsoleHandler)handler).setFormatter(new LogFormatter());
+                    handler.setLevel(config.getLogLevel());
+                }
+            }
+
+            fineEnabled = logger.isLoggable(Level.FINE);
+            logger.info("Starting schema analysis");
 
             long start = System.currentTimeMillis();
             long startDiagrammingDetails = start;
@@ -100,10 +122,10 @@ public class SchemaAnalyzer {
                 config.setDb(urlBuilder.getConnectionURL());
 
             if (config.getRemainingParameters().size() != 0) {
-                System.out.print("Warning: Unrecognized option(s):");
+                StringBuilder msg = new StringBuilder("Unrecognized option(s):");
                 for (String remnant : config.getRemainingParameters())
-                    System.out.print(" " + remnant);
-                System.out.println();
+                    msg.append(" " + remnant);
+                logger.warning(msg.toString());
             }
 
             String driverClass = properties.getProperty("driver");
@@ -152,12 +174,16 @@ public class SchemaAnalyzer {
                 new File(outputDir, "tables").mkdirs();
                 new File(outputDir, "diagrams/summary").mkdirs();
 
-                System.out.println("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
+                logger.info("Connected to " + meta.getDatabaseProductName() + " - " + meta.getDatabaseProductVersion());
+
                 if (schemaMeta != null && schemaMeta.getFile() != null) {
-                    System.out.println("Using additional metadata from " + schemaMeta.getFile());
+                    logger.info("Using additional metadata from " + schemaMeta.getFile());
                 }
-                System.out.println();
-                System.out.print("Gathering schema details...");
+
+                logger.info("Gathering schema details");
+
+                if (!fineEnabled)
+                    System.out.print("Gathering schema details...");
             }
 
             //
@@ -189,13 +215,23 @@ public class SchemaAnalyzer {
 
             if (config.isHtmlGenerationEnabled()) {
                 startSummarizing = System.currentTimeMillis();
-                System.out.println("(" + (startSummarizing - start) / 1000 + "sec)");
-                System.out.print("Writing/graphing summary");
-                System.out.print(".");
+                if (!fineEnabled) {
+                    System.out.println("(" + (startSummarizing - start) / 1000 + "sec)");
+                }
+
+                logger.info("Gathered schema details in " + (startSummarizing - start) / 1000 + " seconds");
+                logger.info("Writing/graphing summary");
+                System.err.flush();
+                System.out.flush();
+                if (!fineEnabled) {
+                    System.out.print("Writing/graphing summary");
+                    System.out.print(".");
+                }
                 ImageWriter.getInstance().writeImages(outputDir);
                 ResourceWriter.getInstance().writeResource("/jquery.js", new File(outputDir, "/jquery.js"));
                 ResourceWriter.getInstance().writeResource("/schemaSpy.js", new File(outputDir, "/schemaSpy.js"));
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
 
                 boolean showDetailedTables = tables.size() <= config.getMaxDetailedTables();
                 final boolean includeImpliedConstraints = config.isImpliedConstraintsEnabled();
@@ -219,7 +255,8 @@ public class SchemaAnalyzer {
 
                 if (hasRealRelationships) {
                     // real relationships exist so generate the 'big' form of the relationships .dot file
-                    System.out.print(".");
+                    if (!fineEnabled)
+                        System.out.print(".");
                     out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
                     out.close();
@@ -236,7 +273,8 @@ public class SchemaAnalyzer {
                 List<Table> orphans = DbAnalyzer.getOrphans(tables);
                 boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
 
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
 
                 File impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
@@ -257,44 +295,64 @@ public class SchemaAnalyzer {
                 HtmlRelationshipsPage.getInstance().write(db, diagramsDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
                 out.close();
 
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
+
                 dotBaseFilespec = "utilities";
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
                 HtmlOrphansPage.getInstance().write(db, orphans, diagramsDir, out);
                 out.close();
 
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
+
                 out = new LineWriter(new File(outputDir, "index.html"), 64 * 1024, config.getCharset());
                 HtmlMainIndexPage.getInstance().write(db, tables, hasOrphans, out);
                 out.close();
 
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
+
                 List<ForeignKeyConstraint> constraints = DbAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new File(outputDir, "constraints.html"), 256 * 1024, config.getCharset());
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
                 constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
                 out.close();
 
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
+
                 out = new LineWriter(new File(outputDir, "anomalies.html"), 16 * 1024, config.getCharset());
                 HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasOrphans, out);
                 out.close();
 
-                System.out.print(".");
+                if (!fineEnabled)
+                    System.out.print(".");
+
                 for (HtmlColumnsPage.ColumnInfo columnInfo : HtmlColumnsPage.getInstance().getColumnInfos()) {
                     out = new LineWriter(new File(outputDir, columnInfo.getLocation()), 16 * 1024, config.getCharset());
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
                     out.close();
                 }
 
+                // create detailed diagrams
 
                 startDiagrammingDetails = System.currentTimeMillis();
-                System.out.println("(" + (startDiagrammingDetails - startSummarizing) / 1000 + "sec)");
-                System.out.print("Writing/diagramming results");
+                if (!fineEnabled)
+                    System.out.println("(" + (startDiagrammingDetails - startSummarizing) / 1000 + "sec)");
+                logger.info("Completed summary in " + (startDiagrammingDetails - startSummarizing) / 1000 + " seconds");
+                logger.info("Writing/diagramming details");
+                if (!fineEnabled) {
+                    System.out.print("Writing/diagramming details");
+                }
 
                 HtmlTablePage tableFormatter = HtmlTablePage.getInstance();
                 for (Table table : tables) {
-                    System.out.print('.');
+                    if (!fineEnabled)
+                        System.out.print('.');
+                    else
+                        logger.fine("Writing details of " + table.getName());
+
                     out = new LineWriter(new File(outputDir, "tables/" + table.getName() + ".html"), 24 * 1024, config.getCharset());
                     tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
                     out.close();
@@ -372,9 +430,17 @@ public class SchemaAnalyzer {
 
             if (config.isHtmlGenerationEnabled()) {
                 long end = System.currentTimeMillis();
-                System.out.println("(" + (end - startDiagrammingDetails) / 1000 + "sec)");
-                System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
-                System.out.println("View the results by opening " + new File(config.getOutputDir(), "index.html"));
+                if (!fineEnabled)
+                    System.out.println("(" + (end - startDiagrammingDetails) / 1000 + "sec)");
+                logger.info("Wrote table details in " + (end - startDiagrammingDetails) / 1000 + " seconds");
+
+                if (logger.isLoggable(Level.INFO)) {
+                    logger.info("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
+                    logger.info("View the results by opening " + new File(config.getOutputDir(), "index.html"));
+                } else {
+                    System.out.println("Wrote relationship details of " + tables.size() + " tables/views to directory '" + config.getOutputDir() + "' in " + (end - start) / 1000 + " seconds.");
+                    System.out.println("View the results by opening " + new File(config.getOutputDir(), "index.html"));
+                }
             }
 
             return db;
@@ -431,10 +497,15 @@ public class SchemaAnalyzer {
         }
     }
 
-    private static Connection getConnection(Config config, String connectionURL,
+    private Connection getConnection(Config config, String connectionURL,
                       String driverClass, String driverPath) throws FileNotFoundException, IOException {
-        System.out.println("Using database properties:");
-        System.out.println("    " + config.getDbPropertiesLoadedFrom());
+        if (logger.isLoggable(Level.INFO)) {
+            logger.info("Using database properties:");
+            logger.info("  " + config.getDbPropertiesLoadedFrom());
+        } else {
+            System.out.println("Using database properties:");
+            System.out.println("  " + config.getDbPropertiesLoadedFrom());
+        }
 
         List<URL> classpath = new ArrayList<URL>();
         List<File> invalidClasspathEntries = new ArrayList<File>();

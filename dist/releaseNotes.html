@@ -53,11 +53,6 @@
         key relationships.<br>
         Thanks to Joao Carlos Batalha for reporting the problem.
     </li>
-    <li>Implemented <a href="https://sourceforge.net/tracker/?func=detail&aid=2821547&group_id=137197&atid=737990">
-        feature request 2821547</a> - Allow for debugging of inclusions/exclusions.<br/>
-        Added a new <code>-vx</code> (verbose exclusion) option that prints why specific
-        schemas / tables / views / columns are being excluded from the analysis. 
-    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=2827876&group_id=137197">
         bug 2827876</a> - Table name not showing in XML Representation<br>
         Check constraints would replace table entries the generated XML.<br>
@@ -128,6 +123,21 @@
         bug 2996883</a> - Misleading warning messages when invalid regular expressions 
         are specified.<br>
         Thanks to David Corlette for reporting the problem.
+    </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/?func=detail&aid=2999566&group_id=137197&atid=737990">
+        feature request 2999566</a> - Provide verbose details of program flow.<br/>
+        Added a new <code>-logLevel</code> option that lets you specify how
+        verbose the logging output should be.<br/>
+        The levels in descending order are:
+        <ul>
+         <li><code>severe</code> (highest - least detail)
+         <li><code>warning</code> (default)
+         <li><code>info</code>
+         <li><code>config</code>
+         <li><code>fine</code>
+         <li><code>finer</code>
+         <li><code>finest</code> (lowest - most detail)
+        </ul>
     </li>
 </ul>
 </li>

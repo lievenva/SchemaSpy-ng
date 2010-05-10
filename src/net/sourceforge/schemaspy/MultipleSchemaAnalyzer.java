@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.ProcessExecutionException;
 import net.sourceforge.schemaspy.util.LineWriter;
@@ -22,6 +24,8 @@ import net.sourceforge.schemaspy.view.HtmlMultipleSchemasIndexPage;
  */
 public final class MultipleSchemaAnalyzer {
     private static MultipleSchemaAnalyzer instance = new MultipleSchemaAnalyzer();
+    private final Logger logger = Logger.getLogger(getClass().getName());
+    private final boolean fineEnabled = logger.isLoggable(Level.FINE);
 
     private MultipleSchemaAnalyzer() {
     }
@@ -117,7 +121,6 @@ public final class MultipleSchemaAnalyzer {
 
     private List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, String user) throws SQLException {
         List<String> populatedSchemas;
-        boolean verbose = Config.getInstance().isVerboseExclusionsEnabled();
 
         if (meta.supportsSchemasInTableDefinitions()) {
             Pattern schemaRegex = Pattern.compile(schemaSpec);
@@ -127,15 +130,15 @@ public final class MultipleSchemaAnalyzer {
             while (iter.hasNext()) {
                 String schema = iter.next();
                 if (!schemaRegex.matcher(schema).matches()) {
-                    if (verbose) {
-                        System.out.println("Excluding schema " + schema +
-                                ": doesn't match + \"" + schemaRegex + '"');
+                    if (fineEnabled) {
+                        logger.fine("Excluding schema " + schema +
+                                    ": doesn't match + \"" + schemaRegex + '"');
                     }
                     iter.remove(); // remove those that we're not supposed to analyze
                 } else {
-                    if (verbose) {
-                        System.out.println("Including schema " + schema +
-                                ": matches + \"" + schemaRegex + '"');
+                    if (fineEnabled) {
+                        logger.fine("Including schema " + schema +
+                                    ": matches + \"" + schemaRegex + '"');
                     }
                 }
             }

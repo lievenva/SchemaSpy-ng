@@ -2,12 +2,16 @@ package net.sourceforge.schemaspy.model.xml;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * Additional metadata about a column as expressed in XML instead of from
+ * the database.
+ *
  * @author John Currier
  */
 public class TableColumnMeta {
@@ -19,11 +23,12 @@ public class TableColumnMeta {
     private final boolean isAllExcluded;
     private final boolean isImpliedParentsDisabled;
     private final boolean isImpliedChildrenDisabled;
-    
+    private static final Logger logger = Logger.getLogger(TableColumnMeta.class.getName());
+
     TableColumnMeta(Node colNode) {
         NamedNodeMap attribs = colNode.getAttributes();
         String tmp;
-        
+
         name = attribs.getNamedItem("name").getNodeValue();
         Node node = attribs.getNamedItem("comments");
         if (node != null) {
@@ -32,7 +37,7 @@ public class TableColumnMeta {
         } else {
             comments = null;
         }
-        
+
         node = attribs.getNamedItem("primaryKey");
         if (node != null) {
             isPrimary = evalBoolean(node.getNodeValue());
@@ -75,51 +80,55 @@ public class TableColumnMeta {
             isAllExcluded = false;
             isExcluded = false;
         }
-        
+
+        logger.finer("Found XML column metadata for " + name +
+                    " isPrimaryKey: " + isPrimary +
+                    " comments: " + comments);
+
         NodeList fkNodes = ((Element)colNode.getChildNodes()).getElementsByTagName("foreignKey");
-        
+
         for (int i = 0; i < fkNodes.getLength(); ++i) {
             Node fkNode = fkNodes.item(i);
             foreignKeys.add(new ForeignKeyMeta(fkNode));
         }
     }
-    
+
     private boolean evalBoolean(String exp) {
         if (exp == null)
             return false;
-        
+
         exp = exp.trim().toLowerCase();
         return exp.equals("true") || exp.equals("yes") || exp.equals("1");
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public String getComments() {
         return comments;
     }
-    
+
     public boolean isPrimary() {
         return isPrimary;
     }
-    
+
     public List<ForeignKeyMeta> getForeignKeys() {
         return foreignKeys;
     }
-    
+
     public boolean isExcluded() {
         return isExcluded;
     }
-    
+
     public boolean isAllExcluded() {
         return isAllExcluded;
     }
-    
+
     public boolean isImpliedParentsDisabled() {
         return isImpliedParentsDisabled;
     }
-    
+
     public boolean isImpliedChildrenDisabled() {
         return isImpliedChildrenDisabled;
     }

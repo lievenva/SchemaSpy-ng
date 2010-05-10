@@ -8,6 +8,8 @@ import static java.sql.DatabaseMetaData.importedKeySetNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents a <a href='http://en.wikipedia.org/wiki/Foreign_key'>
@@ -22,6 +24,8 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     private final List<TableColumn> childColumns = new ArrayList<TableColumn>();
     private final int deleteRule;
     private final int updateRule;
+    private final static Logger logger = Logger.getLogger(ForeignKeyConstraint.class.getName());
+    private final static boolean finerEnabled = logger.isLoggable(Level.FINER);
 
     /**
      * Construct a foreign key for the specified child table.
@@ -33,6 +37,8 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      */
     ForeignKeyConstraint(Table child, String name, int updateRule, int deleteRule) {
         this.name = name; // implied constraints will have a null name and override getName()
+        if (finerEnabled)
+            logger.finer("Adding foreign key constraint '" + getName() + "' to " + child);
         childTable = child;
         this.deleteRule = deleteRule;
         this.updateRule = updateRule;
@@ -87,8 +93,9 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      * @param column
      */
     void addChildColumn(TableColumn column) {
-        if (column != null)
+        if (column != null) {
             childColumns.add(column);
+        }
     }
 
     /**

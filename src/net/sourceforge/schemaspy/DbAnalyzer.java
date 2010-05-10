@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
 import net.sourceforge.schemaspy.model.ImpliedForeignKeyConstraint;
@@ -323,7 +325,8 @@ public class DbAnalyzer {
     public static List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec) throws SQLException {
         Set<String> schemas = new TreeSet<String>(); // alpha sorted
         Pattern schemaRegex = Pattern.compile(schemaSpec);
-        boolean verbose = Config.getInstance().isVerboseExclusionsEnabled();
+        Logger logger = Logger.getLogger(DbAnalyzer.class.getName());
+        boolean logging = logger.isLoggable(Level.FINE);
 
         Iterator<String> iter = getSchemas(meta).iterator();
         while (iter.hasNext()) {
@@ -333,16 +336,14 @@ public class DbAnalyzer {
                 try {
                     rs = meta.getTables(null, schema, "%", null);
                     if (rs.next()) {
-                        if (verbose) {
-                            System.out.println("Including schema " + schema +
-                                    ": matches + \"" + schemaRegex + "\" and contains tables");
-                        }
+                        if (logging)
+                            logger.fine("Including schema " + schema +
+                                        ": matches + \"" + schemaRegex + "\" and contains tables");
                         schemas.add(schema);
                     } else {
-                        if (verbose) {
-                            System.out.println("Excluding schema " + schema +
-                                    ": matches \"" + schemaRegex + "\" but contains no tables");
-                        }
+                        if (logging)
+                            logger.fine("Excluding schema " + schema +
+                                        ": matches \"" + schemaRegex + "\" but contains no tables");
                     }
                 } catch (SQLException ignore) {
                 } finally {
@@ -350,10 +351,9 @@ public class DbAnalyzer {
                         rs.close();
                 }
             } else {
-                if (verbose) {
-                    System.out.println("Excluding schema " + schema +
-                            ": doesn't match \"" + schemaRegex + '"');
-                }
+                if (logging)
+                    logger.fine("Excluding schema " + schema +
+                                ": doesn't match \"" + schemaRegex + '"');
             }
         }
 

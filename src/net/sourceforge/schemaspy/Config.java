@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -26,6 +27,7 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
@@ -76,6 +78,7 @@ public class Config
     private Integer fontSize;
     private String description;
     private String dbPropertiesLoadedFrom;
+    private Level logLevel;
     private SqlFormatter sqlFormatter;
     private String sqlFormatterClass;
     private Boolean generateHtml;
@@ -84,7 +87,6 @@ public class Config
     private Boolean rankDirBugEnabled;
     private Boolean encodeCommentsEnabled;
     private Boolean numRowsEnabled;
-    private Boolean verboseExclusionsEnabled;
     private Boolean meterEnabled;
     private Boolean railsEnabled;
     private Boolean evaluteAll;
@@ -745,27 +747,6 @@ public class Config
     }
 
     /**
-     * Enable verbose exclusions to debug regular expressions dealing
-     * with inclusion/exclusion of schemas/tables/views/columns.
-     *
-     * @param enabled
-     */
-    public void setVerboseExclusionsEnabled(boolean enabled) {
-        verboseExclusionsEnabled = enabled;
-    }
-
-    /**
-     * @see #setVerboseExclusionsEnabled(boolean)
-     * @return
-     */
-    public boolean isVerboseExclusionsEnabled() {
-        if (verboseExclusionsEnabled == null)
-            verboseExclusionsEnabled = options.remove("-vx");
-
-        return verboseExclusionsEnabled;
-    }
-
-    /**
      * Returns <code>true</code> if metering should be embedded in
      * the generated pages.<p/>
      * Defaults to <code>false</code> (disabled).
@@ -1098,6 +1079,57 @@ public class Config
         }
 
         return adsEnabled ;
+    }
+
+    /**
+     * Set the level of logging to perform.<p/>
+     * The levels in descending order are:
+     * <ul>
+     *  <li><code>severe</code> (highest - least detail)
+     *  <li><code>warning</code> (default)
+     *  <li><code>info</code>
+     *  <li><code>config</code>
+     *  <li><code>fine</code>
+     *  <li><code>finer</code>
+     *  <li><code>finest</code>  (lowest - most detail)
+     * </ul>
+     *
+     * @param logLevel
+     */
+    public void setLogLevel(String logLevel) {
+        if (logLevel == null) {
+            this.logLevel = Level.WARNING;
+            return;
+        }
+
+        Map<String, Level> levels = new LinkedHashMap<String, Level>();
+        levels.put("severe", Level.SEVERE);
+        levels.put("warning", Level.WARNING);
+        levels.put("info", Level.INFO);
+        levels.put("config", Level.CONFIG);
+        levels.put("fine", Level.FINE);
+        levels.put("finer", Level.FINER);
+        levels.put("finest", Level.FINEST);
+
+        this.logLevel = levels.get(logLevel.toLowerCase());
+        if (this.logLevel == null) {
+            throw new InvalidConfigurationException("Invalid logLevel: '" + logLevel +
+                    "'. Must be one of: " + levels.keySet());
+        }
+    }
+
+    /**
+     * Returns the level of logging to perform.
+     * See {@link #setLogLevel(String)}.
+     *
+     * @return
+     */
+    public Level getLogLevel() {
+        if (logLevel == null) {
+            setLogLevel(pullParam("-loglevel"));
+        }
+
+        return logLevel;
     }
 
     /**
@@ -1505,8 +1537,6 @@ public class Config
             params.add("-meter");
         if (!isNumRowsEnabled())
             params.add("-norows");
-        if (isVerboseExclusionsEnabled())
-            params.add("-vx");
         if (isRankDirBugEnabled())
             params.add("-rankdirbug");
         if (isRailsEnabled())
@@ -1601,6 +1631,10 @@ public class Config
             params.add("-gv");
             params.add(getGraphvizDir().toString());
         }
+        params.add("-loglevel");
+        params.add(getLogLevel().toString().toLowerCase());
+        params.add("-sqlFormatter");
+        params.add(getSqlFormatter().getClass().getName());
         params.add("-i");
         params.add(getTableInclusions().pattern());
         params.add("-I");
