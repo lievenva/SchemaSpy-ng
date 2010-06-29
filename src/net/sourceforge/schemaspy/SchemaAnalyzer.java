@@ -37,6 +37,7 @@ import net.sourceforge.schemaspy.util.DbSpecificOption;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.util.LogFormatter;
+import net.sourceforge.schemaspy.util.PasswordReader;
 import net.sourceforge.schemaspy.util.ResourceWriter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesPage;
@@ -547,12 +548,13 @@ public class SchemaAnalyzer {
             throw new ConnectionFailure(exc);
         }
 
-        Properties connectionProperties = new Properties();
+        Properties connectionProperties = config.getConnectionProperties();
         if (config.getUser() != null)
             connectionProperties.put("user", config.getUser());
         if (config.getPassword() != null)
             connectionProperties.put("password", config.getPassword());
-        connectionProperties.putAll(config.getConnectionProperties());
+        else if (config.isPromptForPasswordEnabled())
+            connectionProperties.put("password", new String(new PasswordReader().readPassword("Password: ")));
 
         Connection connection = null;
         try {

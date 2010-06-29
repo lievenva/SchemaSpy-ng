@@ -58,6 +58,7 @@ public class Config
     private Boolean singleSignOn;
     private Boolean noSchema;
     private String password;
+    private Boolean promptForPassword;
     private String db;
     private String host;
     private Integer port;
@@ -392,6 +393,26 @@ public class Config
         return password;
     }
 
+    /**
+     * Set to <code>true</code> to prompt for the password
+     * @param promptForPassword
+     */
+    public void setPromptForPasswordEnabled(boolean promptForPassword) {
+        this.promptForPassword = promptForPassword;
+    }
+
+    /**
+     * @see #setPromptForPasswordEnabled(boolean)
+     * @return
+     */
+    public boolean isPromptForPasswordEnabled() {
+        if (promptForPassword == null) {
+            promptForPassword = options.remove("-pfp");
+        }
+
+        return promptForPassword;
+    }
+
     public void setMaxDetailedTabled(int maxDetailedTables) {
         this.maxDetailedTables = new Integer(maxDetailedTables);
     }
@@ -447,8 +468,8 @@ public class Config
                     setConnectionPropertiesFile(props);
                 }
             } else {
-            userConnectionProperties = new Properties();
-        }
+                userConnectionProperties = new Properties();
+            }
         }
 
         return userConnectionProperties;
@@ -1575,6 +1596,8 @@ public class Config
             params.add("-p");
             params.add(value);
         }
+        if (isPromptForPasswordEnabled())
+            params.add("-pfp");
         value = getSchema();
         if (value != null) {
             params.add("-s");

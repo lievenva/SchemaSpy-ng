@@ -49,8 +49,16 @@ public class Database {
         databaseName = name;
         this.schema = schema;
         description = config.getDescription();
+
         initTables(meta, properties, config);
         initViews(meta, properties, config);
+
+        initCheckConstraints(properties);
+        initTableIds(properties);
+        initIndexIds(properties);
+        initTableComments(properties);
+        initColumnComments(properties);
+
         connectTables();
         updateFromXmlMetadata(schemaMeta);
     }
@@ -233,12 +241,6 @@ public class Database {
 
         // wait for everyone to finish
         creator.join();
-
-        initCheckConstraints(properties);
-        initTableIds(properties);
-        initIndexIds(properties);
-        initTableComments(properties);
-        initColumnComments(properties);
     }
 
     /**
@@ -527,13 +529,16 @@ public class Database {
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
                     Table table = tables.get(tableName);
+                    if (table == null)
+                        table = views.get(tableName);
+
                     if (table != null)
                         table.setComments(rs.getString("comments"));
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
                 System.err.println();
-                System.err.println("Failed to retrieve table comments: " + sqlException);
+                System.err.println("Failed to retrieve table/view comments: " + sqlException);
                 System.err.println(sql);
             } finally {
                 if (rs != null)
@@ -557,6 +562,9 @@ public class Database {
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
                     Table table = tables.get(tableName);
+                    if (table == null)
+                        table = views.get(tableName);
+
                     if (table != null) {
                         TableColumn column = table.getColumn(rs.getString("column_name"));
                         if (column != null)
