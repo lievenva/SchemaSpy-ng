@@ -103,7 +103,7 @@
         SchemaSpy still does no real formatting the View SQL, but it now
         detects that the SQL is already formatted and presents it in that form.
         I don't know if the databases typically retain this formatting
-        information or not (MySQL does not).
+        information or not (MySQL does not).<br>
         Thanks to Reiner Kräutle for the suggestion.
     </li>
     <li>Added the ability to specify a custom SQL formatter via the -sqlFormatter
@@ -138,6 +138,12 @@
          <li><code>finer</code>
          <li><code>finest</code> (lowest - most detail)
         </ul>
+    </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=3026251&group_id=137197">
+        bug 3026251</a> - Arrowtail decoration not appearing in diagrams.<br>
+        There were minor changes made to the Graphviz dot language dealing with
+        edge rendering that now require explicit settings.<br>
+        Thanks to Keith Clarke for reporting the problem and researching the solution.
     </li>
 </ul>
 </li>

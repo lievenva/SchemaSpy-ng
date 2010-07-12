@@ -111,9 +111,11 @@ public class DotConnector implements Comparable<DotConnector> {
                 edge.append("odottee"); // zero or one parents
             else
                 edge.append("teetee");  // one parent
+            edge.append(" dir=both");
         } else {
             // PK end of connector
             edge.append("[arrowhead=none");
+            edge.append(" dir=back");
         }
 
         // FK end of connector
