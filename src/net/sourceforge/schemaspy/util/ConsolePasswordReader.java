@@ -34,8 +34,6 @@ public class ConsolePasswordReader extends PasswordReader {
         // get Console.readPassword(String, Object[]) method
         Class<?>[] paramTypes = new Class<?>[] {String.class, Object[].class};
         readPassword = console.getClass().getMethod("readPassword", paramTypes);
-
-        throw new SecurityException("");
     }
 
     /**
