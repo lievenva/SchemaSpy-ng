@@ -145,6 +145,15 @@
         edge rendering that now require explicit settings.<br>
         Thanks to Keith Clarke for reporting the problem and researching the solution.
     </li>
+    <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=3021923&group_id=137197&atid=737990">
+        feature request 3021923</a> - Enter passwords from within SchemaSpy.<br/>
+        Added a new -pfp (prompt for password) option that causes SchemaSpy 
+        to prompt the user for a password.
+        If running in a Java6 or later environment it uses the JVM-provided classes
+        (via reflection),
+        while with older JVMs it attempts to emulate the same behavior.<br>
+        Thanks to st0w for the suggestion.
+    </li>
 </ul>
 </li>
 

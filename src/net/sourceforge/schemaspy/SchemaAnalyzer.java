@@ -549,12 +549,15 @@ public class SchemaAnalyzer {
         }
 
         Properties connectionProperties = config.getConnectionProperties();
-        if (config.getUser() != null)
+        if (config.getUser() != null) {
             connectionProperties.put("user", config.getUser());
-        if (config.getPassword() != null)
+        }
+        if (config.getPassword() != null) {
             connectionProperties.put("password", config.getPassword());
-        else if (config.isPromptForPasswordEnabled())
-            connectionProperties.put("password", new String(new PasswordReader().readPassword("Password: ")));
+        } else if (config.isPromptForPasswordEnabled()) {
+            connectionProperties.put("password",
+                    new String(PasswordReader.getInstance().readPassword("Password: ")));
+        }
 
         Connection connection = null;
         try {

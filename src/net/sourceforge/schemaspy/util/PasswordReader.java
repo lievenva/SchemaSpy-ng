@@ -10,6 +10,27 @@ import java.util.Arrays;
  * "*"
  */
 public class PasswordReader {
+    private static PasswordReader instance;
+
+    public static synchronized PasswordReader getInstance() {
+        if (instance == null) {
+            try {
+                instance = new ConsolePasswordReader();
+            } catch (Throwable exc) {
+                // Java6+ version can't be loaded, so revert to this implementation
+                instance = new PasswordReader();
+            }
+        }
+
+        return instance;
+    }
+
+    /**
+     * Use {@link #getInstance()} instead.
+     */
+    protected PasswordReader() {
+    }
+
     /**
      * Matches the contract of Java 1.6+'s {@link java.io.Console#readPassword}
      * except that our own IOError is thrown in place of the 1.6-specific IOError.
@@ -27,7 +48,7 @@ public class PasswordReader {
         char[] buf = lineBuffer = new char[128];
         int room = buf.length;
         int offset = 0;
-        int c;
+        int ch;
         boolean reading = true;
 
         Masker masker = new Masker(String.format(fmt, args));
@@ -35,7 +56,7 @@ public class PasswordReader {
 
         try {
             while (reading) {
-                switch (c = in.read()) {
+                switch (ch = in.read()) {
                     case -1:
                     case '\n':
                         reading = false;
@@ -43,7 +64,7 @@ public class PasswordReader {
 
                     case '\r':
                         int c2 = in.read();
-                        if ((c2 != '\n') && (c2 != -1)) {
+                        if (c2 != '\n' && c2 != -1) {
                             if (!(in instanceof PushbackInputStream)) {
                                 in = new PushbackInputStream(in);
                             }
@@ -61,7 +82,7 @@ public class PasswordReader {
                             Arrays.fill(lineBuffer, ' ');
                             lineBuffer = buf;
                         }
-                        buf[offset++] = (char)c;
+                        buf[offset++] = (char)ch;
                         break;
                 }
             }
@@ -74,40 +95,45 @@ public class PasswordReader {
         if (offset == 0) {
             return null;
         }
-        char[] ret = new char[offset];
-        System.arraycopy(buf, 0, ret, 0, offset);
+        char[] password = new char[offset];
+        System.arraycopy(buf, 0, password, 0, offset);
         Arrays.fill(buf, ' ');
-        return ret;
+        return password;
     }
 
+    /**
+     * Simple thread that constantly overwrites (masking) whatever
+     * the user is typing as their password.
+     */
     private static class Masker extends Thread {
-        private volatile boolean mask;
-        private final char echochar = '*';
+        private volatile boolean masking = true;
+        private final String mask;
 
         /**
          *@param prompt The prompt displayed to the user
          */
         public Masker(String prompt) {
-            System.out.print(prompt);
+            // mask that will be printed every iteration
+            // it includes spaces to replace what's typed
+            // and backspaces to move back over them
+            mask = "\r" + prompt + "     \010\010\010\010\010";
 
-            // set our priority to one above the caller's priority
+            // set our priority to something higher than the caller's
             setPriority(Thread.currentThread().getPriority() + 1);
         }
 
         /**
-         * Mask until asked to stop
+         * Keep masking until asked to stop
          */
         @Override
         public void run() {
-            mask = true;
-            while (mask) {
-                // backspace over what was typed then splat it
-                System.out.print("\010" + echochar);
+            while (masking) {
+                System.out.print(mask);
                 try {
                     sleep(100);
                 } catch (InterruptedException iex) {
                     interrupt();
-                    mask = false;
+                    masking = false;
                 }
             }
         }
@@ -116,7 +142,7 @@ public class PasswordReader {
          * Stop masking the password
          */
         public void stopMasking() {
-            mask = false;
+            masking = false;
         }
     }
 

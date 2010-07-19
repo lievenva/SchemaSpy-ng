@@ -150,6 +150,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
     </tbody>
   </table>
   <p>
+  Commonly used parameters:
   <table class="params" border="1" cellpadding="0" cellspacing="1">
     <tbody>
       <tr>
@@ -202,64 +203,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         The drivers are usually contained in .jar or .zip files and are typically
         provided by your database vendor.</td>
       </tr>
-      <tr id="gvparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-gv <i>pathToGraphviz</i></code></td>
-        <td class="param">By default SchemaSpy expects the dot executable to be
-        in the PATH environment variable.
-        Use this option to explicitly specify where Graphviz is installed.</td>
-      </tr>
-      <tr id="descparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-desc <i>"Schema description"</i></code></td>
-        <td class="param">Displays the specified textual description on summary pages.
-            If your description includes an equals sign then escape it with a backslash.<br>
-            For example:<br>
-            <code>-desc "&lt;a href\='http://schemaspy.sourceforge.net'&gt;SchemaSpy&lt;/a&gt;"</code>.
-        </td>
-      </tr>
-      <tr id="allparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-all</code></td>
-        <td class="param">Evaluate all schemas in a database.
-            Generates a high-level index of the schemas evaluated and allows for
-            traversal of cross-schema foreign key relationships.<br>
-            Use with <code>-schemaSpec <i>"schemaRegularExpression"</i></code> 
-            to narrow-down the schemas to include.
-        </td>
-      </tr>
-      <tr id="schemasparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-schemas <i>"schema1,schema2"</i></code></td>
-        <td class="param">Evaluate specified schemas.
-            Similar to <code>-all</code>, but explicitly specifies which
-            schema to evaluate without interrogating the database's metadata.  
-            Can be used with databases like MySQL where a database isn't
-            composed of multiple schemas.
-        </td>
-      </tr>
-      <tr id="metaparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-meta <i>metafile</i></code></td>
-        <td class="param">
-            <code><i>metafile</i></code> is either the name of an individual 
-            XML file or the directory that contains meta files.
-            If a directory is specified then it is expected to contain files
-            matching the pattern <code>[schema].meta.xml</code>.<br>
-            For databases that don't have schema substitute database for schema.<br>
-            See <a href="#meta">Providing Additional Metadata</a> for details.
-        </td>
-      </tr>
-      <tr id="connpropsparam">
-        <td>&nbsp;</td>
-        <td class="param"><code>-connprops <i>propsfile</i> or <i>key\=value;</i></code></td>
-        <td class="param">
-            Specifies additional properties to be used when connecting to the database.
-            Either specify a .properties file (with key=value entries) or
-            specify the entries directly, escaping the ='s with \= and separating
-            each key\=value pair with a <code>;</code>.
-        </td>
-      </tr>
       <tr id="hqparam">
         <td>&nbsp;</td>
         <td class="param"><code>-hq<br>-lq</code></td>
@@ -275,8 +218,66 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             but the resultant Entity Relationship diagrams generally look better.
         </td>
       </tr>
+    </tbody>
+  </table>
+  Parameters marked with '*' are required.
+  
+  <p>Less commonly used parameters:
+  <table class="params" border="1" cellpadding="0" cellspacing="1">
+    <tbody>
+      <tr id="gvparam">
+        <td class="param"><code>-gv <i>pathToGraphviz</i></code></td>
+        <td class="param">By default SchemaSpy expects the dot executable to be
+        in the PATH environment variable.
+        Use this option to explicitly specify where Graphviz is installed.</td>
+      </tr>
+      <tr id="descparam">
+        <td class="param"><code>-desc <i>"Schema description"</i></code></td>
+        <td class="param">Displays the specified textual description on summary pages.
+            If your description includes an equals sign then escape it with a backslash.<br>
+            For example:<br>
+            <code>-desc "&lt;a href\='http://schemaspy.sourceforge.net'&gt;SchemaSpy&lt;/a&gt;"</code>.
+        </td>
+      </tr>
+      <tr id="allparam">
+        <td class="param"><code>-all</code></td>
+        <td class="param">Evaluate all schemas in a database.
+            Generates a high-level index of the schemas evaluated and allows for
+            traversal of cross-schema foreign key relationships.<br>
+            Use with <code>-schemaSpec <i>"schemaRegularExpression"</i></code> 
+            to narrow-down the schemas to include.
+        </td>
+      </tr>
+      <tr id="schemasparam">
+        <td class="param"><code>-schemas <i>"schema1,schema2"</i></code></td>
+        <td class="param">Evaluate specified schemas.
+            Similar to <code>-all</code>, but explicitly specifies which
+            schema to evaluate without interrogating the database's metadata.  
+            Can be used with databases like MySQL where a database isn't
+            composed of multiple schemas.
+        </td>
+      </tr>
+      <tr id="metaparam">
+        <td class="param"><code>-meta <i>metafile</i></code></td>
+        <td class="param">
+            <code><i>metafile</i></code> is either the name of an individual 
+            XML file or the directory that contains meta files.
+            If a directory is specified then it is expected to contain files
+            matching the pattern <code>[schema].meta.xml</code>.<br>
+            For databases that don't have schema substitute database for schema.<br>
+            See <a href="#meta">Providing Additional Metadata</a> for details.
+        </td>
+      </tr>
+      <tr id="connpropsparam">
+        <td class="param"><code>-connprops <i>propsfile</i> or <i>key\=value;</i></code></td>
+        <td class="param">
+            Specifies additional properties to be used when connecting to the database.
+            Either specify a .properties file (with key=value entries) or
+            specify the entries directly, escaping the ='s with \= and separating
+            each key\=value pair with a <code>;</code>.
+        </td>
+      </tr>
       <tr id="iparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-i <i>"tableNamesRegex"</i></code></td>
         <td class="param">Only include matching tables/views.
             This is a regular expression that's used to determine which
@@ -287,7 +288,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         </td>
       </tr>
       <tr id="capiparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-I <i>"tableNamesRegex"</i></code></td>
         <td class="param">Exclude matching tables/views.
             This regular expression excludes matching tables/views from the analysis.
@@ -295,7 +295,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         </td>
       </tr>
       <tr id="xparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-x <i>"columnNamesRegex"</i></code></td>
         <td class="param">Exclude matching columns from relationship analysis to
             simplify the generated graphs.
@@ -309,7 +308,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         </td>
       </tr>
       <tr id="capxparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-X <i>"columnNamesRegex"</i></code></td>
         <td class="param">
             Same as <a href='#xparam'><code>-x</code></a> but excluded relationships 
@@ -317,25 +315,21 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         </td>
       </tr>
       <tr id="ahicparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-ahic</code></td>
         <td class="param"><em>A</em>llow <em>H</em>TML <em>I</em>n <em>C</em>omments.<br>
             Any HTML embedded in comments normally gets encoded so that it's rendered as text.  
             This option allows it to be rendered as HTML.</td>
       </tr>
       <tr id="norowsparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-norows</code></td>
         <td class="param">Don't query or display row counts.</td>
       </tr>
       <tr id="noimpliedparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-noimplied</code></td>
         <td class="param">Don't include implied foreign key relationships in the 
             generated table details</td>
       </tr>
       <tr id="ssoparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-sso</code></td>
         <td class="param">
             <em>S</em>ingle <em>S</em>ign-<em>O</em>n.
@@ -343,8 +337,14 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             to simplify configuration when running in a single sign-on environment.
         </td>
       </tr>
+      <tr id="pfpparam">
+        <td class="param"><code>-pfp</code></td>
+        <td class="param">
+            <em>P</em>rompt <em>F</em>or <em>P</em>assword.
+            Prompts for the password so it doesn't appear on the command line.
+        </td>
+      </tr>
       <tr id="nohtmlparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-nohtml</code></td>
         <td class="param">
             Only generate files needed for insertion/deletion of data (e.g. for scripts)
@@ -352,7 +352,6 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         </td>
       </tr>
       <tr id="loglevelparam">
-        <td>&nbsp;</td>
         <td class="param"><code>-loglevel</code></td>
         <td class="param">
             Specifies how verbose logging of programmatic flow should be.<br/>
@@ -370,9 +369,9 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       </tr>
     </tbody>
   </table>
-  * denotes required parameter.
+
   <br>
-  <p>Here are the currently supported database types.
+     <p>SchemaSpy supports many types of databases.
      Use <code>java -jar schemaSpy.jar -dbhelp</code> for a complete list of the built-in
      database types and the parameters that each one requires.<br>
      See the <a href="dbtypes.html" target="_blank">database types documentation</a>
@@ -393,6 +392,14 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       <tr>
         <td class="dbType">db2net</td>
         <td class="param">IBM DB2 with 'net' Driver</td>
+      </tr>
+      <tr>
+        <td class="dbType">udbt4</td>
+        <td class="param">DB2 UDB Type 4 Driver</td>
+      </tr>
+      <tr>
+        <td class="dbType">db2zos</td>
+        <td class="param">DB2 for z/OS</td>
       </tr>
       <tr>
         <td class="dbType">derby</td>
@@ -451,6 +458,10 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <td class="param">PostgreSQL</td>
       </tr>
       <tr>
+        <td class="dbType">sqlite</td>
+        <td class="param">SQLite</td>
+      </tr>
+      <tr>
         <td class="dbType">sybase</td>
         <td class="param">Sybase Server with JDBC3 Driver</td>
       </tr>
@@ -459,8 +470,8 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
         <td class="param">Sybase Server with JDBC2 Driver</td>
       </tr>
       <tr>
-        <td class="dbType">udbt4</td>
-        <td class="param">DB2 UDB Type 4 Driver</td>
+        <td class="dbType">teradata</td>
+        <td class="param">Teradata (requires <a href="#connpropsparam">-connprops</a>)</td>
       </tr>
     </tbody>
   </table>
