@@ -51,7 +51,8 @@ public class Database {
         description = config.getDescription();
 
         initTables(meta, properties, config);
-        initViews(meta, properties, config);
+        if (config.isViewsEnabled())
+            initViews(meta, properties, config);
 
         initCheckConstraints(properties);
         initTableIds(properties);

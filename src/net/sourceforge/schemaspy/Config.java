@@ -88,6 +88,7 @@ public class Config
     private Boolean rankDirBugEnabled;
     private Boolean encodeCommentsEnabled;
     private Boolean numRowsEnabled;
+    private Boolean viewsEnabled;
     private Boolean meterEnabled;
     private Boolean railsEnabled;
     private Boolean evaluteAll;
@@ -765,6 +766,28 @@ public class Config
             numRowsEnabled = !options.remove("-norows");
 
         return numRowsEnabled;
+    }
+
+    /**
+     * If enabled we'll include views in the analysis.<p/>
+     *
+     * Defaults to <code>true</code> (enabled).
+     *
+     * @param enabled
+     */
+    public void setViewsEnabled(boolean enabled) {
+        viewsEnabled = enabled;
+    }
+
+    /**
+     * @see #setViewsEnabled(boolean)
+     * @return
+     */
+    public boolean isViewsEnabled() {
+        if (viewsEnabled == null)
+            viewsEnabled = !options.remove("-noviews");
+
+        return viewsEnabled;
     }
 
     /**
@@ -1558,6 +1581,8 @@ public class Config
             params.add("-meter");
         if (!isNumRowsEnabled())
             params.add("-norows");
+        if (!isViewsEnabled())
+            params.add("-noviews");
         if (isRankDirBugEnabled())
             params.add("-rankdirbug");
         if (isRailsEnabled())

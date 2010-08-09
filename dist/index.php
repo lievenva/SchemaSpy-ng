@@ -314,6 +314,10 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             will <em>not</em> show up on detail pages.
         </td>
       </tr>
+      <tr id="noviewsparam">
+        <td class="param"><code>-noviews</code></td>
+        <td class="param">Exclude all views.</td>
+      </tr>
       <tr id="ahicparam">
         <td class="param"><code>-ahic</code></td>
         <td class="param"><em>A</em>llow <em>H</em>TML <em>I</em>n <em>C</em>omments.<br>
@@ -327,7 +331,7 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       <tr id="noimpliedparam">
         <td class="param"><code>-noimplied</code></td>
         <td class="param">Don't include implied foreign key relationships in the 
-            generated table details</td>
+            generated table details.</td>
       </tr>
       <tr id="ssoparam">
         <td class="param"><code>-sso</code></td>
