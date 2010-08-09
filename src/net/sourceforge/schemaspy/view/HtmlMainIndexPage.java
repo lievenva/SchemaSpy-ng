@@ -2,8 +2,10 @@ package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import net.sourceforge.schemaspy.model.Database;
@@ -45,29 +47,42 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
         boolean showIds = false;
         int numViews = 0;
+        boolean comments = false;
 
         for (Table table : byName) {
             if (table.isView())
                 ++numViews;
             showIds |= table.getId() != null;
+            if (table.getComments() != null)
+                comments = true;
         }
 
-        writeHeader(database, byName.size() - numViews, numViews, showIds, showOrphansDiagram, html);
+        writeHeader(database, byName.size() - numViews, numViews, showIds, showOrphansDiagram, comments, html);
 
-        int numCols = 0;
+        int numTableCols = 0;
+        int numViewCols = 0;
         int numRows = 0;
         for (Table table : byName) {
             writeLineItem(table, showIds, html);
 
-            numCols += table.getColumns().size();
+            if (!table.isView())
+                numTableCols += table.getColumns().size();
+            else
+                numViewCols += table.getColumns().size();
             numRows += table.getNumRows();
         }
 
-        writeFooter(numCols, numRows, html);
+        writeFooter(numTableCols, numViewCols, numRows, html);
     }
 
-    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(db, null, null, hasOrphans, null, html);
+    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, boolean hasComments, LineWriter html) throws IOException {
+        List<String> javascript = new ArrayList<String>();
+        javascript.add("$(function(){");
+        javascript.add("  associate($('#showTables'), $('.tbl'));");
+        javascript.add("  associate($('#showViews'),  $('.view'))");
+        javascript.add("})");
+
+        writeHeader(db, null, null, hasOrphans, javascript, html);
         html.writeln("<table width='100%'>");
         html.writeln(" <tr><td class='container'>");
         writeGeneratedBy(db.getConnectTime(), html);
@@ -97,18 +112,28 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("</table>");
 
         html.writeln("<div class='indent'>");
-        html.write("<p><b>");
-        html.write(String.valueOf(numberOfTables));
-        html.write(" Tables");
-        if (numberOfViews > 0) {
-            html.write(" and ");
+        html.write("<p>");
+        html.write("<b>");
+        if (numberOfViews == 0) {
+            html.write(String.valueOf(numberOfTables));
+            html.writeln(" Tables");
+            html.writeln("<label for='showTables' style='display:none;'><input type='checkbox' id='showTables' checked></label>");
+        } else {
+            html.write("<label for='showTables'><input type='checkbox' id='showTables' checked>");
+            html.write(String.valueOf(numberOfTables));
+            html.write(" Tables</label>");
+            html.write(" <label for='showViews'><input type='checkbox' id='showViews' checked>");
             html.write(String.valueOf(numberOfViews));
             html.write(" View");
             if (numberOfViews != 1)
                 html.write("s");
+            html.write("</label>");
         }
-        html.writeln(":</b>");
-        html.writeln("<TABLE class='dataTable' border='1' rules='groups'>");
+
+        html.writeln("<br><label for='showComments' style='font-size: 85%;'><input type=checkbox " + (hasComments  ? "checked " : "") + "id='showComments'>Comments</label>");
+        html.writeln("</b>");
+
+        html.writeln("<table class='dataTable' border='1' rules='groups'>");
         int numGroups = 5 + (showIds ? 1 : 0) + (displayNumRows ? 1 : 0);
         for (int i = 0; i < numGroups; ++i)
             html.writeln("<colgroup>");
@@ -122,14 +147,16 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  <th align='right' valign='bottom'>Columns</th>");
         if (displayNumRows)
             html.writeln("  <th align='right' valign='bottom'>Rows</th>");
-        html.writeln("  <th align='left' valign='bottom'>Comments</th>");
+        html.writeln("  <th class='comment' align='left' valign='bottom'>Comments</th>");
         html.writeln("</tr>");
         html.writeln("</thead>");
         html.writeln("<tbody>");
     }
 
     private void writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
-        html.writeln(" <tr valign='top'>");
+        html.write(" <tr class='");
+        html.write(table.isView() ? "view" : "tbl");
+        html.writeln("' valign='top'>");
         html.write("  <td class='detail'><a href='tables/");
         html.write(table.getName());
         html.write(".html'>");
@@ -169,7 +196,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
                 html.write("<span title='Views contain no real rows'>view</span>");
             html.writeln("</td>");
         }
-        html.write("  <td class='detail'>");
+        html.write("  <td class='comment detail'>");
         String comments = table.getComments();
         if (comments != null) {
             if (encodeComments)
@@ -182,15 +209,38 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  </tr>");
     }
 
-    protected void writeFooter(int numCols, int numRows, LineWriter html) throws IOException {
-        html.writeln("</TABLE>");
-        html.write("<p>Columns: ");
-        html.write(String.valueOf(integerFormatter.format(numCols)));
+    protected void writeFooter(int numTableCols, int numViewCols, int numRows, LineWriter html) throws IOException {
+        html.writeln("</table>");
+        html.writeln("<p>");
+
+        html.writeln("<table class='container' border='0' style='font-size: 85%;'>");
+        html.writeln("<tr class='tbl'>");
+        html.write("<td class='container'>");
+        if (numViewCols > 0)
+            html.write("Table ");
+        html.writeln("Columns:</td>");
+        html.write("<td class='container' style='padding: 0px 2px'>");
+        html.write(String.valueOf(integerFormatter.format(numTableCols)));
+        html.writeln("</td>");
         if (displayNumRows) {
-            html.write("&nbsp;&nbsp;&nbsp;Rows: ");
+            html.write("<td class='container' style='padding: 0px 4px'>");
+            if (numViewCols > 0)
+                html.write("Table ");
+            html.writeln("Rows:</td>");
+            html.write("<td class='container' style='padding: 0px 2px'>");
             html.write(String.valueOf(integerFormatter.format(numRows)));
+            html.writeln("</td>");
         }
-        html.writeln("</div>");
+        html.writeln("</tr>");
+        if (numViewCols > 0) {
+            html.writeln("<tr class='view'>");
+            html.writeln("<td class='container'>View Columns:</td>");
+            html.write("<td class='container' style='padding: 0px 2px'>");
+            html.write(String.valueOf(integerFormatter.format(numViewCols)));
+            html.writeln("</td>");
+            html.writeln("</tr>");
+        }
+        html.writeln("</table>");
         super.writeFooter(html);
     }
 
