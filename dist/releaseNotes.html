@@ -173,6 +173,12 @@
         comments were out of sync with the css.  That resulted in the page attempting
         to hide 20,000+ columns on load.
     </li>
+    <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=3041947&group_id=137197">
+        bug 3041947</a> - NullPointerException when unable to resolve column type.<br>
+        SQL Anywhere returns null for view column types, resulting in SchemaSpy
+        to throw exceptions.  Now those view columns will show a type of "unknown". 
+        Thanks to Mattias Melin for reporting the problem and researching the solution.
+    </li>
 </ul>
 </li>
 

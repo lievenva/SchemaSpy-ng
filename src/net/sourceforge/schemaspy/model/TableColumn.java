@@ -52,7 +52,7 @@ public class TableColumn {
         String tmp = rs.getString("COLUMN_NAME");
         name = tmp == null ? null : tmp.intern();
         tmp = rs.getString("TYPE_NAME");
-        type = tmp == null ? null : tmp.intern();
+        type = tmp == null ? "unknown" : tmp.intern();
 
         decimalDigits = rs.getInt("DECIMAL_DIGITS");
         Number bufLength = (Number)rs.getObject("BUFFER_LENGTH");
