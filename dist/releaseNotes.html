@@ -164,6 +164,15 @@
         well as hide comments.<br/>
         Thanks to jpummill for the idea.
     </li>
+    <li>The columns page with extremely large databases (e.g. 20,000 columns) was
+        so massive that 
+        <a href="https://sourceforge.net/projects/schemaspy/forums/forum/462850/topic/2976775?message=6358882">
+        browsers were unable to render it</a>.
+        The new columns page has been trimmed down to help it load.
+        There was also a performance issue where the visibility state of column 
+        comments were out of sync with the css.  That resulted in the page attempting
+        to hide 20,000+ columns on load.
+    </li>
 </ul>
 </li>
 

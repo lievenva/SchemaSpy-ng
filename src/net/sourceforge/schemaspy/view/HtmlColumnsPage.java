@@ -54,8 +54,6 @@ public class HtmlColumnsPage extends HtmlFormatter {
         columns.add(new ColumnInfo("Nulls", new ByNullableComparator()));
         columns.add(new ColumnInfo("Auto", new ByAutoUpdateComparator()));
         columns.add(new ColumnInfo("Default", new ByDefaultValueComparator()));
-        columns.add(new ColumnInfo("Children", new ByChildrenComparator()));
-        columns.add(new ColumnInfo("Parents", new ByParentsComparator()));
 
         return columns;
     }
@@ -97,7 +95,6 @@ public class HtmlColumnsPage extends HtmlFormatter {
         Set<TableColumn> columns = new TreeSet<TableColumn>(columnInfo.getComparator());
         Set<TableColumn> primaryColumns = new HashSet<TableColumn>();
         Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
-        boolean showCommentsInitially = false;
 
         for (Table table : tables) {
             columns.addAll(table.getColumns());
@@ -108,23 +105,18 @@ public class HtmlColumnsPage extends HtmlFormatter {
             }
         }
 
-        for (TableColumn column : columns) {
-            showCommentsInitially |= column.getComments() != null;
-        }
-
-
-        writeHeader(database, columns.size(), showOrphansDiagram, columnInfo, showCommentsInitially, html);
+        writeHeader(database, columns.size(), showOrphansDiagram, columnInfo, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
         for (TableColumn column : columns) {
-            formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, false, html);
+            formatter.writeColumn(column, column.getTable().getName(), primaryColumns, indexedColumns, true, false, html);
         }
 
         writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, ColumnInfo selectedColumn, boolean showCommentsInitially, LineWriter html) throws IOException {
+    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, ColumnInfo selectedColumn, LineWriter html) throws IOException {
         writeHeader(db, null, "Columns", hasOrphans, html);
 
         html.writeln("<table width='100%' border='0'>");
@@ -136,9 +128,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         html.writeln("<p>");
         html.writeln("<form name='options' action=''>");
-        html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
-        html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraints</label>");
-        html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially ? "checked " : "") + " id='showComments'>Comments</label>");
+        html.writeln(" <label for='showComments'><input type=checkbox id='showComments'>Comments</label>");
         html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
         html.writeln("</table>");
@@ -163,12 +153,11 @@ public class HtmlColumnsPage extends HtmlFormatter {
         boolean showTableName = selectedColumn != null;
         out.writeln("<a name='columns'></a>");
         out.writeln("<table id='columns' class='dataTable' border='1' rules='groups'>");
-        int span = 6;
+        int numCols = 6;
         if (hasTableIds || showTableName)
-            ++span;
-        out.writeln("<colgroup span='" + span + "'>");
-        out.writeln("<colgroup>");
-        out.writeln("<colgroup>");
+            ++numCols;
+        for (int i = 0; i < numCols; ++i)
+            out.writeln("<colgroup>");
         out.writeln("<colgroup class='comment'>");
 
         out.writeln("<thead align='left'>");
@@ -183,8 +172,6 @@ public class HtmlColumnsPage extends HtmlFormatter {
         out.writeln(getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));
         out.writeln(getTH(selectedColumn, "Auto", "Is column automatically updated?", null));
         out.writeln(getTH(selectedColumn, "Default", "Default value", null));
-        out.writeln(getTH(selectedColumn, "Children", "Columns in tables that reference this column", null));
-        out.writeln(getTH(selectedColumn, "Parents", "Columns in tables that are referenced by this column", null));
         out.writeln("  <th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
         out.writeln("</tr>");
         out.writeln("</thead>");
@@ -309,54 +296,6 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
         public int compare(TableColumn column1, TableColumn column2) {
             int rc = String.valueOf(column1.getDefaultValue()).compareToIgnoreCase(String.valueOf(column2.getDefaultValue()));
-            if (rc == 0)
-                rc = byColumn.compare(column1, column2);
-            return rc;
-        }
-    }
-
-    private class ByChildrenComparator implements Comparator<TableColumn> {
-        private final Comparator<TableColumn> byColumn = new ByColumnComparator();
-
-        public int compare(TableColumn column1, TableColumn column2) {
-            Set<String> childTables1 = new TreeSet<String>();
-            Set<String> childTables2 = new TreeSet<String>();
-
-            for (TableColumn column : column1.getChildren()) {
-                if (!column.getParentConstraint(column1).isImplied())
-                    childTables1.add(column.getTable().getName());
-            }
-
-            for (TableColumn column : column2.getChildren()) {
-                if (!column.getParentConstraint(column2).isImplied())
-                    childTables2.add(column.getTable().getName());
-            }
-
-            int rc = childTables1.toString().compareToIgnoreCase(childTables2.toString());
-            if (rc == 0)
-                rc = byColumn.compare(column1, column2);
-            return rc;
-        }
-    }
-
-    private class ByParentsComparator implements Comparator<TableColumn> {
-        private final Comparator<TableColumn> byColumn = new ByColumnComparator();
-
-        public int compare(TableColumn column1, TableColumn column2) {
-            Set<String> parentTables1 = new TreeSet<String>();
-            Set<String> parentTables2 = new TreeSet<String>();
-
-            for (TableColumn column : column1.getParents()) {
-                if (!column.getChildConstraint(column1).isImplied())
-                    parentTables1.add(column.getTable().getName() + '.' + column.getTable().getSchema());
-            }
-
-            for (TableColumn column : column2.getParents()) {
-                if (!column.getChildConstraint(column2).isImplied())
-                    parentTables2.add(column.getTable().getName() + '.' + column.getTable().getSchema());
-            }
-
-            int rc = parentTables1.toString().compareToIgnoreCase(parentTables2.toString());
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;

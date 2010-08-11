@@ -113,12 +113,12 @@ public class HtmlTablePage extends HtmlFormatter {
 
         boolean showIds = table.getId() != null;
         for (TableColumn column : table.getColumns()) {
-            writeColumn(column, null, primaries, indexedColumns, showIds, out);
+            writeColumn(column, null, primaries, indexedColumns, false, showIds, out);
         }
         out.writeln("</table>");
     }
 
-    public void writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set<TableColumn> indexedColumns, boolean showIds, LineWriter out) throws IOException {
+    public void writeColumn(TableColumn column, String tableName, Set<TableColumn> primaries, Set<TableColumn> indexedColumns, boolean slim, boolean showIds, LineWriter out) throws IOException {
         if (tableName != null) {
             if (++columnCounter % 2 == 0)
                 out.writeln("<tr class='odd'>");
@@ -184,13 +184,15 @@ public class HtmlTablePage extends HtmlFormatter {
         } else {
             out.writeln(" <td class='detail'></td>");
         }
-        out.write(" <td class='detail'>");
-        String path = tableName == null ? "" : "tables/";
-        writeRelatives(column, false, path, out);
-        out.writeln("</td>");
-        out.write(" <td class='detail'>");
-        writeRelatives(column, true, path, out);
-        out.writeln(" </td>");
+        if (!slim) {
+            out.write(" <td class='detail'>");
+            String path = tableName == null ? "" : "tables/";
+            writeRelatives(column, false, path, out);
+            out.writeln("</td>");
+            out.write(" <td class='detail'>");
+            writeRelatives(column, true, path, out);
+            out.writeln(" </td>");
+        }
         out.write(" <td class='comment detail'>");
         String comments = column.getComments();
         if (comments != null) {
