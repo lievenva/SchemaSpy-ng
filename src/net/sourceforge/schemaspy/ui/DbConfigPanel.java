@@ -1,3 +1,21 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.ui;
 
 import java.awt.BorderLayout;
@@ -22,23 +40,23 @@ import net.sourceforge.schemaspy.util.DbSpecificConfig;
 public class DbConfigPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private JComboBox databaseTypeSelector;
-    private DbConfigTableModel model = new DbConfigTableModel();
+    private final DbConfigTableModel model = new DbConfigTableModel();
     private JTable table;
 
     public DbConfigPanel() {
         super();
         initialize();
     }
-    
+
     /**
      * This method initializes this
-     * 
+     *
      * @return void
      */
     private void initialize() {
         table = new JTable(model) {
             private static final long serialVersionUID = 1L;
-            
+
             {
                 setDefaultRenderer(Boolean.TYPE, getDefaultRenderer(Boolean.class));
                 setDefaultEditor(Boolean.TYPE, getDefaultEditor(Boolean.class));
@@ -53,10 +71,10 @@ public class DbConfigPanel extends JPanel {
             @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
                 TableCellRenderer renderer;
-                
+
                 if (column == 0)
                     renderer = super.getCellRenderer(row, column);
-                else 
+                else
                     renderer = getDefaultRenderer(model.getClass(row));
                 if (renderer instanceof JComponent)
                     ((JComponent)renderer).setToolTipText(model.getDescription(row));
@@ -68,7 +86,7 @@ public class DbConfigPanel extends JPanel {
                 return getDefaultEditor(model.getClass(row));
             }
         };
-        
+
         model.addTableModelListener(new TableModelListener() {
             public void tableChanged(TableModelEvent e) {
                 TableColumn paramColumn = table.getColumnModel().getColumn(0);
@@ -77,18 +95,18 @@ public class DbConfigPanel extends JPanel {
                 table.sizeColumnsToFit(0);
             }
         });
-        
+
         setLayout(new BorderLayout());
         JScrollPane scroller = new JScrollPane(table);
         scroller.setViewportBorder(null);
         add(scroller, BorderLayout.CENTER);
-        
+
         add(getDatabaseTypeSelector(), BorderLayout.NORTH);
     }
 
     /**
-     * This method initializes databaseTypeSelector 
-     *  
+     * This method initializes databaseTypeSelector
+     *
      * @return javax.swing.JComboBox
      */
     private JComboBox getDatabaseTypeSelector() {
@@ -101,7 +119,7 @@ public class DbConfigPanel extends JPanel {
                         model.setDbSpecificConfig((DbSpecificConfig)evt.getItem());
                 }
             });
-            
+
             DbSpecificConfig selected = (DbSpecificConfig)selectorModel.getSelectedItem();
             if (selected != null)
                 model.setDbSpecificConfig(selected);

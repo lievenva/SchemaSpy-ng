@@ -1,3 +1,21 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.view;
 
 import java.io.BufferedReader;
@@ -19,10 +37,10 @@ import net.sourceforge.schemaspy.util.LineWriter;
 
 /**
  * Represents our CSS style sheet (CSS) with accessors for important
- * data from that style sheet.  
+ * data from that style sheet.
  * The idea is that the CSS that will be used to render the HTML pages
- * also determines the colors used in the generated ER diagrams. 
- *  
+ * also determines the colors used in the generated ER diagrams.
+ *
  * @author John Currier
  */
 public class StyleSheet {
@@ -92,7 +110,7 @@ public class StyleSheet {
 
     /**
      * Singleton accessor
-     * 
+     *
      * @return the singleton
      * @throws ParseException
      */
@@ -104,7 +122,7 @@ public class StyleSheet {
                 throw new ParseException(exc);
             }
         }
-        
+
         return instance;
     }
 
@@ -117,7 +135,7 @@ public class StyleSheet {
      * <li><code>cssName</code> as a file in the user's home directory</li>
      * <li><code>cssName</code> as a resource from the class path</li>
      * </ol>
-     * 
+     *
      * @param cssName
      * @return
      * @throws IOException
@@ -129,11 +147,11 @@ public class StyleSheet {
         cssFile = new File(System.getProperty("user.dir"), cssName);
         if (cssFile.exists())
             return new FileReader(cssFile);
-        
+
         InputStream cssStream = StyleSheet.class.getClassLoader().getResourceAsStream(cssName);
         if (cssStream == null)
             throw new ParseException("Unable to find requested style sheet: " + cssName);
-        
+
         return new InputStreamReader(cssStream);
     }
 
@@ -158,7 +176,7 @@ public class StyleSheet {
 
     /**
      * Write the contents of the original css to <code>out</code>.
-     * 
+     *
      * @param out
      * @throws IOException
      */
@@ -169,63 +187,63 @@ public class StyleSheet {
     public String getBodyBackground() {
         if (bodyBackgroundColor == null)
             throw new MissingCssPropertyException(".content", "background");
-        
+
         return bodyBackgroundColor;
     }
 
     public String getTableBackground() {
         if (tableBackgroundColor == null)
             throw new MissingCssPropertyException("td", "background-color");
-        
+
         return tableBackgroundColor;
     }
 
     public String getTableHeadBackground() {
         if (tableHeadBackgroundColor == null)
             throw new MissingCssPropertyException("th", "background-color");
-        
+
         return tableHeadBackgroundColor;
     }
 
     public String getPrimaryKeyBackground() {
         if (primaryKeyBackgroundColor == null)
             throw new MissingCssPropertyException(".primaryKey", "background");
-        
+
         return primaryKeyBackgroundColor;
     }
 
     public String getIndexedColumnBackground() {
         if (indexedColumnBackgroundColor == null)
             throw new MissingCssPropertyException(".indexedColumn", "background");
-        
+
         return indexedColumnBackgroundColor;
     }
 
     public String getSelectedTableBackground() {
         if (selectedTableBackgroundColor == null)
             throw new MissingCssPropertyException(".selectedTable", "background");
-        
+
         return selectedTableBackgroundColor;
     }
 
     public String getExcludedColumnBackgroundColor() {
         if (excludedColumnBackgroundColor == null)
             throw new MissingCssPropertyException(".excludedColumn", "background");
-        
+
         return excludedColumnBackgroundColor;
     }
-    
+
     public String getLinkColor() {
         if (linkColor == null)
             throw new MissingCssPropertyException("a:link", "color");
-        
+
         return linkColor;
     }
-    
+
     public String getLinkVisitedColor() {
         if (linkVisitedColor == null)
             throw new MissingCssPropertyException("a:visited", "color");
-        
+
         return linkVisitedColor;
     }
 
@@ -243,7 +261,7 @@ public class StyleSheet {
             super("Required property '" + propName + "' was not found for the definition of '" + cssSection + "' in " + Config.getInstance().getCss());
         }
     }
-    
+
     /**
      * Indicates an exception in parsing the css
      */
@@ -256,7 +274,7 @@ public class StyleSheet {
         public ParseException(Exception cause) {
             super(cause);
         }
-        
+
         /**
          * @param msg textual description of the failure
          */

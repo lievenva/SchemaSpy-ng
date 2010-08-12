@@ -1,14 +1,32 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.util;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Implementation of Rails' 
+ * Implementation of Rails'
  * <a href='http://api.rubyonrails.org/classes/ActiveSupport/CoreExtensions/String/Inflections.html'>Inflections</a>
- * to handle singularization and pluralization of 'Rails strings'. 
- * 
+ * to handle singularization and pluralization of 'Rails strings'.
+ *
  * Copied from <a href='http://code.google.com/p/rogueweb/'>rogueweb</a>'s port of Rails to Java.
  *
  * @author Anthony Eden
@@ -85,9 +103,9 @@ public class Inflection {
         //Collections.reverse(plural);
     }
 
-    private String pattern;
-    private String replacement;
-    private boolean ignoreCase;
+    private final String pattern;
+    private final String replacement;
+    private final boolean ignoreCase;
 
     public Inflection(String pattern) {
         this(pattern, null, true);
@@ -155,7 +173,7 @@ public class Inflection {
         if (Inflection.isUncountable(word)) {
             return word;
         }
-        
+
         for (Inflection inflection : plural) {
             if (inflection.match(word)) {
                 return inflection.replace(word);
@@ -173,7 +191,7 @@ public class Inflection {
         if (Inflection.isUncountable(word)) {
             return word;
         }
-        
+
         for (Inflection inflection : singular) {
             //System.out.println(word + " matches " + inflection.pattern + "? (ignore case: " + inflection.ignoreCase + ")");
             if (inflection.match(word)) {

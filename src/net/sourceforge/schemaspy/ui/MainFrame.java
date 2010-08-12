@@ -1,3 +1,21 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.ui;
 
 import java.awt.Dimension;
@@ -33,14 +51,14 @@ public class MainFrame extends JFrame {
 
     /**
      * This method initializes this
-     * 
+     *
      * @return void
      */
     private void initialize() {
-        this.setContentPane(getJContentPane());
-        this.setTitle("SchemaSpy");
+        setContentPane(getJContentPane());
+        setTitle("SchemaSpy");
         this.setSize(new Dimension(500, 312));
-        this.addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
@@ -50,7 +68,7 @@ public class MainFrame extends JFrame {
 
     /**
      * This method initializes dbConfigPanel
-     * 
+     *
      * @return javax.swing.JPanel
      */
     private JPanel getDbConfigPanel() {
@@ -73,7 +91,7 @@ public class MainFrame extends JFrame {
             constraints.insets = new Insets(4, 0, 4, 0);
             jContentPane.add(getHeaderPanel(), constraints);
             constraints.insets = new Insets(0, 0, 0, 0);
-            
+
             constraints.fill = GridBagConstraints.BOTH;
             constraints.anchor = GridBagConstraints.NORTHWEST;
             constraints.weighty = 1.0;
@@ -90,7 +108,7 @@ public class MainFrame extends JFrame {
 //            filler.setPreferredSize(new Dimension(0, 0));
 //            filler.setMinimumSize(new Dimension(0, 0));
 //            jContentPane.add(filler, constraints);
-            
+
             constraints.anchor = GridBagConstraints.SOUTHEAST;
             constraints.fill = GridBagConstraints.NONE;
             constraints.weighty = 0.0;
@@ -112,7 +130,7 @@ public class MainFrame extends JFrame {
         }
         return buttonBar;
     }
-    
+
     private JPanel getHeaderPanel() {
         if (header == null) {
             header = new JPanel();

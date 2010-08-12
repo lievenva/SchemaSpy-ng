@@ -1,3 +1,21 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
@@ -117,7 +135,7 @@ public class DotFormatter {
         while (iter.hasNext()) {
             Table participantA = iter.next();
             iter.remove(); // cut down the combos as quickly as possible
-            
+
             for (Table participantB : participants) {
                 for (DotConnector connector : finder.getRelatedConnectors(participantA, participantB, false, includeImplied)) {
                     if (twoDegreesOfSeparation && (allCousins.contains(participantA) || allCousins.contains(participantB))) {
@@ -125,10 +143,10 @@ public class DotFormatter {
                     } else {
                         connectors.add(connector);
                     }
-                }                
+                }
             }
         }
-        
+
         markExcludedColumns(nodes, stats.getExcludedColumns());
 
         // now directly connect the loose ends to the title of the
@@ -162,36 +180,36 @@ public class DotFormatter {
         }
 
         dot.writeln("}");
-        
+
         return skippedImpliedConstraints;
     }
 
     private Set<Table> getImmediateRelatives(Table table, boolean includeExcluded, boolean includeImplied, Set<ForeignKeyConstraint> skippedImpliedConstraints) {
         Set<TableColumn> relatedColumns = new HashSet<TableColumn>();
-        
+
         for (TableColumn column : table.getColumns()) {
             if (column.isAllExcluded() || (!includeExcluded && column.isExcluded())) {
                 continue;
             }
-            
+
             for (TableColumn childColumn : column.getChildren()) {
                 if (childColumn.isAllExcluded() || (!includeExcluded && childColumn.isExcluded())) {
                     continue;
                 }
-                
-                ForeignKeyConstraint constraint = column.getChildConstraint(childColumn); 
+
+                ForeignKeyConstraint constraint = column.getChildConstraint(childColumn);
                 if (includeImplied || !constraint.isImplied())
                     relatedColumns.add(childColumn);
                 else
                     skippedImpliedConstraints.add(constraint);
             }
-            
+
             for (TableColumn parentColumn : column.getParents()) {
                 if (parentColumn.isAllExcluded() || (!includeExcluded && parentColumn.isExcluded())) {
                     continue;
                 }
 
-                ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn); 
+                ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn);
                 if (includeImplied || !constraint.isImplied())
                     relatedColumns.add(parentColumn);
                 else
@@ -202,7 +220,7 @@ public class DotFormatter {
         Set<Table> relatedTables = new HashSet<Table>();
         for (TableColumn column : relatedColumns)
             relatedTables.add(column.getTable());
-        
+
         relatedTables.remove(table);
 
         return relatedTables;
@@ -254,7 +272,7 @@ public class DotFormatter {
         DotConnectorFinder finder = DotConnectorFinder.getInstance();
         DotNodeConfig nodeConfig = showColumns ? new DotNodeConfig(!compact, false) : new DotNodeConfig();
         boolean wroteImplied = false;
-        
+
         String diagramName;
         if (includeImplied) {
             if (compact)
@@ -302,7 +320,7 @@ public class DotFormatter {
         }
 
         dot.writeln("}");
-        
+
         return wroteImplied;
     }
 

@@ -1,3 +1,21 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.util;
 
 import java.io.BufferedWriter;
@@ -17,7 +35,7 @@ import java.io.Writer;
  */
 public class LineWriter extends BufferedWriter {
     private final Writer out;
-    
+
     public LineWriter(String filename, String charset) throws UnsupportedEncodingException, FileNotFoundException {
         this(new FileOutputStream(filename), charset);
     }
@@ -25,7 +43,7 @@ public class LineWriter extends BufferedWriter {
     public LineWriter(String filename, int sz, String charset) throws UnsupportedEncodingException, FileNotFoundException {
         this(new FileOutputStream(filename), sz, charset);
     }
-    
+
     public LineWriter(File file, String charset) throws UnsupportedEncodingException, FileNotFoundException {
         this(new FileOutputStream(file), charset);
     }
@@ -33,7 +51,7 @@ public class LineWriter extends BufferedWriter {
     public LineWriter(File file, int sz, String charset) throws UnsupportedEncodingException, IOException {
         this(new FileOutputStream(file), sz, charset);
     }
-    
+
     public LineWriter(OutputStream out, String charset) throws UnsupportedEncodingException {
         this(new OutputStreamWriter(out, charset), 8192);
     }
@@ -47,7 +65,7 @@ public class LineWriter extends BufferedWriter {
         super(out, sz);
         this.out = out;
     }
-    
+
     public void writeln(String str) throws IOException {
         write(str);
         newLine();
@@ -56,7 +74,7 @@ public class LineWriter extends BufferedWriter {
     public void writeln() throws IOException {
         newLine();
     }
- 
+
     /**
      * Intended to simplify use when wrapping StringWriters.
      */
@@ -67,7 +85,7 @@ public class LineWriter extends BufferedWriter {
         } catch (IOException exc) {
             throw new RuntimeException(exc);
         }
-        
+
         return out.toString();
     }
 }

@@ -1,3 +1,21 @@
+/*
+ * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ *
+ * SchemaSpy is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * SchemaSpy is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
@@ -20,7 +38,7 @@ public class HtmlFormatter {
 
     protected HtmlFormatter() {
     }
-    
+
     protected void writeHeader(Database db, Table table, String text, boolean showOrphans, List<String> javascript, LineWriter out) throws IOException {
         out.writeln("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>");
         out.writeln("<html>");
@@ -191,7 +209,7 @@ public class HtmlFormatter {
     protected void writeFeedMe(LineWriter html) throws IOException {
         if (Config.getInstance().isAdsEnabled()) {
             StyleSheet css = StyleSheet.getInstance();
-            
+
             html.writeln("<div style=\"margin-right: 2pt;\">");
             html.writeln("<script type=\"text/javascript\"><!--");
             html.writeln("google_ad_client = \"pub-9598353634003340\";");
@@ -203,7 +221,7 @@ public class HtmlFormatter {
             html.writeln("google_color_border = \"" + css.getTableHeadBackground().substring(1) + "\";");
             html.writeln("google_color_link = \"" + css.getLinkColor().substring(1) + "\";");
             html.writeln("google_color_text = \"000000\";");
-            
+
             html.writeln("//-->");
             html.writeln("</script>");
             html.writeln("<script type=\"text/javascript\"");
@@ -215,7 +233,7 @@ public class HtmlFormatter {
 
     protected void writeExcludedColumns(Set<TableColumn> excludedColumns, Table table, LineWriter html) throws IOException {
         Set<TableColumn> notInDiagram;
-        
+
         // diagram INCLUDES relationships directly connected to THIS table's excluded columns
         if (table == null) {
             notInDiagram = excludedColumns;
@@ -227,7 +245,7 @@ public class HtmlFormatter {
                 }
             }
         }
-        
+
         if (notInDiagram.size() > 0) {
             html.writeln("<span class='excludedRelationship'>");
             html.writeln("<br>Excluded from diagram's relationships: ");
@@ -245,7 +263,7 @@ public class HtmlFormatter {
             html.writeln("</span>");
         }
     }
-    
+
     protected void writeInvalidGraphvizInstallation(LineWriter html) throws IOException {
         html.writeln("<br>SchemaSpy was unable to generate a diagram of table relationships.");
         html.writeln("<br>SchemaSpy requires Graphviz " + Dot.getInstance().getSupportedVersions().substring(4) + " from <a href='http://www.graphviz.org' target='_blank'>www.graphviz.org</a>.");
