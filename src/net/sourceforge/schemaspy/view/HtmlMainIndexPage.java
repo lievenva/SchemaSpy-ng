@@ -72,14 +72,32 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             numRows += table.getNumRows();
         }
 
-        writeFooter(numTableCols, numViewCols, numRows, html);
+        writeFooter(byName.size() - numViews, numTableCols, numViews, numViewCols, numRows, html);
     }
 
     private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, boolean hasComments, LineWriter html) throws IOException {
         List<String> javascript = new ArrayList<String>();
+
+        // we can't use the hard-coded even odd technique that we use
+        // everywhere else because we're dynamically changing the visibility
+        // of tables/views within the list
         javascript.add("$(function(){");
         javascript.add("  associate($('#showTables'), $('.tbl'));");
-        javascript.add("  associate($('#showViews'),  $('.view'))");
+        javascript.add("  associate($('#showViews'),  $('.view'));");
+        javascript.add("  jQuery.fn.alternateRowColors = function() {");
+        javascript.add("    $('tbody tr:visible').each(function(i) {");
+        javascript.add("      if (i % 2 == 0) {");
+        javascript.add("        $(this).removeClass('even').addClass('odd');");
+        javascript.add("      } else {");
+        javascript.add("        $(this).removeClass('odd').addClass('even');");
+        javascript.add("      }");
+        javascript.add("    });");
+        javascript.add("    return this;");
+        javascript.add("  };");
+        javascript.add("  $('#showTables, #showViews').click(function() {");
+        javascript.add("    $('table.dataTable').alternateRowColors();");
+        javascript.add("  });");
+        javascript.add("  $('table.dataTable').alternateRowColors();");
         javascript.add("})");
 
         writeHeader(db, null, null, hasOrphans, javascript, html);
@@ -115,31 +133,32 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.write("<p>");
         html.write("<b>");
         if (numberOfViews == 0) {
-            html.write(String.valueOf(numberOfTables));
-            html.writeln(" Tables");
             html.writeln("<label for='showTables' style='display:none;'><input type='checkbox' id='showTables' checked></label>");
+        } else if (numberOfTables == 0) {
+            html.writeln("<label for='showViews' style='display:none;'><input type='checkbox' id='showViews' checked></label>");
         } else {
-            html.write("<label for='showTables'><input type='checkbox' id='showTables' checked>");
-            html.write(String.valueOf(numberOfTables));
-            html.write(" Tables</label>");
-            html.write(" <label for='showViews'><input type='checkbox' id='showViews' checked>");
-            html.write(String.valueOf(numberOfViews));
-            html.write(" View");
-            if (numberOfViews != 1)
-                html.write("s");
-            html.write("</label>");
+            html.write("<label for='showTables'><input type='checkbox' id='showTables' checked>Tables</label>");
+            html.write(" <label for='showViews'><input type='checkbox' id='showViews' checked>Views</label>");
         }
 
-        html.writeln("<br><label for='showComments' style='font-size: 85%;'><input type=checkbox " + (hasComments  ? "checked " : "") + "id='showComments'>Comments</label>");
+        html.writeln(" <label for='showComments'><input type=checkbox " + (hasComments  ? "checked " : "") + "id='showComments'>Comments</label>");
         html.writeln("</b>");
 
         html.writeln("<table class='dataTable' border='1' rules='groups'>");
-        int numGroups = 5 + (showIds ? 1 : 0) + (displayNumRows ? 1 : 0);
+        int numGroups = 4 + (showIds ? 1 : 0) + (displayNumRows ? 1 : 0);
         for (int i = 0; i < numGroups; ++i)
             html.writeln("<colgroup>");
+        html.writeln("<colgroup class='comment'>");
         html.writeln("<thead align='left'>");
         html.writeln("<tr>");
-        html.writeln("  <th valign='bottom'>Table</th>");
+        String tableHeading;
+        if (numberOfViews == 0)
+            tableHeading = "Table";
+        else if (numberOfTables == 0)
+            tableHeading = "View";
+        else
+            tableHeading = "Table / View";
+        html.writeln("  <th valign='bottom'>" + tableHeading + "</th>");
         if (showIds)
             html.writeln("  <th align='center' valign='bottom'>ID</th>");
         html.writeln("  <th align='right' valign='bottom'>Children</th>");
@@ -154,9 +173,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
     }
 
     private void writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
-        html.write(" <tr class='");
-        html.write(table.isView() ? "view" : "tbl");
-        html.writeln("' valign='top'>");
+        html.write(" <tr class='" + (table.isView() ? "view" : "tbl") + "' valign='top'>");
         html.write("  <td class='detail'><a href='tables/");
         html.write(table.getName());
         html.write(".html'>");
@@ -209,38 +226,38 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  </tr>");
     }
 
-    protected void writeFooter(int numTableCols, int numViewCols, int numRows, LineWriter html) throws IOException {
+    protected void writeFooter(int numTables, int numTableCols, int numViews, int numViewCols, int numRows, LineWriter html) throws IOException {
+        html.writeln("  <tr>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        if (displayNumRows)
+            html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='comment detail'>&nbsp;</td>");
+        html.writeln("  </tr>");
+        String name = numTables == 1 ? " Table" : " Tables";
+        html.writeln("  <tr class='tbl'>");
+        html.writeln("    <td class='detail'><b>" + integerFormatter.format(numTables) + name + "</b></td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail' align='right'><b>" + integerFormatter.format(numTableCols) + "</b></td>");
+        if (displayNumRows)
+            html.writeln("    <td class='detail' align='right'><b>" + integerFormatter.format(numRows) + "</b></td>");
+        html.writeln("    <td class='comment detail'>&nbsp;</td>");
+        html.writeln("  </tr>");
+        name = numViews == 1 ? " View" : " Views";
+        html.writeln("  <tr class='view'>");
+        html.writeln("    <td class='detail'><b>" + integerFormatter.format(numViews) + name + "</b></td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='detail' align='right'><b>" + integerFormatter.format(numViewCols) + "</b></td>");
+        if (displayNumRows)
+            html.writeln("    <td class='detail'>&nbsp;</td>");
+        html.writeln("    <td class='comment detail'>&nbsp;</td>");
+        html.writeln("  </tr>");
         html.writeln("</table>");
-        html.writeln("<p>");
 
-        html.writeln("<table class='container' border='0' style='font-size: 85%;'>");
-        html.writeln("<tr class='tbl'>");
-        html.write("<td class='container'>");
-        if (numViewCols > 0)
-            html.write("Table ");
-        html.writeln("Columns:</td>");
-        html.write("<td class='container' style='padding: 0px 2px'>");
-        html.write(String.valueOf(integerFormatter.format(numTableCols)));
-        html.writeln("</td>");
-        if (displayNumRows) {
-            html.write("<td class='container' style='padding: 0px 4px'>");
-            if (numViewCols > 0)
-                html.write("Table ");
-            html.writeln("Rows:</td>");
-            html.write("<td class='container' style='padding: 0px 2px'>");
-            html.write(String.valueOf(integerFormatter.format(numRows)));
-            html.writeln("</td>");
-        }
-        html.writeln("</tr>");
-        if (numViewCols > 0) {
-            html.writeln("<tr class='view'>");
-            html.writeln("<td class='container'>View Columns:</td>");
-            html.write("<td class='container' style='padding: 0px 2px'>");
-            html.write(String.valueOf(integerFormatter.format(numViewCols)));
-            html.writeln("</td>");
-            html.writeln("</tr>");
-        }
-        html.writeln("</table>");
         super.writeFooter(html);
     }
 

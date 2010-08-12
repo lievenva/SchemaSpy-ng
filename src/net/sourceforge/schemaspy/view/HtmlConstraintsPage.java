@@ -23,6 +23,7 @@ import net.sourceforge.schemaspy.util.LineWriter;
  */
 public class HtmlConstraintsPage extends HtmlFormatter {
     private static HtmlConstraintsPage instance = new HtmlConstraintsPage();
+    private int columnCounter;
 
     /**
      * Singleton: Don't allow instantiation
@@ -85,6 +86,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.writeln("<colgroup>");
         html.writeln("<colgroup>");
         html.writeln("<colgroup>");
+        html.writeln("<colgroup>");
         html.writeln("<thead align='left'>");
         html.writeln("<tr>");
         html.writeln("  <th>Constraint Name</th>");
@@ -114,7 +116,11 @@ public class HtmlConstraintsPage extends HtmlFormatter {
      * @throws IOException
      */
     private void writeForeignKeyConstraint(ForeignKeyConstraint constraint, LineWriter html) throws IOException {
-        html.writeln(" <tr>");
+        boolean even = columnCounter++ % 2 == 0;
+        if (even)
+            html.writeln("  <tr class='even'>");
+        else
+            html.writeln("  <tr class='odd'>");
         html.write("  <td class='detail'>");
         html.write(constraint.getName());
         html.writeln("</td>");

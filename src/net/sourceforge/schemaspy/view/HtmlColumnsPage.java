@@ -150,21 +150,25 @@ public class HtmlColumnsPage extends HtmlFormatter {
     }
 
     public void writeMainTableHeader(boolean hasTableIds, ColumnInfo selectedColumn, LineWriter out) throws IOException {
-        boolean showTableName = selectedColumn != null;
+        boolean onColumnsPage = selectedColumn != null;
         out.writeln("<a name='columns'></a>");
         out.writeln("<table id='columns' class='dataTable' border='1' rules='groups'>");
-        int numCols = 6;
-        if (hasTableIds || showTableName)
-            ++numCols;
+        int numCols = 6;    // base number of columns
+        if (hasTableIds && !onColumnsPage)
+            ++numCols;      // for table id
+        if (onColumnsPage)
+            ++numCols;      // for table name
+        else
+            numCols += 2;   // for children and parents
         for (int i = 0; i < numCols; ++i)
             out.writeln("<colgroup>");
         out.writeln("<colgroup class='comment'>");
 
         out.writeln("<thead align='left'>");
         out.writeln("<tr>");
-        if (hasTableIds && !showTableName)
+        if (hasTableIds && !onColumnsPage)
             out.writeln(getTH(selectedColumn, "ID", null, "right"));
-        if (showTableName)
+        if (onColumnsPage)
             out.writeln(getTH(selectedColumn, "Table", null, null));
         out.writeln(getTH(selectedColumn, "Column", null, null));
         out.writeln(getTH(selectedColumn, "Type", null, null));
@@ -172,6 +176,12 @@ public class HtmlColumnsPage extends HtmlFormatter {
         out.writeln(getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));
         out.writeln(getTH(selectedColumn, "Auto", "Is column automatically updated?", null));
         out.writeln(getTH(selectedColumn, "Default", "Default value", null));
+        if (!onColumnsPage) {
+            out.write("  <th title='Columns in tables that reference this column'>");
+            out.writeln("<span class='notSortedByColumn'>Children</span></th>");
+            out.write("  <th title='Columns in tables that are referenced by this column'>");
+            out.writeln("<span class='notSortedByColumn'>Parents</span></th>");
+        }
         out.writeln("  <th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
         out.writeln("</tr>");
         out.writeln("</thead>");
