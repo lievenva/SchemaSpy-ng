@@ -76,7 +76,9 @@ public class Database {
         initTableIds(properties);
         initIndexIds(properties);
         initTableComments(properties);
-        initColumnComments(properties);
+        initTableColumnComments(properties);
+        initViewComments(properties);
+        initViewColumnComments(properties);
 
         connectTables();
         updateFromXmlMetadata(schemaMeta);
@@ -535,6 +537,14 @@ public class Database {
         }
     }
 
+    /**
+     * Initializes table comments.
+     * If the SQL also returns view comments then they're plugged into the
+     * appropriate views.
+     *
+     * @param properties
+     * @throws SQLException
+     */
     private void initTableComments(Properties properties) throws SQLException {
         String sql = properties.getProperty("selectTableCommentsSql");
         if (sql != null) {
@@ -568,7 +578,54 @@ public class Database {
         }
     }
 
-    private void initColumnComments(Properties properties) throws SQLException {
+    /**
+     * Initializes view comments.
+     *
+     * @param properties
+     * @throws SQLException
+     */
+    private void initViewComments(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectViewCommentsSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String viewName = rs.getString("view_name");
+                    if (viewName == null)
+                        viewName = rs.getString("table_name");
+                    Table view = views.get(viewName);
+
+                    if (view != null)
+                        view.setComments(rs.getString("comments"));
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                System.err.println();
+                System.err.println("Failed to retrieve table/view comments: " + sqlException);
+                System.err.println(sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+
+    /**
+     * Initializes table column comments.
+     * If the SQL also returns view column comments then they're plugged into the
+     * appropriate views.
+     *
+     * @param properties
+     * @throws SQLException
+     */
+    private void initTableColumnComments(Properties properties) throws SQLException {
         String sql = properties.getProperty("selectColumnCommentsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
@@ -594,6 +651,48 @@ public class Database {
                 // don't die just because this failed
                 System.err.println();
                 System.err.println("Failed to retrieve column comments: " + sqlException);
+                System.err.println(sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+
+    /**
+     * Initializes view column comments.
+     *
+     * @param properties
+     * @throws SQLException
+     */
+    private void initViewColumnComments(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectViewColumnCommentsSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String viewName = rs.getString("view_name");
+                    if (viewName == null)
+                        viewName = rs.getString("table_name");
+                    Table view = views.get(viewName);
+
+                    if (view != null) {
+                        TableColumn column = view.getColumn(rs.getString("column_name"));
+                        if (column != null)
+                            column.setComments(rs.getString("comments"));
+                    }
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                System.err.println();
+                System.err.println("Failed to retrieve view column comments: " + sqlException);
                 System.err.println(sql);
             } finally {
                 if (rs != null)

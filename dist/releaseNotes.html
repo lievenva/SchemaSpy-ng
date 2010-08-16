@@ -179,6 +179,12 @@
         to throw exceptions.  Now those view columns will show a type of "unknown". 
         Thanks to Mattias Melin for reporting the problem and researching the solution.
     </li>
+    <li>Added two new optional SQL queries for view comments: selectViewCommentsSql 
+        and selectViewColumnCommentsSql.<br>
+        These are optional and expected to return view and view column comments
+        when selectViewsSql, selectTableCommentsSql and selectColumnCommentsSql don't.<br>
+        Thanks to David Corlette for the idea.
+    </li>
 </ul>
 </li>
 

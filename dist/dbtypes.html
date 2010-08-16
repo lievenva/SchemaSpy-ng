@@ -105,44 +105,60 @@ They will be substituted with appropriate values at runtime.
   <td>selectTablesSql</td>
   <td>table_name</td>
   <td>table_schema, table_comment, table_rows</td>
-  <td>Basic information about all tables in a specific schema.
+  <td>Basic information about all tables in a specific schema.</td>
   <td>Database</td>
  </tr>
  <tr>
   <td>selectViewsSql</td>
   <td>view_name, view_definition</td>
   <td>view_schema, view_comment</td>
-  <td>Basic information about all views in a specific schema.
+  <td>Basic information about all views in a specific schema.</td>
   <td>Database</td>
  </tr>
  <tr>
   <td>selectIndexesSql</td>
   <td>index_name, column_name, type, asc_or_desc (<a href="http://java.sun.com/j2se/1.5.0/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String,%20java.lang.String,%20java.lang.String,%20boolean,%20boolean)">docs</a>)</td>
   <td>&nbsp;</td>
-  <td>Information about indexes in a specific table.
+  <td>Information about indexes in a specific table.</td>
   <td>Single table</td>
  </tr>
  <tr>
   <td>selectRowCountSql</td>
   <td>row_count</td>
   <td>&nbsp;</td>
-  <td>Number of rows in a specific table.
+  <td>Number of rows in a specific table.</td>
   <td>Single table</td>
  </tr>
  <tr>
   <td>selectTableCommentsSql</td>
   <td>table_name, comments</td>
   <td>&nbsp;</td>
-  <td>Comments associated with tables.  
+  <td>Comments associated with tables and (optionally) views.<br>  
   Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
+  <td>Database</td>
+ </tr>
+ <tr>
+  <td>selectViewCommentsSql</td>
+  <td>view_name, comments</td>
+  <td>&nbsp;</td>
+  <td>Comments associated with views.<br>  
+  Optionally defined if selectTableCommentsSql doesn't return view comments.</td>
   <td>Database</td>
  </tr>
  <tr>
   <td>selectColumnCommentsSql</td>
   <td>table_name, column_name, comments</td>
   <td>&nbsp;</td>
-  <td>Comments associated with table columns.
+  <td>Comments associated with table columns and (optionally) view columns.<br>
   Useful if the database driver doesn't return this info or if it's persisted elsewhere.</td>  
+  <td>Database</td>
+ </tr>
+ <tr>
+  <td>selectViewColumnCommentsSql</td>
+  <td>view_name, column_name, comments</td>
+  <td>&nbsp;</td>
+  <td>Comments associated with view columns.<br>
+  Optionally defined if selectColumnCommentsSql doesn't return view column comments.</td>  
   <td>Database</td>
  </tr>
  <tr>
