@@ -58,7 +58,7 @@
     <table class="menu" cellpadding="0" cellspacing="1">
       <tr><td>
         <a class="quicklinks" href="sample/">Sample Output</a>
-        <a class="quicklinks" href="http://schemaspy.wiki.sourceforge.net/FAQ">FAQ</a>
+        <a class="quicklinks" href="https://sourceforge.net/apps/mediawiki/schemaspy/index.php?title=Main_Page">FAQ</a>
         <a class="quicklinks" href="http://sourceforge.net/project/showfiles.php?group_id=137197">Download</a>
         <a class="quicklinks" href="releaseNotes.html">Release Notes</a>
         <a class="quicklinks" href="http://sourceforge.net/donate/index.php?group_id=137197">Support SchemaSpy</a>
