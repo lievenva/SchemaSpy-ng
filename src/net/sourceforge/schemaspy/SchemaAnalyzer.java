@@ -480,8 +480,24 @@ public class SchemaAnalyzer {
         System.out.println();
         System.out.println();
         System.out.println("No tables or views were found in schema '" + schema + "'.");
-        List<String> schemas = DbAnalyzer.getSchemas(meta);
-        if (schema == null || schemas.contains(schema)) {
+        List<String> schemas = null;
+        Exception failure = null;
+        try {
+            schemas = DbAnalyzer.getSchemas(meta);
+        } catch (SQLException exc) {
+            failure = exc;
+        } catch (RuntimeException exc) {
+            failure = exc;
+        }
+
+        if (schemas == null) {
+            System.out.println("The user you specified (" + user + ')');
+            System.out.println("  might not have rights to read the database metadata.");
+            System.out.flush();
+            if (failure != null)    // to appease the compiler
+                failure.printStackTrace();
+            return;
+        } else if (schema == null || schemas.contains(schema)) {
             System.out.println("The schema exists in the database, but the user you specified (" + user + ')');
             System.out.println("  might not have rights to read its contents.");
             if (specifiedInclusions) {
