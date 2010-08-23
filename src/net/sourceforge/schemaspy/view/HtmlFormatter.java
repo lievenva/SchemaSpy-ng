@@ -202,33 +202,7 @@ public class HtmlFormatter {
         out.writeln("   </table>");
         out.writeln("  </td></tr>");
         out.writeln(" </table>");
-        writeFeedMe(out);
         out.writeln("&nbsp;");
-    }
-
-    protected void writeFeedMe(LineWriter html) throws IOException {
-        if (Config.getInstance().isAdsEnabled()) {
-            StyleSheet css = StyleSheet.getInstance();
-
-            html.writeln("<div style=\"margin-right: 2pt;\">");
-            html.writeln("<script type=\"text/javascript\"><!--");
-            html.writeln("google_ad_client = \"pub-9598353634003340\";");
-            html.writeln("google_ad_channel =\"SchemaSpy-generated\";");
-            html.writeln("google_ad_width = 234;");
-            html.writeln("google_ad_height = 60;");
-            html.writeln("google_ad_format = \"234x60_as\";");
-            html.writeln("google_ad_type = \"text\";");
-            html.writeln("google_color_border = \"" + css.getTableHeadBackground().substring(1) + "\";");
-            html.writeln("google_color_link = \"" + css.getLinkColor().substring(1) + "\";");
-            html.writeln("google_color_text = \"000000\";");
-
-            html.writeln("//-->");
-            html.writeln("</script>");
-            html.writeln("<script type=\"text/javascript\"");
-            html.writeln("src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">");
-            html.writeln("</script>");
-            html.writeln("</div>");
-        }
     }
 
     protected void writeExcludedColumns(Set<TableColumn> excludedColumns, Table table, LineWriter html) throws IOException {

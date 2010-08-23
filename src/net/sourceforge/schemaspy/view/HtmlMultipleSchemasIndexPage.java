@@ -107,7 +107,6 @@ public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
         if (sourceForgeLogoEnabled())
             html.writeln("    <a href='http://sourceforge.net' target='_blank'><img src='http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1' alt='SourceForge.net' border='0' height='31' width='88'></a><br>");
         html.write("    <br>");
-        writeFeedMe(html);
         html.writeln("  </td>");
         html.writeln(" </tr>");
         html.writeln("</table>");

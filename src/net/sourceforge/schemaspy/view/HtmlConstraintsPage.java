@@ -92,12 +92,8 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         html.write(String.valueOf(constraintsByName.size()));
         html.writeln(" Foreign Key Constraints:</b>");
         html.writeln("</td><td class='container' align='right'>");
-        html.writeln("<table>");
         if (sourceForgeLogoEnabled())
-            html.writeln("  <tr><td class='container' align='right' valign='top'><a href='http://sourceforge.net' target='_blank'><img src='http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1' alt='SourceForge.net' border='0' height='31' width='88'></a></td></tr>");
-        html.writeln("<tr><td class='container'>");
-        writeFeedMe(html);
-        html.writeln("</td></tr></table>");
+            html.writeln("  <a href='http://sourceforge.net' target='_blank'><img src='http://sourceforge.net/sflogo.php?group_id=137197&amp;type=1' alt='SourceForge.net' border='0' height='31' width='88'></a>");
         html.writeln("</td></tr>");
         html.writeln("</table><br>");
         html.writeln("<table class='dataTable' border='1' rules='groups'>");

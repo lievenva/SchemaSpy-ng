@@ -112,7 +112,6 @@ public class Config
     private Boolean evaluteAll;
     private Boolean highQuality;
     private Boolean lowQuality;
-    private Boolean adsEnabled;
     private String schemaSpec;  // used in conjunction with evaluateAll
     private boolean populating = false;
     public static final String DOT_CHARSET = "UTF-8";
@@ -1119,31 +1118,6 @@ public class Config
     }
 
     /**
-     * <code>true</code> if we should display advertisements.
-     * Defaults to <code>true</code>.<p>
-     * <b>Please do not disable ads unless absolutely necessary</b>.
-     *
-     * @return
-     */
-    public void setAdsEnabled(boolean enabled) {
-        adsEnabled = enabled;
-    }
-
-    /**
-     * Returns <code>true</code> if we should display advertisements.<p>
-     * <b>Please do not disable ads unless absolutely necessary</b>.
-     *
-     * @return
-     */
-    public boolean isAdsEnabled() {
-        if (adsEnabled == null) {
-            adsEnabled = !options.remove("-noads");
-        }
-
-        return adsEnabled ;
-    }
-
-    /**
      * Set the level of logging to perform.<p/>
      * The levels in descending order are:
      * <ul>
@@ -1607,8 +1581,6 @@ public class Config
             params.add("-rails");
         if (isSingleSignOn())
             params.add("-sso");
-        if (!isAdsEnabled())
-            params.add("-noads");
         if (isSchemaDisabled())
             params.add("-noschema");
 
