@@ -14,6 +14,15 @@
 
 <li class='release'>5.1.0 - 08/23/2010 - Subversion revision 596
 <ul>
+    <li>Implemented <a href="https://sourceforge.net/tracker/?func=detail&atid=737990&aid=3048496&group_id=137197">
+        feature request 3048496</a> - Add an option to the command line parameters for MS SQL instance name<br>
+        Added two new properties files (mssql-jtds-instance.properties and
+        mssql05-jtds-instance.properties) for using instances with the MS SQL jTDS driver.
+        These files require a -instance option to be specified on the command line, which
+        is much simpler than figuring out the key=value settings that the driver requires.
+        rev 598<br>
+        Thanks to Tim Abell for the suggestion.
+    </li>
     <li>Removed the ads from the generated pages due to generating
         close to zero revenue.  The pages should be less cluttered
         and potentially load faster.
@@ -38,7 +47,7 @@
     <li>Added SQL to query view details for MySQL databases. 
     </li>
     <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1600035&group_id=137197&atid=737990">
-        feature request 1600035</a> - Exclusion regex
+        feature request 1600035</a> - Exclusion regex<br>
         I don't like the inconsistency of the command line that this introduces, but
         there's a new <code>-I</code> option that takes a regular expression of tables to
         excludes from the analysis.  This is the inverse of <code>-i</code> which specifies which
