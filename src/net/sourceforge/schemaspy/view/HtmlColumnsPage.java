@@ -243,6 +243,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
     @Override
     protected void writeFooter(LineWriter html) throws IOException {
+        html.writeln("</tbody>");
         html.writeln("</table>");
         html.writeln("</div>");
         super.writeFooter(html);

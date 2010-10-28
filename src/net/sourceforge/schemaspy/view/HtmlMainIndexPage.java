@@ -273,6 +273,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.writeln("    <td class='detail'>&nbsp;</td>");
         html.writeln("    <td class='comment detail'>&nbsp;</td>");
         html.writeln("  </tr>");
+        html.writeln("</tbody>");
         html.writeln("</table>");
 
         super.writeFooter(html);

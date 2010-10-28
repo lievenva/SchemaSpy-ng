@@ -159,6 +159,13 @@ public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
         html.writeln("</td></tr></table>");
     }
 
+    @Override
+    protected void writeFooter(LineWriter html) throws IOException {
+        html.writeln("</tbody>");
+        html.writeln("</table>");
+        super.writeFooter(html);
+    }
+
     /**
      * Copy / paste from Database, but we can't use Database here...
      *

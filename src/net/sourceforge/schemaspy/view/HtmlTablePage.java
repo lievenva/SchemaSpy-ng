@@ -133,6 +133,7 @@ public class HtmlTablePage extends HtmlFormatter {
         for (TableColumn column : table.getColumns()) {
             writeColumn(column, null, primaries, indexedColumns, false, showIds, out);
         }
+        out.writeln("</tbody>");
         out.writeln("</table>");
     }
 
@@ -318,6 +319,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.writeln("</td>");
                 out.writeln(" </tr>");
             }
+            out.writeln("</tbody>");
             out.writeln("</table></div><p>");
         }
     }
@@ -403,6 +405,7 @@ public class HtmlTablePage extends HtmlFormatter {
                 }
                 out.writeln(" </tr>");
             }
+            out.writeln("</tbody>");
             out.writeln("</table>");
             out.writeln("</div>");
         }

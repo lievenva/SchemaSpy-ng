@@ -199,6 +199,7 @@ public class HtmlFormatter {
                 out.writeln("    <tr class='impliedRelationship'><td class='legendDetail'>Dashed lines show implied relationships</td></tr>");
             out.writeln("    <tr><td class='legendDetail'>&lt; <em>n</em> &gt; number of related tables</td></tr>");
         }
+        out.writeln("    </tbody>");
         out.writeln("   </table>");
         out.writeln("  </td></tr>");
         out.writeln(" </table>");
