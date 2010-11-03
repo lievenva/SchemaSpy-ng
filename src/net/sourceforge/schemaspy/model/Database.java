@@ -743,8 +743,8 @@ public class Database {
                 remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
 
             logger.fine("Adding remote table " + fullName);
-            remoteTable.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
             remoteTables.put(fullName, remoteTable);
+            remoteTable.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
         }
 
         return remoteTable;
