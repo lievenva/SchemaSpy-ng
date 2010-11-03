@@ -100,6 +100,7 @@ public final class MultipleSchemaAnalyzer {
             command.add(new File(outputDir, schema).toString());
             System.out.println("Analyzing " + schema);
             System.out.flush();
+            logger.fine("Analyzing schema with: " + command);
             Process java = Runtime.getRuntime().exec(command.toArray(new String[]{}));
             new ProcessOutputReader(java.getInputStream(), System.out).start();
             new ProcessOutputReader(java.getErrorStream(), System.err).start();

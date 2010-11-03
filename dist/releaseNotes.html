@@ -14,6 +14,11 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
 <ul>
+    <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=3101845&group_id=137197">
+        bug 3101845</a> - OutOfMemoryError with back-referencing cross-schema tables.<br>
+        Prevented the inadvertent recursion that was occurring. rev 602.<br>
+        Thanks to Victor for reporting the issue.
+    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=3096742&group_id=137197">
         bug 3096742</a> - Many pages have missing /tbody tags.<br>
         Added missing tags to generated output. rev 601.<br>
