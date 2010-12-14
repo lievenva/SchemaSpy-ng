@@ -553,7 +553,17 @@ public class SchemaAnalyzer {
                 invalidClasspathEntries.add(pathElement);
         }
 
-        URLClassLoader loader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
+        // if a classpath has been specified then use it to find the driver,
+        // otherwise use whatever was used to load this class.
+        // thanks to Bruno Leonardo Gonçalves for this implementation that he
+        // used to resolve issues when running under Maven
+        ClassLoader loader = null;
+        if (classpath.size() > 0) {
+            loader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
+        } else {
+            loader = getClass().getClassLoader();
+        }
+
         Driver driver = null;
         try {
             driver = (Driver)Class.forName(driverClass, true, loader).newInstance();
