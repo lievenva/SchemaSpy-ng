@@ -142,7 +142,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         for (Iterator<TableColumn> iter = constraint.getChildColumns().iterator(); iter.hasNext(); ) {
             TableColumn column = iter.next();
             html.write("<a href='tables/");
-            html.write(column.getTable().getName());
+            html.write(urlEncode(column.getTable().getName()));
             html.write(".html'>");
             html.write(column.getTable().getName());
             html.write("</a>");
@@ -156,7 +156,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         for (Iterator<TableColumn> iter = constraint.getParentColumns().iterator(); iter.hasNext(); ) {
             TableColumn column = iter.next();
             html.write("<a href='tables/");
-            html.write(column.getTable().getName());
+            html.write(urlEncode(column.getTable().getName()));
             html.write(".html'>");
             html.write(column.getTable().getName());
             html.write("</a>");
@@ -230,7 +230,7 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         for (String name : constraints.keySet()) {
             html.writeln(" <tr>");
             html.write("  <td class='detail' valign='top'><a href='tables/");
-            html.write(table.getName());
+            html.write(urlEncode(table.getName()));
             html.write(".html'>");
             html.write(table.getName());
             html.write("</a></td>");

@@ -170,35 +170,11 @@ public class DotNode {
 
         buf.append("    </TABLE>>" + lineSeparator);
         if (!table.isRemote() || Config.getInstance().isOneOfMultipleSchemas())
-            buf.append("    URL=\"" + path + toNCR(tableName) + ".html\"" + lineSeparator);
-        buf.append("    tooltip=\"" + toNCR(fqTableName) + "\"" + lineSeparator);
+            buf.append("    URL=\"" + path + HtmlFormatter.urlEncode(tableName) + ".html\"" + lineSeparator);
+        buf.append("    tooltip=\"" + HtmlFormatter.urlEncode(fqTableName) + "\"" + lineSeparator);
         buf.append("  ];");
 
         return buf.toString();
-    }
-
-    /**
-     * Translates specified string to Numeric Character Reference (NCR).
-     * This (hopefully) allows Unicode languages to be displayed correctly.<p>
-     * The basis for this code was found
-     * <a href='http://d.hatena.ne.jp/etherealmaro/20060806#1154886500'>here</a>.
-     *
-     * @param str
-     * @return
-     */
-    private static String toNCR(String str) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < str.length(); ++i) {
-            char ch = str.charAt(i);
-            if (ch <= 127) {    // don't confuse things unless necessary
-                result.append(ch);
-            } else {
-                result.append("&#");
-                result.append(Integer.parseInt(Integer.toHexString(ch), 16));
-                result.append(";");
-            }
-        }
-        return result.toString();
     }
 
     public static class DotNodeConfig {

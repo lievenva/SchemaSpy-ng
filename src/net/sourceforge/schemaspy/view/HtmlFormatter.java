@@ -19,9 +19,13 @@
 package net.sourceforge.schemaspy.view;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.Revision;
 import net.sourceforge.schemaspy.model.Database;
@@ -227,7 +231,7 @@ public class HtmlFormatter {
             for (TableColumn column : notInDiagram) {
                 if (!column.getTable().equals(table)) {
                     html.write("<a href=\"" + getPathToRoot() + "tables/");
-                    html.write(column.getTable().getName());
+                    html.write(urlEncode(column.getTable().getName()));
                     html.write(".html\">");
                     html.write(column.getTable().getName());
                     html.write(".");
@@ -325,4 +329,14 @@ public class HtmlFormatter {
     protected boolean isColumnsPage() {
         return false;
     }
+
+  static String urlEncode(String string){
+    try {
+      return URLEncoder.encode(string, Config.DOT_CHARSET);
+    } catch (UnsupportedEncodingException e) {
+      Logger logger = Logger.getLogger(HtmlFormatter.class.getName());
+      logger.info("Error trying to urlEncode string [" + string + "] with encoding [" + Config.DOT_CHARSET + "]");
+      return string;
+    }
+  }
 }

@@ -14,6 +14,13 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
 <ul>
+    <li>Implemented <a href="https://sourceforge.net/tracker/?func=detail&atid=737989&aid=3140441&group_id=137197">
+        patch 3140441</a> - Table names containing #'s don't link well<br>
+        The trailing portions of tables names that contained #'s were being treated 
+        as anchors instead of part of the file name.
+        rev 606<br>
+        Thanks to Mark Berger for identifying the problem and providing the fix.
+    </li>
     <li>Implemented <a href="https://sourceforge.net/tracker/?func=detail&atid=737990&aid=3136739&group_id=137197">
         feature request 3136739</a> - Shared Driver Classloader<br>
         SchemaSpy now will use the default classloader if no driverPath is specified.
