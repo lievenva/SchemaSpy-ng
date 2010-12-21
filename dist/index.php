@@ -388,94 +388,132 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
       <tr>
         <th class="param">Type</th>
         <th class="param">Description</th>
+        <th class="param">JDBC Driver</th>
       </tr>
       <tr>
         <td class="dbType">db2</td>
         <td class="param">IBM DB2 with 'app' Driver</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">db2net</td>
         <td class="param">IBM DB2 with 'net' Driver</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">udbt4</td>
         <td class="param">DB2 UDB Type 4 Driver</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">db2zos</td>
         <td class="param">DB2 for z/OS</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">derby</td>
         <td class="param">Derby (JavaDB) Embedded Server</td>
+        <td align="center"><a href="http://db.apache.org/derby/derby_downloads.html">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">derbynet</td>
         <td class="param">Derby (JavaDB) Network Server</td>
+        <td align="center"><a href="http://db.apache.org/derby/derby_downloads.html">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">firebird</td>
         <td class="param">Firebird</td>
+        <td align="center"><a href="http://firebirdsql.org/index.php?op=files&id=jaybird">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">hsqldb</td>
-        <td class="param">HSQLDB Server</td>
+        <td class="param">HyperSQL Database Engine</td>
+        <td align="center"><a href="http://sourceforge.net/projects/hsqldb/">driver</a></td>
+      </tr>
+      <tr>
+        <td class="dbType">h2</td>
+        <td class="param">H2 Database Engine</td>
+        <td align="center"><a href="http://www.h2database.com">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">informix</td>
         <td class="param">Informix</td>
+        <td align="center"><a href="http://www.ibm.com/software/data/informix/tools/jdbc">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">maxdb</td>
         <td class="param">MaxDB</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">mssql</td>
         <td class="param">Microsoft SQL Server</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">mssql05</td>
         <td class="param">Microsoft SQL Server 2005</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">mssql-jtds</td>
         <td class="param">Microsoft SQL Server with jTDS Driver</td>
+        <td align="center"><a href="http://sourceforge.net/projects/jtds/">driver</a></td>
+      </tr>
+      <tr>
+        <td class="dbType">mssql-jtds-instance</td>
+        <td class="param">Instance-based MS SQL Server with jTDS Driver</td>
+        <td align="center"><a href="http://sourceforge.net/projects/jtds/">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">mssql05-jtds</td>
         <td class="param">Microsoft SQL Server 2005 with jTDS Driver</td>
+        <td align="center"><a href="http://sourceforge.net/projects/jtds/">driver</a></td>
+      </tr>
+      <tr>
+        <td class="dbType">mssql05-jtds-instance</td>
+        <td class="param">Instance-based MS SQL Server 2005 with jTDS Driver</td>
+        <td align="center"><a href="http://sourceforge.net/projects/jtds/">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">mysql</td>
         <td class="param">MySQL</td>
+        <td align="center"><a href="http://dev.mysql.com/downloads/connector/j/">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">ora</td>
         <td class="param">Oracle with OCI8 Driver</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">orathin</td>
         <td class="param">Oracle with Thin Driver</td>
+        <td>&nbsp;</td>
       </tr>
       <tr>
         <td class="dbType">pgsql</td>
         <td class="param">PostgreSQL</td>
+        <td align="center"><a href="http://jdbc.postgresql.org/download.html">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">sqlite</td>
         <td class="param">SQLite</td>
+        <td align="center"><a href="http://www.ch-werner.de/javasqlite/">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">sybase</td>
         <td class="param">Sybase Server with JDBC3 Driver</td>
+        <td align="center"><a href="http://www.sybase.com/products/allproductsa-z/softwaredeveloperkit/jconnect">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">sybase2</td>
         <td class="param">Sybase Server with JDBC2 Driver</td>
+        <td align="center"><a href="http://www.sybase.com/products/allproductsa-z/softwaredeveloperkit/jconnect">driver</a></td>
       </tr>
       <tr>
         <td class="dbType">teradata</td>
         <td class="param">Teradata (requires <a href="#connpropsparam">-connprops</a>)</td>
+        <td align="center"><a href="http://www.teradata.com/downloadcenter/">driver</a></td>
       </tr>
     </tbody>
   </table>
