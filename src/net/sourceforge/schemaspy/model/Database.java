@@ -52,7 +52,8 @@ public class Database {
     private String description;
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
-    private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName value: RemoteTable
+    private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName
+    private final Map<String, Table> combined = new CombinedMap(tables, views);
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
@@ -458,7 +459,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = tables.get(tableName);
+                    Table table = combined.get(tableName);
                     if (table != null)
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
@@ -488,7 +489,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = tables.get(tableName);
+                    Table table = combined.get(tableName);
                     if (table != null)
                         table.setId(rs.getObject("table_id"));
                 }
@@ -517,7 +518,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = tables.get(tableName);
+                    Table table = combined.get(tableName);
                     if (table != null) {
                         TableIndex index = table.getIndex(rs.getString("index_name"));
                         if (index != null)
@@ -557,10 +558,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = tables.get(tableName);
-                    if (table == null)
-                        table = views.get(tableName);
-
+                    Table table = combined.get(tableName);
                     if (table != null)
                         table.setComments(rs.getString("comments"));
                 }
@@ -637,10 +635,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = tables.get(tableName);
-                    if (table == null)
-                        table = views.get(tableName);
-
+                    Table table = combined.get(tableName);
                     if (table != null) {
                         TableColumn column = table.getColumn(rs.getString("column_name"));
                         if (column != null)
@@ -744,7 +739,7 @@ public class Database {
 
             logger.fine("Adding remote table " + fullName);
             remoteTables.put(fullName, remoteTable);
-            remoteTable.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
+            remoteTable.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
         }
 
         return remoteTable;
@@ -945,10 +940,7 @@ public class Database {
                         table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
                     }
                 } else {
-                    table = tables.get(tableMeta.getName());
-
-                    if (table == null)
-                        table = views.get(tableMeta.getName());
+                    table = combined.get(tableMeta.getName());
 
                     if (table == null) {
                         table = new Table(Database.this, getSchema(), tableMeta.getName(), null, noProps, excludeNone, excludeNone);
@@ -966,12 +958,10 @@ public class Database {
                 if (tableMeta.getRemoteSchema() != null) {
                     table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
                 } else {
-                    table = tables.get(tableMeta.getName());
-                    if (table == null)
-                        table = views.get(tableMeta.getName());
+                    table = combined.get(tableMeta.getName());
                 }
 
-                table.connect(tableMeta, tables, remoteTables);
+                table.connect(tableMeta, combined, remoteTables);
             }
         }
     }
@@ -981,7 +971,10 @@ public class Database {
         Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
 
         for (Table table : tables.values()) {
-            table.connectForeignKeys(tables, excludeIndirectColumns, excludeColumns);
+            table.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
+        }
+        for (Table view : views.values()) {
+            view.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
         }
     }
 
@@ -1089,6 +1082,90 @@ public class Database {
                 } catch (InterruptedException exc) {
                 }
             }
+        }
+    }
+
+    /**
+     * A read-only map that treats both collections of Tables and Views as one
+     * combined collection.
+     * This is a bit strange, but it simplifies logic that otherwise treats
+     * the two as if they were one collection.
+     */
+    private class CombinedMap implements Map<String, Table> {
+        private final Map<String, ? extends Table> map1;
+        private final Map<String, ? extends Table> map2;
+
+        public CombinedMap(Map<String, ? extends Table> map1, Map<String, ? extends Table> map2)
+        {
+            this.map1 = map1;
+            this.map2 = map2;
+        }
+
+        public Table get(Object name) {
+            Table table = map1.get(name);
+            if (table == null)
+                table = map2.get(name);
+            return table;
+        }
+
+        public int size() {
+            return map1.size() + map2.size();
+        }
+
+        public boolean isEmpty() {
+            return map1.isEmpty() && map2.isEmpty();
+        }
+
+        public boolean containsKey(Object key) {
+            return map1.containsKey(key) || map2.containsKey(key);
+        }
+
+        public boolean containsValue(Object value) {
+            return map1.containsValue(value) || map2.containsValue(value);
+        }
+
+        public Table put(String name, Table table) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Warning: potentially expensive operation
+         */
+        public Set<String> keySet() {
+            return getCombined().keySet();
+        }
+
+        /**
+         * Warning: potentially expensive operation
+         */
+        public Set<Map.Entry<String, Table>> entrySet() {
+            return getCombined().entrySet();
+        }
+
+        /**
+         * Warning: potentially expensive operation
+         */
+        public Collection<Table> values() {
+            return getCombined().values();
+        }
+
+        private Map<String, Table> getCombined() {
+            Map<String, Table> all = new CaseInsensitiveMap<Table>(size());
+            all.putAll(map1);
+            all.putAll(map2);
+            return all;
+        }
+
+        public Table remove(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void putAll(Map<? extends String, ? extends Table> table) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void clear() {
+            throw new UnsupportedOperationException();
         }
     }
 }

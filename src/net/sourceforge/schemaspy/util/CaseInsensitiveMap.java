@@ -33,6 +33,15 @@ public class CaseInsensitiveMap<V> extends HashMap<String, V>
 {
     private static final long serialVersionUID = 1L;
 
+    public CaseInsensitiveMap()
+    {
+    }
+
+    public CaseInsensitiveMap(int initialCapacity)
+    {
+        super(initialCapacity);
+    }
+
     @Override
     public V get(Object key) {
         return super.get(((String)key).toUpperCase());
