@@ -1047,7 +1047,7 @@ public class Table implements Comparable<Table> {
      * @param tables
      * @param remoteTables
      */
-    public void connect(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
+	public void connect(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
 
@@ -1065,7 +1065,9 @@ public class Table implements Comparable<Table> {
                          * Merely instantiating a foreign key constraint ties it
                          * into its parent and child columns (& therefore their tables)
                          */
-                        new ForeignKeyConstraint(parentColumn, col) {
+                        @SuppressWarnings("unused")
+                        ForeignKeyConstraint unused = 
+                        		new ForeignKeyConstraint(parentColumn, col) {
                             @Override
                             public String getName() {
                                 return "Defined in XML";
