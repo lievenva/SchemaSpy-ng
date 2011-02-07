@@ -91,6 +91,8 @@ public final class MultipleSchemaAnalyzer {
 
         for (String schema : populatedSchemas) {
             List<String> command = new ArrayList<String>(genericCommand);
+            // if no database was specified then we're dealing with a database
+            // that treats a schema as the database
             if (dbName == null)
                 command.add("-db");
             else

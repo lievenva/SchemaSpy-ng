@@ -94,6 +94,8 @@ public class XmlTableFormatter {
         tablesNode.appendChild(tableNode);
         if (table.getId() != null)
             DOMUtil.appendAttribute(tableNode, "id", String.valueOf(table.getId()));
+        if (table.getCatalog() != null)
+            DOMUtil.appendAttribute(tableNode, "catalog", table.getCatalog());
         if (table.getSchema() != null)
             DOMUtil.appendAttribute(tableNode, "schema", table.getSchema());
         DOMUtil.appendAttribute(tableNode, "name", table.getName());

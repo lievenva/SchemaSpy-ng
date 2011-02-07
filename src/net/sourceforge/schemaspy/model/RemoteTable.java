@@ -32,11 +32,11 @@ import net.sourceforge.schemaspy.Config;
  * @author John Currier
  */
 public class RemoteTable extends Table {
-    private final String baseSchema;
+    private final String baseContainer;
 
-    public RemoteTable(Database db, String schema, String name, String baseSchema, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, schema, name, null, properties, excludeIndirectColumns, excludeColumns);
-        this.baseSchema = baseSchema;
+    public RemoteTable(Database db, String catalog, String schema, String name, String baseContainer, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+        super(db, catalog, schema, name, null, properties, excludeIndirectColumns, excludeColumns);
+        this.baseContainer = baseContainer;
     }
 
     /**
@@ -52,14 +52,15 @@ public class RemoteTable extends Table {
         ResultSet rs = null;
 
         try {
-            rs = db.getMetaData().getImportedKeys(null, getSchema(), getName());
+            rs = db.getMetaData().getImportedKeys(getCatalog(), getSchema(), getName());
 
             while (rs.next()) {
                 String otherSchema = rs.getString("PKTABLE_SCHEM");
-                if (otherSchema != null && otherSchema.equals(baseSchema)) {
+                String otherCatalog = rs.getString("PKTABLE_CAT");
+                if (baseContainer.equals(otherSchema) || baseContainer.equals(otherCatalog)) {
                     addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
-                            rs.getString("PKTABLE_SCHEM"), rs.getString("PKTABLE_NAME"),
-                            rs.getString("PKCOLUMN_NAME"),
+                            otherCatalog, otherSchema,
+                            rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"),
                             rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
                             tables, excludeIndirectColumns, excludeColumns);
                 }
@@ -70,7 +71,7 @@ public class RemoteTable extends Table {
                 throw sqlExc;
 
             // otherwise just report the fact that we tried & couldn't
-            System.err.println("Couldn't resolve foreign keys for remote table " + getSchema() + "." + getName() + ": " + sqlExc);
+            System.err.println("Couldn't resolve foreign keys for remote table " + getFullName() + ": " + sqlExc);
         } finally {
             if (rs != null)
                 rs.close();

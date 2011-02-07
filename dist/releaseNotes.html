@@ -14,6 +14,19 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
 <ul>
+    <li>While trying to resolve <a href="https://sourceforge.net/projects/schemaspy/forums/forum/462850/topic/3232728">
+        a problem with MySQL's cross-schema foreign keys</a> I discovered that MySQL uses
+        catalogs as a namespace mechanism from the perspective of the JDBC metadata
+        services, but uses schemas to represent the same thing in INFORMATION_SCHEMA.
+        Before this SchemaSpy had completely ignored catalogs, but to resolve the issue
+        I had to make it fully catalog aware.
+        This is a fairly significant change (and "the right thing to do") 
+        that could result in other types of databases not being evaluated correctly.
+        In the process I added lots of additional logging to help resolve future issues.<br>
+        rev 610<br>
+        Thanks to Danny Wang for identifying the issue and for providing an extremely
+        concise test case.
+    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737990&aid=3155648&group_id=137197">
         bug 3155648</a> - Firebird requires single-threaded metadata retrieval<br>
         rev 610<br>

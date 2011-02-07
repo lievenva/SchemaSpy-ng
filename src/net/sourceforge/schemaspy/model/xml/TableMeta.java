@@ -36,6 +36,7 @@ public class TableMeta {
     private final String name;
     private final String comments;
     private final List<TableColumnMeta> columns = new ArrayList<TableColumnMeta>();
+    private final String remoteCatalog;
     private final String remoteSchema;
     private static final Logger logger = Logger.getLogger(TableMeta.class.getName());
 
@@ -57,6 +58,13 @@ public class TableMeta {
             remoteSchema = remoteSchemaNode.getNodeValue().trim();
         } else {
             remoteSchema = null;
+        }
+
+        Node remoteCatalogNode = attribs.getNamedItem("remoteCatalog");
+        if (remoteCatalogNode != null) {
+            remoteCatalog = remoteCatalogNode.getNodeValue().trim();
+        } else {
+            remoteCatalog = null;
         }
 
         logger.fine("Found XML table metadata for " + name +
@@ -83,6 +91,10 @@ public class TableMeta {
         return columns;
     }
 
+    public String getRemoteCatalog() {
+        return remoteCatalog;
+    }
+    
     public String getRemoteSchema() {
         return remoteSchema;
     }

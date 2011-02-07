@@ -31,7 +31,7 @@ public class ExplicitRemoteTable extends RemoteTable {
     private static final Pattern excludeNone = Pattern.compile("[^.]");
 
     public ExplicitRemoteTable(Database db, String schema, String name, String baseSchema) throws SQLException {
-        super(db, schema, name, baseSchema, null, excludeNone, excludeNone);
+        super(db, null, schema, name, baseSchema, null, excludeNone, excludeNone);
     }
 
     @Override

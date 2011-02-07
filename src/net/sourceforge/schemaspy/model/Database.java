@@ -48,6 +48,7 @@ import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 
 public class Database {
     private final String databaseName;
+    private final String catalog;
     private final String schema;
     private String description;
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
@@ -62,13 +63,14 @@ public class Database {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final boolean fineEnabled = logger.isLoggable(Level.FINE);
 
-    public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String schema, Properties properties, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
+    public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String catalog, String schema, Properties properties, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.connection = connection;
         this.meta = meta;
         databaseName = name;
+        this.catalog = catalog;
         this.schema = schema;
         description = config.getDescription();
-
+        
         initTables(meta, properties, config);
         if (config.isViewsEnabled())
             initViews(meta, properties, config);
@@ -87,6 +89,10 @@ public class Database {
 
     public String getName() {
         return databaseName;
+    }
+    
+    public String getCatalog() {
+        return catalog;
     }
 
     public String getSchema() {
@@ -285,11 +291,11 @@ public class Database {
 
         for (BasicTableMeta entry : getBasicTableMeta(metadata, false, properties, types)) {
             if (validator.isValid(entry.name, entry.type)) {
-                View view = new View(this, entry.schema, entry.name, entry.remarks,
-                                    entry.viewSql, properties,
+                View view = new View(this, entry.catalog, entry.schema, entry.name, 
+                                    entry.remarks, entry.viewSql, properties,
                                     excludeIndirectColumns, excludeColumns);
                 views.put(view.getName(), view);
-                if (logger.isLoggable(Level.FINE)) {
+                if (fineEnabled) {
                     logger.fine("Found details of view " + view.getName());
                 } else {
                     System.out.print('.');
@@ -303,6 +309,8 @@ public class Database {
      */
     private class BasicTableMeta
     {
+        @SuppressWarnings("hiding")
+        final String catalog;
         @SuppressWarnings("hiding")
         final String schema;
         final String name;
@@ -319,8 +327,9 @@ public class Database {
          * @param text optional textual SQL used to create the view
          * @param numRows number of rows, or -1 if not determined
          */
-        BasicTableMeta(String schema, String name, String type, String remarks, String text, int numRows)
+        BasicTableMeta(String catalog, String schema, String name, String type, String remarks, String text, int numRows)
         {
+            this.catalog = catalog;
             this.schema = schema;
             this.name = name;
             this.type = type;
@@ -358,15 +367,16 @@ public class Database {
 
                 while (rs.next()) {
                     String name = rs.getString(clazz + "_name");
+                    String cat = getOptionalString(rs, clazz + "_catalog");
                     String sch = getOptionalString(rs, clazz + "_schema");
-                    if (sch == null)
+                    if (cat == null && sch == null)
                         sch = schema;
                     String remarks = getOptionalString(rs, clazz + "_comment");
                     String text = forTables ? null : getOptionalString(rs, "view_definition");
                     String rows = forTables ? getOptionalString(rs, "table_rows") : null;
                     int numRows = rows == null ? -1 : Integer.parseInt(rows);
 
-                    basics.add(new BasicTableMeta(sch, name, clazz, remarks, text, numRows));
+                    basics.add(new BasicTableMeta(cat, sch, name, clazz, remarks, text, numRows));
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
@@ -389,10 +399,11 @@ public class Database {
                 while (rs.next()) {
                     String name = rs.getString("TABLE_NAME");
                     String type = rs.getString("TABLE_TYPE");
+                    String cat = rs.getString("TABLE_CAT");
                     String schem = rs.getString("TABLE_SCHEM");
                     String remarks = getOptionalString(rs, "REMARKS");
 
-                    basics.add(new BasicTableMeta(schem, name, type, remarks, null, -1));
+                    basics.add(new BasicTableMeta(cat, schem, name, type, remarks, null, -1));
                 }
             } catch (SQLException exc) {
                 if (forTables)
@@ -714,6 +725,8 @@ public class Database {
     public PreparedStatement prepareStatement(String sql, String tableName) throws SQLException {
         StringBuilder sqlBuf = new StringBuilder(sql);
         List<String> sqlParams = getSqlParams(sqlBuf, tableName); // modifies sqlBuf
+        if (fineEnabled)
+            logger.fine(sqlBuf + " " + sqlParams);
         PreparedStatement stmt = getConnection().prepareStatement(sqlBuf.toString());
 
         try {
@@ -728,16 +741,22 @@ public class Database {
         return stmt;
     }
 
-    public Table addRemoteTable(String remoteSchema, String remoteTableName, String baseSchema, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        String fullName = remoteSchema + "." + remoteTableName;
+    public Table addRemoteTable(String remoteCatalog, String remoteSchema, String remoteTableName, String baseContainer, 
+                                Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+        String fullName = getRemoteTableKey(remoteCatalog, remoteSchema, remoteTableName);
         Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
+            if (fineEnabled)
+                logger.fine("Creating remote table " + fullName);
+            
             if (properties != null)
-                remoteTable = new RemoteTable(this, remoteSchema, remoteTableName, baseSchema, properties, excludeIndirectColumns, excludeColumns);
+                remoteTable = new RemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer, properties, excludeIndirectColumns, excludeColumns);
             else
-                remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseSchema);
+                remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseContainer);
 
-            logger.fine("Adding remote table " + fullName);
+            if (fineEnabled)
+                logger.fine("Adding remote table " + fullName);
+
             remoteTables.put(fullName, remoteTable);
             remoteTable.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
         }
@@ -934,16 +953,17 @@ public class Database {
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 Table table;
 
-                if (tableMeta.getRemoteSchema() != null) {
-                    table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
+                if (tableMeta.getRemoteSchema() != null || tableMeta.getRemoteCatalog() != null) {
+                    table = remoteTables.get(getRemoteTableKey(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(),
+                                                                tableMeta.getName()));
                     if (table == null) {
-                        table = addRemoteTable(tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
+                        table = addRemoteTable(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
                     }
                 } else {
                     table = combined.get(tableMeta.getName());
 
                     if (table == null) {
-                        table = new Table(Database.this, getSchema(), tableMeta.getName(), null, noProps, excludeNone, excludeNone);
+                        table = new Table(Database.this, getCatalog(), getSchema(), tableMeta.getName(), null, noProps, excludeNone, excludeNone);
                         tables.put(table.getName(), table);
                     }
                 }
@@ -956,7 +976,7 @@ public class Database {
                 Table table;
 
                 if (tableMeta.getRemoteSchema() != null) {
-                    table = remoteTables.get(tableMeta.getRemoteSchema() + '.' + tableMeta.getName());
+                    table = remoteTables.get(getRemoteTableKey(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName()));
                 } else {
                     table = combined.get(tableMeta.getName());
                 }
@@ -979,6 +999,19 @@ public class Database {
     }
 
     /**
+     * Returns a 'key' that's used to identify a remote table
+     * in the remoteTables map.
+     * 
+     * @param cat
+     * @param sch
+     * @param table
+     * @return
+     */
+    public String getRemoteTableKey(String cat, String sch, String table) {
+        return cat + '.' + sch + '.' + table;
+    }
+
+    /**
      * Single-threaded implementation of a class that creates tables
      */
     private class TableCreator {
@@ -993,7 +1026,7 @@ public class Database {
         }
 
         protected void createImpl(BasicTableMeta tableMeta, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, tableMeta.schema, tableMeta.name, tableMeta.remarks, properties, excludeIndirectColumns, excludeColumns);
+            Table table = new Table(Database.this, tableMeta.catalog, tableMeta.schema, tableMeta.name, tableMeta.remarks, properties, excludeIndirectColumns, excludeColumns);
             if (tableMeta.numRows != -1) {
                 table.setNumRows(tableMeta.numRows);
             }
@@ -1003,7 +1036,7 @@ public class Database {
             }
 
             if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Found details of table " + table.getName());
+                logger.fine("Retrieved details of " + table.getFullName());
             } else {
                 System.out.print('.');
             }

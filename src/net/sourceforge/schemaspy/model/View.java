@@ -33,6 +33,7 @@ public class View extends Table {
 
     /**
      * @param db
+     * @param catalog
      * @param schema
      * @param name
      * @param remarks
@@ -42,10 +43,11 @@ public class View extends Table {
      * @param excludeColumns
      * @throws SQLException
      */
-    public View(Database db, String schema, String name, String remarks, String viewSql,
+    public View(Database db, String catalog, String schema, 
+                String name, String remarks, String viewSql,
                 Properties properties,
                 Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, schema, name, remarks, properties, excludeIndirectColumns, excludeColumns);
+        super(db, catalog, schema, name, remarks, properties, excludeIndirectColumns, excludeColumns);
 
         if (viewSql == null)
             viewSql = fetchViewSql();

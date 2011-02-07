@@ -143,8 +143,8 @@ public class DefaultSqlFormatter implements SqlFormatter {
         {
             tablesByPossibleNames = new CaseInsensitiveMap<Table>();
 
-            tablesByPossibleNames.putAll(getTableMap(db.getTables(), db.getName()));
-            tablesByPossibleNames.putAll(getTableMap(db.getViews(), db.getName()));
+            tablesByPossibleNames.putAll(getTableMap(db.getTables()));
+            tablesByPossibleNames.putAll(getTableMap(db.getViews()));
         }
 
         return tablesByPossibleNames;
@@ -158,25 +158,23 @@ public class DefaultSqlFormatter implements SqlFormatter {
      * @param dbName
      * @return
      */
-    protected Map<String, Table> getTableMap(Collection<? extends Table> tables, String dbName) {
+    protected Map<String, Table> getTableMap(Collection<? extends Table> tables) {
         Map<String, Table> map = new CaseInsensitiveMap<Table>();
         for (Table t : tables) {
             String name = t.getName();
-            String schema = t.getSchema();
-            if (schema == null)
-                schema = dbName;
+            String container = t.getContainer();
 
             map.put(name, t);
             map.put("`" + name + "`", t);
             map.put("'" + name + "'", t);
             map.put("\"" + name + "\"", t);
-            map.put(schema + "." + name, t);
-            map.put("`" + schema + "`.`" + name + "`", t);
-            map.put("'" + schema + "'.'" + name + "'", t);
-            map.put("\"" + schema + "\".\"" + name + "\"", t);
-            map.put("`" + schema + '.' + name + "`", t);
-            map.put("'" + schema + '.' + name + "'", t);
-            map.put("\"" + schema + '.' + name + "\"", t);
+            map.put(container + "." + name, t);
+            map.put("`" + container + "`.`" + name + "`", t);
+            map.put("'" + container + "'.'" + name + "'", t);
+            map.put("\"" + container + "\".\"" + name + "\"", t);
+            map.put("`" + container + '.' + name + "`", t);
+            map.put("'" + container + '.' + name + "'", t);
+            map.put("\"" + container + '.' + name + "\"", t);
         }
 
         return map;

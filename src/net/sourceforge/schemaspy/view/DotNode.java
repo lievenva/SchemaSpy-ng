@@ -49,7 +49,7 @@ public class DotNode {
 
     public DotNode(Table table, String path, DotNodeConfig config) {
         this.table = table;
-        this.path = path + (table.isRemote() ? ("../../" + table.getSchema() + "/tables/") : "");
+        this.path = path + (table.isRemote() ? ("../../" + table.getContainer() + "/tables/") : "");
         this.config = config;
     }
 
@@ -83,7 +83,7 @@ public class DotNode {
         StringBuilder buf = new StringBuilder();
         String tableName = table.getName();
         // fully qualified table name (optionally prefixed with schema)
-        String fqTableName = (table.isRemote() ? table.getSchema() + "." : "") + tableName;
+        String fqTableName = (table.isRemote() ? table.getContainer() + "." : "") + tableName;
         String colspan = config.showColumnDetails ? "COLSPAN=\"2\" " : "COLSPAN=\"3\" ";
 
         buf.append("  \"" + fqTableName + "\" [" + lineSeparator);

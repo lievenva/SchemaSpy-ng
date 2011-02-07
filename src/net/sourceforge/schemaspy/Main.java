@@ -18,6 +18,9 @@
  */
 package net.sourceforge.schemaspy;
 
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.sourceforge.schemaspy.model.ConnectionFailure;
 import net.sourceforge.schemaspy.model.EmptySchemaException;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
@@ -53,6 +56,9 @@ public class Main {
             System.err.println(badConfig.getMessage());
             if (badConfig.getCause() != null && !badConfig.getMessage().endsWith(badConfig.getMessage()))
                 System.err.println(" caused by " + badConfig.getCause().getMessage());
+            Logger logger = Logger.getLogger(Main.class.getName());
+            logger.log(Level.FINE, "Command line parameters: " + Arrays.asList(argv));
+            logger.log(Level.FINE, "Invalid configuration detected", badConfig);
         } catch (ProcessExecutionException badLaunch) {
             System.err.println(badLaunch.getMessage());
         } catch (Exception exc) {

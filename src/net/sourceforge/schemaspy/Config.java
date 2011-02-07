@@ -70,6 +70,7 @@ public class Config
     private File outputDir;
     private File graphvizDir;
     private String dbType;
+    private String catalog;
     private String schema;
     private List<String> schemas;
     private String user;
@@ -292,6 +293,16 @@ public class Config
         if (db == null)
             db = pullParam("-db");
         return db;
+    }
+
+    public void setCatalog(String catalog) {
+        this.catalog = catalog;
+    }
+
+    public String getCatalog() {
+        if (catalog == null)
+            catalog = pullParam("-cat");
+        return catalog;
     }
 
     public void setSchema(String schema) {
@@ -943,8 +954,10 @@ public class Config
             if (tmp != null) {
                 schemas = new ArrayList<String>();
 
-                for (String name : tmp.split("[ ,\"]"))
-                    schemas.add(name);
+                for (String name : tmp.split("[\\s,'\"]")) {
+                    if (name.length() > 0)
+                        schemas.add(name);
+                }
 
                 if (schemas.isEmpty())
                     schemas = null;
@@ -1559,6 +1572,7 @@ public class Config
                 params.add(value);
             }
         }
+        //TODO deal with -cat
         if (isEncodeCommentsEnabled())
             params.add("-ahic");
         if (isEvaluateAllEnabled())

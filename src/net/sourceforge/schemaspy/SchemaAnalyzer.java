@@ -169,6 +169,7 @@ public class SchemaAnalyzer {
                     }
                 }
 
+                //TODO deal with -cat
                 yankParam(args, "-o");  // param will be replaced by something appropriate
                 yankParam(args, "-s");  // param will be replaced by something appropriate
                 args.remove("-all");    // param will be replaced by something appropriate
@@ -180,12 +181,25 @@ public class SchemaAnalyzer {
                 return null;    // no database to return
             }
 
+            String catalog = config.getCatalog();
+
+            logger.fine("supportsSchemasInTableDefinitions: " + meta.supportsSchemasInTableDefinitions());
+            logger.fine("supportsCatalogsInTableDefinitions: " + meta.supportsCatalogsInTableDefinitions());
+
             if (schema == null && meta.supportsSchemasInTableDefinitions() &&
                     !config.isSchemaDisabled()) {
                 schema = config.getUser();
+                logger.fine("schema not specified for a database that requires one.  using user: '" + schema + "'");
                 if (schema == null)
                     throw new InvalidConfigurationException("Either a schema ('-s') or a user ('-u') must be specified");
                 config.setSchema(schema);
+            }
+            
+            if (catalog == null && schema == null && 
+                    meta.supportsCatalogsInTableDefinitions()) {
+                catalog = dbName;    
+                logger.fine("catalog not specified for a database that requires one.  using dbName: '" + catalog + "'");
+                config.setCatalog(catalog);
             }
 
             SchemaMeta schemaMeta = config.getMeta() == null ? null : new SchemaMeta(config.getMeta(), dbName, schema);
@@ -208,7 +222,8 @@ public class SchemaAnalyzer {
             //
             // create our representation of the database
             //
-            Database db = new Database(config, connection, meta, dbName, schema, properties, schemaMeta);
+            Database db = new Database(config, connection, meta, 
+                                    dbName, catalog, schema, properties, schemaMeta);
 
             schemaMeta = null; // done with it so let GC reclaim it
 
@@ -262,11 +277,11 @@ public class SchemaAnalyzer {
                 if (config.isRailsEnabled())
                     DbAnalyzer.getRailsConstraints(db.getTablesByName());
 
-                File diagramsDir = new File(outputDir, "diagrams/summary");
+                File summaryDir = new File(outputDir, "diagrams/summary");
 
                 // generate the compact form of the relationships .dot file
                 String dotBaseFilespec = "relationships";
-                out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
+                out = new LineWriter(new File(summaryDir, dotBaseFilespec + ".real.compact.dot"), Config.DOT_CHARSET);
                 WriteStats stats = new WriteStats(tables);
                 DotFormatter.getInstance().writeRealRelationships(db, tables, true, showDetailedTables, stats, out);
                 boolean hasRealRelationships = stats.getNumTablesWritten() > 0 || stats.getNumViewsWritten() > 0;
@@ -276,7 +291,7 @@ public class SchemaAnalyzer {
                     // real relationships exist so generate the 'big' form of the relationships .dot file
                     if (!fineEnabled)
                         System.out.print(".");
-                    out = new LineWriter(new File(diagramsDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
+                    out = new LineWriter(new File(summaryDir, dotBaseFilespec + ".real.large.dot"), Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeRealRelationships(db, tables, false, showDetailedTables, stats, out);
                     out.close();
                 }
@@ -295,14 +310,14 @@ public class SchemaAnalyzer {
                 if (!fineEnabled)
                     System.out.print(".");
 
-                File impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.compact.dot");
+                File impliedDotFile = new File(summaryDir, dotBaseFilespec + ".implied.compact.dot");
                 out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                 boolean hasImplied = DotFormatter.getInstance().writeAllRelationships(db, tables, true, showDetailedTables, stats, out);
 
                 Set<TableColumn> excludedColumns = stats.getExcludedColumns();
                 out.close();
                 if (hasImplied) {
-                    impliedDotFile = new File(diagramsDir, dotBaseFilespec + ".implied.large.dot");
+                    impliedDotFile = new File(summaryDir, dotBaseFilespec + ".implied.large.dot");
                     out = new LineWriter(impliedDotFile, Config.DOT_CHARSET);
                     DotFormatter.getInstance().writeAllRelationships(db, tables, false, showDetailedTables, stats, out);
                     out.close();
@@ -311,15 +326,17 @@ public class SchemaAnalyzer {
                 }
 
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
-                HtmlRelationshipsPage.getInstance().write(db, diagramsDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
+                HtmlRelationshipsPage.getInstance().write(db, summaryDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
                 out.close();
 
                 if (!fineEnabled)
                     System.out.print(".");
 
                 dotBaseFilespec = "utilities";
+                File orphansDir = new File(outputDir, "diagrams/orphans");
+                orphansDir.mkdirs();
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
-                HtmlOrphansPage.getInstance().write(db, orphans, diagramsDir, out);
+                HtmlOrphansPage.getInstance().write(db, orphans, orphansDir, out);
                 out.close();
 
                 if (!fineEnabled)

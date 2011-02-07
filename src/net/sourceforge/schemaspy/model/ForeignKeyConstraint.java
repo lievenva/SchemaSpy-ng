@@ -22,7 +22,6 @@ import static java.sql.DatabaseMetaData.importedKeyCascade;
 import static java.sql.DatabaseMetaData.importedKeyNoAction;
 import static java.sql.DatabaseMetaData.importedKeyRestrict;
 import static java.sql.DatabaseMetaData.importedKeySetNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +55,7 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     ForeignKeyConstraint(Table child, String name, int updateRule, int deleteRule) {
         this.name = name; // implied constraints will have a null name and override getName()
         if (finerEnabled)
-            logger.finer("Adding foreign key constraint '" + getName() + "' to " + child);
+            logger.finer("Adding foreign key constraint '" + getName() + "' to " + child.getFullName());
         childTable = child;
         this.deleteRule = deleteRule;
         this.updateRule = updateRule;
@@ -302,8 +301,8 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
         int rc = getName().compareToIgnoreCase(other.getName());
         if (rc == 0) {
             // should only get here if we're dealing with cross-schema references (rare)
-            String ours = getChildColumns().get(0).getTable().getSchema();
-            String theirs = other.getChildColumns().get(0).getTable().getSchema();
+            String ours = getChildColumns().get(0).getTable().getContainer();
+            String theirs = other.getChildColumns().get(0).getTable().getContainer();
             if (ours != null && theirs != null)
                 rc = ours.compareToIgnoreCase(theirs);
             else if (ours == null)
@@ -339,14 +338,14 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
         buf.append(childTable.getName());
         buf.append('.');
         buf.append(toString(childColumns));
-        buf.append(" refs ");
+        buf.append(" references ");
+        if (parentTable.isRemote()) {
+            buf.append(parentTable.getContainer());
+            buf.append('.');
+        }
         buf.append(parentTable.getName());
         buf.append('.');
         buf.append(toString(parentColumns));
-        if (parentTable.isRemote()) {
-            buf.append(" in ");
-            buf.append(parentTable.getSchema());
-        }
         if (name != null) {
             buf.append(" via ");
             buf.append(name);

@@ -242,7 +242,8 @@ public class HtmlTablePage extends HtmlFormatter {
         }
 
         for (TableColumn column : columns) {
-            String columnTableName = column.getTable().getName();
+            Table columnTable = column.getTable();
+            String columnTableName = columnTable.getName();
             ForeignKeyConstraint constraint = dumpParents ? column.getChildConstraint(baseRelative) : column.getParentConstraint(baseRelative);
             if (constraint.isImplied())
                 out.writeln("   <tr class='impliedRelationship relative " + evenOdd + "' valign='top'>");
@@ -251,18 +252,25 @@ public class HtmlTablePage extends HtmlFormatter {
             out.write("    <td class='relatedTable detail' title=\"");
             out.write(constraint.toString());
             out.write("\">");
-            out.write("<a href='");
-            if (!column.getTable().isRemote() || Config.getInstance().isOneOfMultipleSchemas()) {
+            if (columnTable.isRemote() && !Config.getInstance().isOneOfMultipleSchemas()) {
+                out.write(columnTable.getContainer());
+                out.write('.');
+                out.write(columnTableName);
+            } else {
+                out.write("<a href='");
                 out.write(path);
-                if (column.getTable().isRemote()) {
-                    out.write("../../" + column.getTable().getSchema() + "/tables/");
+                if (columnTable.isRemote()) {
+                    out.write("../../" + columnTable.getContainer() + "/tables/");
                 }
                 out.write(urlEncode(columnTableName));
-                out.write(".html");
+                out.write(".html'>");
+                if (columnTable.isRemote()) {
+                    out.write(columnTable.getContainer());
+                    out.write('.');
+                }
+                out.write(columnTableName);
+                out.write("</a>");
             }
-            out.write("'>");
-            out.write(columnTableName);
-            out.write("</a>");
             out.write("<span class='relatedKey'>.");
             out.write(column.getName());
             out.writeln("</span>");
