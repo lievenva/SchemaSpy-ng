@@ -38,8 +38,10 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import net.sourceforge.schemaspy.model.ConnectionFailure;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.EmptySchemaException;
@@ -70,6 +72,7 @@ import net.sourceforge.schemaspy.view.StyleSheet;
 import net.sourceforge.schemaspy.view.TextFormatter;
 import net.sourceforge.schemaspy.view.WriteStats;
 import net.sourceforge.schemaspy.view.XmlTableFormatter;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -632,7 +635,7 @@ public class SchemaAnalyzer {
             if (classpath.isEmpty())
                 System.err.println();
             else
-                System.err.println("from: " + classpath);
+                System.err.println(" from: " + classpath);
 
             List<File> invalidClasspathEntries = getMissingFiles(driverPath);
             if (!invalidClasspathEntries.isEmpty()) {
