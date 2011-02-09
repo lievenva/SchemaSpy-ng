@@ -21,6 +21,7 @@ package net.sourceforge.schemaspy.model.xml;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -34,8 +35,15 @@ import org.w3c.dom.NodeList;
  */
 public class TableColumnMeta {
     private final String name;
-    private final String comments;
+    private final String type;
     private final boolean isPrimary;
+    private final String id;
+    private final int size;
+    private final int digits;
+    private final boolean isNullable;
+    private final String comments;
+    private final String defaultValue;
+    private final boolean isAutoUpdated;
     private final List<ForeignKeyMeta> foreignKeys = new ArrayList<ForeignKeyMeta>();
     private final boolean isExcluded;
     private final boolean isAllExcluded;
@@ -48,7 +56,10 @@ public class TableColumnMeta {
         String tmp;
 
         name = attribs.getNamedItem("name").getNodeValue();
+
         Node node = attribs.getNamedItem("comments");
+        if (node == null)
+            node = attribs.getNamedItem("remarks");
         if (node != null) {
             tmp = node.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
@@ -56,13 +67,30 @@ public class TableColumnMeta {
             comments = null;
         }
 
-        node = attribs.getNamedItem("primaryKey");
-        if (node != null) {
-            isPrimary = evalBoolean(node.getNodeValue());
-        } else {
-            isPrimary = false;
-        }
+        node = attribs.getNamedItem("type");
+        type = node == null ? "Unknown" : node.getNodeValue();
 
+        node = attribs.getNamedItem("id");
+        id = node == null ? null : node.getNodeValue();
+
+        node = attribs.getNamedItem("size");
+        size = node == null ? 0 : Integer.parseInt(node.getNodeValue());
+
+        node = attribs.getNamedItem("digits");
+        digits = node == null ? 0 : Integer.parseInt(node.getNodeValue());
+        
+        node = attribs.getNamedItem("nullable");
+        isNullable = node == null ? false : evalBoolean(node.getNodeValue());
+
+        node = attribs.getNamedItem("autoUpdated");
+        isAutoUpdated = node == null ? false : evalBoolean(node.getNodeValue());
+        
+        node = attribs.getNamedItem("primaryKey");
+        isPrimary = node == null ? false : evalBoolean(node.getNodeValue());
+        
+        node = attribs.getNamedItem("defaultValue");
+        defaultValue = node == null ? null : node.getNodeValue();
+        
         node = attribs.getNamedItem("disableImpliedKeys");
         if (node != null) {
             tmp = node.getNodeValue().trim().toLowerCase();
@@ -122,13 +150,41 @@ public class TableColumnMeta {
     public String getName() {
         return name;
     }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public String getId() {
+        return id;
+    }
+    
+    public int getSize() {
+        return size;
+    }
+    
+    public int getDigits() {
+        return digits;
+    }
+    
+    public boolean isPrimary() {
+        return isPrimary;
+    }
+
+    public boolean isNullable() {
+        return isNullable;
+    }
+    
+    public boolean isAutoUpdated() {
+        return isAutoUpdated;
+    }
 
     public String getComments() {
         return comments;
     }
-
-    public boolean isPrimary() {
-        return isPrimary;
+    
+    public String getDefaultValue() {
+        return defaultValue;
     }
 
     public List<ForeignKeyMeta> getForeignKeys() {
