@@ -1090,11 +1090,6 @@ public class Table implements Comparable<Table> {
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
             if (col == null) {
-                if (tableMeta.getRemoteSchema() == null) {
-                    logger.warning("Unrecognized column '" + colMeta.getName() + "' for table '" + getName() + '\'');
-                    continue;
-                }
-
                 col = addColumn(colMeta);
             }
 
@@ -1115,32 +1110,36 @@ public class Table implements Comparable<Table> {
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
 
-             // go thru the new foreign key defs and associate them with our columns
-            for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
-                Table parent = fk.getRemoteSchema() == null ? tables.get(fk.getTableName())
-                                                            : remoteTables.get(db.getRemoteTableKey(null, fk.getRemoteSchema(), fk.getTableName()));
-                if (parent != null) {
-                    TableColumn parentColumn = parent.getColumn(fk.getColumnName());
-
-                    if (parentColumn == null) {
-                        logger.warning(parent.getName() + '.' + fk.getColumnName() + " doesn't exist");
+            if (col != null) {
+                // go thru the new foreign key defs and associate them with our columns
+                for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
+                    Table parent = fk.getRemoteSchema() == null ? tables.get(fk.getTableName())
+                                                                : remoteTables.get(db.getRemoteTableKey(null, fk.getRemoteSchema(), fk.getTableName()));
+                    if (parent != null) {
+                        TableColumn parentColumn = parent.getColumn(fk.getColumnName());
+    
+                        if (parentColumn == null) {
+                            logger.warning(parent.getName() + '.' + fk.getColumnName() + " doesn't exist");
+                        } else {
+                            /**
+                             * Merely instantiating a foreign key constraint ties it
+                             * into its parent and child columns (& therefore their tables)
+                             */
+                            @SuppressWarnings("unused")
+                            ForeignKeyConstraint unused = 
+                            		new ForeignKeyConstraint(parentColumn, col) {
+                                @Override
+                                public String getName() {
+                                    return "Defined in XML";
+                                }
+                            };
+                        }
                     } else {
-                        /**
-                         * Merely instantiating a foreign key constraint ties it
-                         * into its parent and child columns (& therefore their tables)
-                         */
-                        @SuppressWarnings("unused")
-                        ForeignKeyConstraint unused = 
-                        		new ForeignKeyConstraint(parentColumn, col) {
-                            @Override
-                            public String getName() {
-                                return "Defined in XML";
-                            }
-                        };
+                        logger.warning("Undefined table '" + fk.getTableName() + "' referenced by '" + getName() + '.' + col.getName() + "' in XML metadata");
                     }
-                } else {
-                    logger.warning("Undefined table '" + fk.getTableName() + "' referenced by '" + getName() + '.' + col.getName() + '\'');
                 }
+            } else {
+                logger.warning("Undefined column '" + getName() + "." + colMeta.getName() + "' in XML metadata");
             }
         }
     }

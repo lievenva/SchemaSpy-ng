@@ -111,14 +111,20 @@ public class TableColumn {
     public TableColumn(Table table, TableColumnMeta colMeta) {
         this.table = table;
         name = colMeta.getName();
-        id = null;
-        type = "Unknown";
-        length = 0;
-        decimalDigits = 0;
-        detailedSize = "";
-        isNullable = false;
-        isAutoUpdated = false;
-        defaultValue = null;
+        id = colMeta.getId();
+        type = colMeta.getType();
+        length = colMeta.getSize();
+        decimalDigits = colMeta.getDigits();
+        StringBuilder buf = new StringBuilder();
+        buf.append(length);
+        if (decimalDigits > 0) {
+            buf.append(',');
+            buf.append(decimalDigits);
+        }
+        detailedSize = buf.toString();
+        isNullable = colMeta.isNullable();
+        isAutoUpdated = colMeta.isAutoUpdated();
+        defaultValue = colMeta.getDefaultValue();
         comments = colMeta.getComments();
     }
 
