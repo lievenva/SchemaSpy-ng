@@ -1133,6 +1133,12 @@ public class Table implements Comparable<Table> {
                                     return "Defined in XML";
                                 }
                             };
+                            
+                            // they forgot to say it was a primary key
+                            if (!parentColumn.isPrimary()) {
+                                logger.warning("Assuming " + parentColumn.getTable() + "." + parentColumn + " is a primary key due to being referenced by " + col.getTable() + "." + col);
+                                parent.setPrimaryColumn(parentColumn);
+                            }
                         }
                     } else {
                         logger.warning("Undefined table '" + fk.getTableName() + "' referenced by '" + getName() + '.' + col.getName() + "' in XML metadata");

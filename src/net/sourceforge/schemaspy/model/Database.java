@@ -975,7 +975,7 @@ public class Database {
             for (TableMeta tableMeta : schemaMeta.getTables()) {
                 Table table;
 
-                if (tableMeta.getRemoteSchema() != null) {
+                if (tableMeta.getRemoteCatalog() != null || tableMeta.getRemoteSchema() != null) {
                     table = remoteTables.get(getRemoteTableKey(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName()));
                 } else {
                     table = combined.get(tableMeta.getName());
