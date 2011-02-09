@@ -26,8 +26,10 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.sourceforge.schemaspy.Config;
 
 public class Dot {
@@ -41,6 +43,7 @@ public class Dot {
     private String renderer;
     private final Set<String> validatedRenderers = Collections.synchronizedSet(new HashSet<String>());
     private final Set<String> invalidatedRenderers = Collections.synchronizedSet(new HashSet<String>());
+    private final Logger logger = Logger.getLogger(Dot.class.getName());
 
     private Dot() {
         String versionText = null;
@@ -54,6 +57,7 @@ public class Dot {
             Process process = Runtime.getRuntime().exec(dotCommand);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String versionLine = reader.readLine();
+            logger.config("Version: \"" + versionLine + "\"");
 
             // look for a number followed numbers or dots
             Matcher matcher = Pattern.compile("[0-9][0-9.]+").matcher(versionLine);
@@ -260,6 +264,7 @@ public class Dot {
         };
         // this one is for display purposes ONLY.
         String commandLine = getDisplayableCommand(dotCommand);
+        logger.fine(commandLine);
 
         try {
             Process process = Runtime.getRuntime().exec(dotCommand);
