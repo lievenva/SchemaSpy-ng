@@ -14,6 +14,15 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
 <ul>
+    <li>Low quality rendering was always being used when multiple schemas 
+        were being analyzed.  
+        Now honors -hq or -lq from command-line in for multiples.<br>
+        rev 620
+    </li>
+    <li>Now makes sure XML-defined FKs point to PKs.  
+        If not then assumes it should have been a PK (with a warning).<br>
+        rev 619
+    </li>
     <li>While trying to resolve <a href="https://sourceforge.net/projects/schemaspy/forums/forum/462850/topic/3232728">
         a problem with MySQL's cross-schema foreign keys</a> I discovered that MySQL uses
         catalogs as a namespace mechanism from the perspective of the JDBC metadata

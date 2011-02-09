@@ -65,16 +65,17 @@ public class Dot {
             } else {
                 if (Config.getInstance().isHtmlGenerationEnabled()) {
                     System.err.println();
-                    System.err.println("Invalid dot configuration detected.  '" +
+                    logger.warning("Invalid dot configuration detected.  '" +
                                         getDisplayableCommand(dotCommand) + "' returned:");
-                    System.err.println("   " + versionLine);
+                    logger.warning("   " + versionLine);
                 }
             }
         } catch (Exception validDotDoesntExist) {
             if (Config.getInstance().isHtmlGenerationEnabled()) {
-                System.err.println("Failed to query Graphviz version information");
-                System.err.println("  with: " + getDisplayableCommand(dotCommand));
-                System.err.println("  " + validDotDoesntExist);
+                System.err.println();
+                logger.warning("Failed to query Graphviz version information");
+                logger.warning("  with: " + getDisplayableCommand(dotCommand));
+                logger.warning("  " + validDotDoesntExist);
             }
         }
 
@@ -216,7 +217,7 @@ public class Dot {
         }
 
         if (!validatedRenderers.contains(renderer)) {
-            //System.err.println("\nFailed to validate " + getFormat() + " renderer '" + renderer + "'.  Reverting to detault renderer for " + getFormat() + '.');
+            logger.info("Failed to validate " + getFormat() + " renderer '" + renderer + "'.  Reverting to default renderer for " + getFormat() + '.');
             invalidatedRenderers.add(renderer);
             return false;
         }

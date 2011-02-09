@@ -117,6 +117,9 @@ public class Config
     private boolean populating = false;
     public static final String DOT_CHARSET = "UTF-8";
     private static final String ESCAPED_EQUALS = "\\=";
+    private static final String DEFAULT_TABLE_INCLUSION = ".*"; // match everything
+    private static final String DEFAULT_TABLE_EXCLUSION = "";   // match nothing
+    private static final String DEFAULT_COLUMN_EXCLUSION = "[^.]";  // match nothing
 
     /**
      * Default constructor. Intended for when you want to inject properties
@@ -849,7 +852,7 @@ public class Config
         if (columnExclusions == null) {
             String strExclusions = pullParam("-X");
             if (strExclusions == null)
-                strExclusions = "[^.]";   // match nothing
+                strExclusions = DEFAULT_COLUMN_EXCLUSION;
 
             columnExclusions = Pattern.compile(strExclusions);
         }
@@ -877,7 +880,7 @@ public class Config
         if (indirectColumnExclusions == null) {
             String strExclusions = pullParam("-x");
             if (strExclusions == null)
-                strExclusions = "[^.]";   // match nothing
+                strExclusions = DEFAULT_COLUMN_EXCLUSION;
 
             indirectColumnExclusions = Pattern.compile(strExclusions);
         }
@@ -902,7 +905,7 @@ public class Config
         if (tableInclusions == null) {
             String strInclusions = pullParam("-i");
             if (strInclusions == null)
-                strInclusions = ".*";     // match anything
+                strInclusions = DEFAULT_TABLE_INCLUSION;
 
             try {
                 tableInclusions = Pattern.compile(strInclusions);
@@ -931,7 +934,7 @@ public class Config
         if (tableExclusions == null) {
             String strExclusions = pullParam("-I");
             if (strExclusions == null)
-                strExclusions = "";  // match nothing
+                strExclusions = DEFAULT_TABLE_EXCLUSION;
 
             try {
                 tableExclusions = Pattern.compile(strExclusions);
@@ -1613,6 +1616,8 @@ public class Config
         params.add(String.valueOf(getFontSize()));
         params.add("-t");
         params.add(getDbType());
+        isHighQuality();    // query to set renderer correctly
+        isLowQuality();     // query to set renderer correctly
         params.add("-renderer");  // instead of -hq and/or -lq
         params.add(getRenderer());
         value = getDescription();
@@ -1687,14 +1692,24 @@ public class Config
         params.add(getLogLevel().toString().toLowerCase());
         params.add("-sqlFormatter");
         params.add(getSqlFormatter().getClass().getName());
-        params.add("-i");
-        params.add(getTableInclusions().pattern());
-        params.add("-I");
-        params.add(getTableExclusions().pattern());
-        params.add("-x");
-        params.add(getColumnExclusions().pattern());
-        params.add("-X");
-        params.add(getIndirectColumnExclusions().pattern());
+        // conditional hack to reduce likelihood of cmd interpreter
+        // expanding these into filenames
+        if (!getTableInclusions().pattern().equals(DEFAULT_TABLE_INCLUSION)) {
+            params.add("-i");
+            params.add(getTableInclusions().pattern());
+        }
+        if (!getTableExclusions().pattern().equals(DEFAULT_TABLE_EXCLUSION)) {
+            params.add("-I");
+            params.add(getTableExclusions().pattern());
+        }
+        if (!getColumnExclusions().pattern().equals(DEFAULT_COLUMN_EXCLUSION)) {
+            params.add("-x");
+            params.add(getColumnExclusions().pattern());
+        }
+        if (!getIndirectColumnExclusions().pattern().equals(DEFAULT_COLUMN_EXCLUSION)) {
+            params.add("-X");
+            params.add(getIndirectColumnExclusions().pattern());
+        }
         params.add("-dbthreads");
         params.add(String.valueOf(getMaxDbThreads()));
         params.add("-maxdet");
