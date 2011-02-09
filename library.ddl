@@ -11,7 +11,7 @@ create table ADDRESS (
   state char(2) not null,
   zip varchar(10) not null comment "Dash req'd for zip+4",
   primary key(AddressId)
-) type=InnoDB COMMENT='Address details';
+) engine=InnoDB COMMENT='Address details';
 
 create table PUBLISHER (
   publisherId integer auto_increment,
@@ -21,7 +21,7 @@ create table PUBLISHER (
   primary key(publisherId),
   foreign key(address) references ADDRESS(addressId),
   index(name)
-) type=InnoDB;
+) engine=InnoDB;
 
 create table BOOK (
   isbn bigint,
@@ -30,7 +30,7 @@ create table BOOK (
   primary key (isbn),
   foreign key (publisherId) references PUBLISHER(publisherId),
   index (title)
-) type=InnoDB COMMENT='Book details';
+) engine=InnoDB COMMENT='Book details';
 
 create table author (
   authorId integer auto_increment,
@@ -39,14 +39,14 @@ create table author (
   lastName varchar(32) not null,
   primary key (authorId),
   index (lastName)
-) type=InnoDB;
+) engine=InnoDB;
 
 create table book_author (
   isbn bigint,
   authorId integer comment 'FK intentionally omitted to show an implied relationship',
   primary key (isbn, authorId),
   foreign key (isbn) references BOOK(isbn)
-) type=InnoDB;
+) engine=InnoDB;
 --  foreign key (authorId) references author(authorId)
 
 create table LIBRARY_BRANCH (
@@ -55,7 +55,7 @@ create table LIBRARY_BRANCH (
   address integer not null,
   primary key(BranchId),
   foreign key(Address) references ADDRESS(AddressId)
-) type=InnoDB;
+) engine=InnoDB;
 
 create table BOOK_LOCATION (
   isbn bigint,
@@ -64,7 +64,7 @@ create table BOOK_LOCATION (
   primary key(isbn, branchId),
   foreign key(isbn) references BOOK(isbn),
   foreign key(branchId) references LIBRARY_BRANCH(branchId)
-) type=InnoDB;
+) engine=InnoDB;
 
 create table BORROWER (
   cardNo integer auto_increment,
@@ -76,7 +76,7 @@ create table BORROWER (
   primary key(cardNo),
   foreign key(Address) references ADDRESS(AddressId),
   index(lastName, firstName)
-) type=InnoDB;
+) engine=InnoDB;
 
 create table borrowed_book (
   isbn bigint,
@@ -89,7 +89,7 @@ create table borrowed_book (
   foreign key (branchId) references LIBRARY_BRANCH(branchId),
   foreign key (cardNo) references BORROWER(cardNo),
   index (DueDate)
-) type=InnoDB;
+) engine=InnoDB;
 
 insert into address values(null, 'Road Road', '', 'Colorado Springs', 'CO', '80920');
 insert into address values(null, 'Road Road', '', 'Colorado Springs', 'CO', '80920');
