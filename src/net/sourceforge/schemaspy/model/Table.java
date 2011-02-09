@@ -1,6 +1,6 @@
 /*
  * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
- * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 John Currier
  *
  * SchemaSpy is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -122,8 +122,8 @@ public class Table implements Comparable<Table> {
 
             while (rs.next()) {
                 addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
-                		rs.getString("PKTABLE_CAT"), rs.getString("PKTABLE_SCHEM"), 
-                		rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"),
+                        rs.getString("PKTABLE_CAT"), rs.getString("PKTABLE_SCHEM"), 
+                        rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"),
                         rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
                         tables, excludeIndirectColumns, excludeColumns);
             }
@@ -999,7 +999,7 @@ public class Table implements Comparable<Table> {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-            	originalFailure = sqlException;
+                originalFailure = sqlException;
             } finally {
                 if (rs != null) {
                     try {
@@ -1106,7 +1106,7 @@ public class Table implements Comparable<Table> {
      * @param tables
      * @param remoteTables
      */
-	public void connect(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
+    public void connect(TableMeta tableMeta, Map<String, Table> tables, Map<String, Table> remoteTables) {
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
 
@@ -1127,7 +1127,7 @@ public class Table implements Comparable<Table> {
                              */
                             @SuppressWarnings("unused")
                             ForeignKeyConstraint unused = 
-                            		new ForeignKeyConstraint(parentColumn, col) {
+                                    new ForeignKeyConstraint(parentColumn, col) {
                                 @Override
                                 public String getName() {
                                     return "Defined in XML";

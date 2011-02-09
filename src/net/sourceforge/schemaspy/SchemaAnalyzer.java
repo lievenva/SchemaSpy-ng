@@ -1,6 +1,6 @@
 /*
  * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
- * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 John Currier
  *
  * SchemaSpy is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,10 +38,8 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import net.sourceforge.schemaspy.model.ConnectionFailure;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.EmptySchemaException;
@@ -72,7 +70,6 @@ import net.sourceforge.schemaspy.view.StyleSheet;
 import net.sourceforge.schemaspy.view.TextFormatter;
 import net.sourceforge.schemaspy.view.WriteStats;
 import net.sourceforge.schemaspy.view.XmlTableFormatter;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

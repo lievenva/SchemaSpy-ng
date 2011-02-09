@@ -70,10 +70,10 @@ public class HtmlEncoder {
      */
     public static String encodeString(String str) {
         int len = str.length();
-    	StringBuilder buf = new StringBuilder(len * 2); // x2 should limit # of reallocs
-    	for (int i = 0; i < len; i++) {
-			buf.append(encodeToken(str.charAt(i)));
-		}
-    	return buf.toString();
+        StringBuilder buf = new StringBuilder(len * 2); // x2 should limit # of reallocs
+        for (int i = 0; i < len; i++) {
+            buf.append(encodeToken(str.charAt(i)));
+        }
+        return buf.toString();
     }
 }

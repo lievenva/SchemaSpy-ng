@@ -30,7 +30,7 @@ import java.sql.SQLException;
  */
 public class ResultSetDumper {
     public static String dump(ResultSet rs) throws SQLException {
-    	ResultSetMetaData meta = rs.getMetaData();
+        ResultSetMetaData meta = rs.getMetaData();
         int numCols = meta.getColumnCount();
         StringBuilder buf = new StringBuilder();
 
@@ -44,7 +44,7 @@ public class ResultSetDumper {
             if (value != null)
                 buf.append('\'');
             if (col < numCols)
-            	buf.append(", ");
+                buf.append(", ");
         }
         
         return buf.toString();
