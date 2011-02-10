@@ -35,6 +35,7 @@ import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.model.TableIndex;
 import net.sourceforge.schemaspy.model.View;
 import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
+import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
@@ -463,7 +464,7 @@ public class HtmlTablePage extends HtmlFormatter {
      *
      * Generates a <TABLENAME>.dot if the table has real relatives.
      *
-     * Also generates a <TABLENAME>..implied2degrees.dot if the table has implied relatives within
+     * Also generates a <TABLENAME>.implied2degrees.dot if the table has implied relatives within
      * two degrees of separation.
      *
      * @param table Table
@@ -473,12 +474,15 @@ public class HtmlTablePage extends HtmlFormatter {
      *                 degrees of separation.
      */
     private boolean generateDots(Table table, File diagramDir, WriteStats stats) throws IOException {
+        Dot dot = Dot.getInstance();
+        String extension = dot == null ? "png" : dot.getFormat();
+
         File oneDegreeDotFile = new File(diagramDir, table.getName() + ".1degree.dot");
-        File oneDegreeDiagramFile = new File(diagramDir, table.getName() + ".1degree.png");
+        File oneDegreeDiagramFile = new File(diagramDir, table.getName() + ".1degree." + extension);
         File twoDegreesDotFile = new File(diagramDir, table.getName() + ".2degrees.dot");
-        File twoDegreesDiagramFile = new File(diagramDir, table.getName() + ".2degrees.png");
+        File twoDegreesDiagramFile = new File(diagramDir, table.getName() + ".2degrees." + extension);
         File impliedDotFile = new File(diagramDir, table.getName() + ".implied2degrees.dot");
-        File impliedDiagramFile = new File(diagramDir, table.getName() + ".implied2degrees.png");
+        File impliedDiagramFile = new File(diagramDir, table.getName() + ".implied2degrees." + extension);
 
         // delete before we start because we'll use the existence of these files to determine
         // if they should be turned into pngs & presented

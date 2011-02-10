@@ -75,7 +75,7 @@ public class HtmlOrphansPage extends HtmlDiagramFormatter {
                 String dotBaseFilespec = table.getName();
 
                 File dotFile = new File(diagramDir, dotBaseFilespec + ".1degree.dot");
-                File imgFile = new File(diagramDir, dotBaseFilespec + ".1degree.png");
+                File imgFile = new File(diagramDir, dotBaseFilespec + ".1degree." + dot.getFormat());
 
                 LineWriter dotOut = new LineWriter(dotFile, Config.DOT_CHARSET);
                 DotFormatter.getInstance().writeOrphan(table, dotOut);

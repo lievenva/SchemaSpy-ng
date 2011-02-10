@@ -35,17 +35,17 @@ public class HtmlTableDiagrammer extends HtmlDiagramFormatter {
     }
 
     public boolean write(Table table, File diagramDir, LineWriter html) {
-        File oneDegreeDotFile = new File(diagramDir, table.getName() + ".1degree.dot");
-        File oneDegreeDiagramFile = new File(diagramDir, table.getName() + ".1degree.png");
-        File twoDegreesDotFile = new File(diagramDir, table.getName() + ".2degrees.dot");
-        File twoDegreesDiagramFile = new File(diagramDir, table.getName() + ".2degrees.png");
-        File impliedDotFile = new File(diagramDir, table.getName() + ".implied2degrees.dot");
-        File impliedDiagramFile = new File(diagramDir, table.getName() + ".implied2degrees.png");
-
         try {
             Dot dot = getDot();
             if (dot == null)
                 return false;
+
+            File oneDegreeDotFile = new File(diagramDir, table.getName() + ".1degree.dot");
+            File oneDegreeDiagramFile = new File(diagramDir, table.getName() + ".1degree." + dot.getFormat());
+            File twoDegreesDotFile = new File(diagramDir, table.getName() + ".2degrees.dot");
+            File twoDegreesDiagramFile = new File(diagramDir, table.getName() + ".2degrees." + dot.getFormat());
+            File impliedDotFile = new File(diagramDir, table.getName() + ".implied2degrees.dot");
+            File impliedDiagramFile = new File(diagramDir, table.getName() + ".implied2degrees." + dot.getFormat());
 
             String map = dot.generateDiagram(oneDegreeDotFile, oneDegreeDiagramFile);
 

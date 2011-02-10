@@ -53,15 +53,6 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
     }
 
     public boolean write(Database db, File diagramDir, String dotBaseFilespec, boolean hasOrphans, boolean hasRealRelationships, boolean hasImpliedRelationships, Set<TableColumn> excludedColumns, LineWriter html) {
-        File compactRelationshipsDotFile = new File(diagramDir, dotBaseFilespec + ".real.compact.dot");
-        File compactRelationshipsDiagramFile = new File(diagramDir, dotBaseFilespec + ".real.compact.png");
-        File largeRelationshipsDotFile = new File(diagramDir, dotBaseFilespec + ".real.large.dot");
-        File largeRelationshipsDiagramFile = new File(diagramDir, dotBaseFilespec + ".real.large.png");
-        File compactImpliedDotFile = new File(diagramDir, dotBaseFilespec + ".implied.compact.dot");
-        File compactImpliedDiagramFile = new File(diagramDir, dotBaseFilespec + ".implied.compact.png");
-        File largeImpliedDotFile = new File(diagramDir, dotBaseFilespec + ".implied.large.dot");
-        File largeImpliedDiagramFile = new File(diagramDir, dotBaseFilespec + ".implied.large.png");
-
         try {
             Dot dot = getDot();
             if (dot == null) {
@@ -72,6 +63,15 @@ public class HtmlRelationshipsPage extends HtmlDiagramFormatter {
                 writeFooter(html);
                 return false;
             }
+
+            File compactRelationshipsDotFile = new File(diagramDir, dotBaseFilespec + ".real.compact.dot");
+            File compactRelationshipsDiagramFile = new File(diagramDir, dotBaseFilespec + ".real.compact." + dot.getFormat());
+            File largeRelationshipsDotFile = new File(diagramDir, dotBaseFilespec + ".real.large.dot");
+            File largeRelationshipsDiagramFile = new File(diagramDir, dotBaseFilespec + ".real.large." + dot.getFormat());
+            File compactImpliedDotFile = new File(diagramDir, dotBaseFilespec + ".implied.compact.dot");
+            File compactImpliedDiagramFile = new File(diagramDir, dotBaseFilespec + ".implied.compact." + dot.getFormat());
+            File largeImpliedDotFile = new File(diagramDir, dotBaseFilespec + ".implied.large.dot");
+            File largeImpliedDiagramFile = new File(diagramDir, dotBaseFilespec + ".implied.large." + dot.getFormat());
 
             writeHeader(db, "All Relationships", hasOrphans, hasRealRelationships, hasImpliedRelationships, html);
             html.writeln("<table width=\"100%\"><tr><td class=\"container\">");
