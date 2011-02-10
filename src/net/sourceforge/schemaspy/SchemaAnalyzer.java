@@ -55,7 +55,6 @@ import net.sourceforge.schemaspy.util.DbSpecificOption;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.LineWriter;
 import net.sourceforge.schemaspy.util.LogFormatter;
-import net.sourceforge.schemaspy.util.PasswordReader;
 import net.sourceforge.schemaspy.util.ResourceWriter;
 import net.sourceforge.schemaspy.view.DotFormatter;
 import net.sourceforge.schemaspy.view.HtmlAnomaliesPage;
@@ -130,7 +129,7 @@ public class SchemaAnalyzer {
 
                 String dbName = config.getDb();
 
-                MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), config.getPassword(), outputDir, config.getCharset(), Config.getLoadedFromJar());
                 return null;
             }
 
@@ -177,7 +176,7 @@ public class SchemaAnalyzer {
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
-                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), config.getPassword(), outputDir, config.getCharset(), Config.getLoadedFromJar());
                 return null;    // no database to return
             }
 
@@ -567,9 +566,6 @@ public class SchemaAnalyzer {
         }
         if (config.getPassword() != null) {
             connectionProperties.put("password", config.getPassword());
-        } else if (config.isPromptForPasswordEnabled()) {
-            connectionProperties.put("password",
-                    new String(PasswordReader.getInstance().readPassword("Password: ")));
         }
 
         Connection connection = null;

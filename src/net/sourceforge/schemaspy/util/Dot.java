@@ -151,7 +151,7 @@ public class Dot {
      * @param renderer
      */
     public void setRenderer(String renderer) {
-        if (!supportsRenderer(renderer)) {
+        if (isValid() && !supportsRenderer(renderer)) {
             logger.info("renderer '" + renderer + "' is not supported by your version of dot");
         }
 

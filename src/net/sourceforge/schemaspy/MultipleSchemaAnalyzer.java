@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -52,7 +54,7 @@ public final class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public void analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas, List<String> args, String user, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
+    public void analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas, List<String> args, String user, String password, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
         long start = System.currentTimeMillis();
         List<String> genericCommand = new ArrayList<String>();
         genericCommand.add("java");
@@ -88,6 +90,13 @@ public final class MultipleSchemaAnalyzer {
         System.out.println();
 
         writeIndexPage(dbName, populatedSchemas, meta, outputDir, charset);
+        
+        Map<String, String> env = System.getenv();
+        List<String> childEnv = new ArrayList<String>();
+        for (Entry<String, String> entry : env.entrySet()) {
+            childEnv.add(entry.getKey() + '=' + entry.getValue());
+        }
+        childEnv.add("schemaspy.pw=" + password);
 
         for (String schema : populatedSchemas) {
             List<String> command = new ArrayList<String>(genericCommand);
@@ -103,7 +112,7 @@ public final class MultipleSchemaAnalyzer {
             System.out.println("Analyzing " + schema);
             System.out.flush();
             logger.fine("Analyzing schema with: " + command);
-            Process java = Runtime.getRuntime().exec(command.toArray(new String[]{}));
+            Process java = Runtime.getRuntime().exec(command.toArray(new String[]{}), childEnv.toArray(new String[]{}));
             new ProcessOutputReader(java.getInputStream(), System.out).start();
             new ProcessOutputReader(java.getErrorStream(), System.err).start();
 
@@ -128,8 +137,8 @@ public final class MultipleSchemaAnalyzer {
     }
 
     public void analyze(String dbName, List<String> schemas, List<String> args,
-            String user, File outputDir, String charset, String loadedFromJar) throws SQLException, IOException {
-        analyze(dbName, null, null, schemas, args, user, outputDir, charset, loadedFromJar);
+            String user, String password, File outputDir, String charset, String loadedFromJar) throws SQLException, IOException {
+        analyze(dbName, null, null, schemas, args, user, password, outputDir, charset, loadedFromJar);
     }
 
    private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {

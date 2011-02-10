@@ -51,6 +51,7 @@ import java.util.regex.PatternSyntaxException;
 import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.util.DbSpecificConfig;
 import net.sourceforge.schemaspy.util.Dot;
+import net.sourceforge.schemaspy.util.PasswordReader;
 import net.sourceforge.schemaspy.view.DefaultSqlFormatter;
 import net.sourceforge.schemaspy.view.SqlFormatter;
 
@@ -422,6 +423,17 @@ public class Config
     public String getPassword() {
         if (password == null)
             password = pullParam("-p");
+        
+        if (password == null && isPromptForPasswordEnabled())
+            password = new String(PasswordReader.getInstance().readPassword("Password: "));
+        
+        if (password == null) {
+            // if -pfp is enabled when analyzing multiple schemas then
+            // we don't want to send the password on the command line,
+            // so see if it was passed in the environment (not ideal, but safer)
+            password = System.getenv("schemaspy.pw");
+        }
+
         return password;
     }
 
@@ -1626,12 +1638,17 @@ public class Config
             params.add(value);
         }
         value = getPassword();
-        if (value != null) {
+        if (value != null && !isPromptForPasswordEnabled()) {
+            // note that we don't pass -pfp since child processes
+            // won't have a console
             params.add("-p");
             params.add(value);
         }
-        if (isPromptForPasswordEnabled())
-            params.add("-pfp");
+        value = getCatalog();
+        if (value != null) {
+            params.add("-cat");
+            params.add(value);
+        }
         value = getSchema();
         if (value != null) {
             params.add("-s");
