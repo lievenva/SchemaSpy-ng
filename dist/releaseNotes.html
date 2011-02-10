@@ -14,8 +14,14 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
 <ul>
-    <li>Changed default from -lq (low quality) to -hq (high quality) after
-        seeing how the low quality diagrams look on various systems.<br>  
+    <li>Added an optional <code>short_column_type</code> to 
+        <code>selectColumnTypesSql</code> to simplify the generated ER diagrams.
+        Otherwise they could become extremely large. 
+        rev 624
+    </li>
+    <li>Changed default from <code>-lq</code> (low quality) to <code>-hq</code>
+        (high quality) after seeing how the low quality diagrams look on 
+        various systems.<br>  
         rev 623
     </li>
     <li>Implemented <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1598563&group_id=137197&atid=737990">
@@ -25,7 +31,8 @@
     </li>
     <li>Low quality rendering was always being used when multiple schemas 
         were being analyzed.  
-        Now honors -hq or -lq from command-line in for multiples.<br>
+        Now honors <code>-hq</code> or <code>-lq</code> from command-line for 
+        multiples.<br>
         rev 620
     </li>
     <li>Now makes sure XML-defined FKs point to PKs.  

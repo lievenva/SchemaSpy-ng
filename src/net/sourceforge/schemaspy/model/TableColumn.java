@@ -37,6 +37,7 @@ public class TableColumn {
     private final String name;
     private final Object id;
     private       String type;
+    private       String shortType;
     private final int length;
     private final int decimalDigits;
     private final String detailedSize;
@@ -171,6 +172,24 @@ public class TableColumn {
      */
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     * Abbreviated form of {@link #getType()}
+     *
+     * @return
+     */
+    public String getShortType() {
+        return shortType == null ? type : shortType;
+    }
+    
+    /**
+     * Abbreviated form of {@link #setType(String)}
+     *
+     * @param shortType
+     */
+    public void setShortType(String shortType) {
+        this.shortType = shortType;
     }
 
     /**

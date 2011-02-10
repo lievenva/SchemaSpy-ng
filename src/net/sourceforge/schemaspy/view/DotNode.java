@@ -121,7 +121,7 @@ public class DotNode {
                         buf.append("<TD PORT=\"");
                         buf.append(column.getName());
                         buf.append(".type\" ALIGN=\"LEFT\">");
-                        buf.append(column.getType().toLowerCase());
+                        buf.append(column.getShortType().toLowerCase());
                         buf.append("[");
                         buf.append(column.getDetailedSize());
                         buf.append("]</TD>");

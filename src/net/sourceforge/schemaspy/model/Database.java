@@ -502,6 +502,7 @@ public class Database {
                         TableColumn column = table.getColumn(columnName);
                         if (column != null) {
                             column.setType(rs.getString("column_type"));
+                            column.setShortType(getOptionalString(rs, "short_column_type"));
                         }
                     }
                 }
