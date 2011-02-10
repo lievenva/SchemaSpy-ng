@@ -82,6 +82,7 @@ public class Database {
         initTableColumnComments(properties);
         initViewComments(properties);
         initViewColumnComments(properties);
+        initColumnTypes(properties);
 
         connectTables();
         updateFromXmlMetadata(schemaMeta);
@@ -380,10 +381,7 @@ public class Database {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.out.flush();
-                System.err.println();
-                System.err.println("Failed to retrieve " + clazz + " names with custom SQL: " + sqlException);
-                System.err.println(sql);
+                warning("Failed to retrieve " + clazz + " names with custom SQL: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();
@@ -476,9 +474,40 @@ public class Database {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.err.println();
-                System.err.println("Failed to retrieve check constraints: " + sqlException);
-                System.err.println(sql);
+                warning("Failed to retrieve check constraints: " + sqlException, sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+
+    private void initColumnTypes(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectColumnTypesSql");
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String tableName = rs.getString("table_name");
+                    Table table = combined.get(tableName);
+                    if (table != null) {
+                        String columnName = rs.getString("column_name");
+                        TableColumn column = table.getColumn(columnName);
+                        if (column != null) {
+                            column.setType(rs.getString("column_type"));
+                        }
+                    }
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                warning("Failed to retrieve column type details: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();
@@ -575,9 +604,7 @@ public class Database {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.err.println();
-                System.err.println("Failed to retrieve table/view comments: " + sqlException);
-                System.err.println(sql);
+                warning("Failed to retrieve table/view comments: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();
@@ -614,9 +641,7 @@ public class Database {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.err.println();
-                System.err.println("Failed to retrieve table/view comments: " + sqlException);
-                System.err.println(sql);
+                warning("Failed to retrieve table/view comments: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();
@@ -655,9 +680,7 @@ public class Database {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.err.println();
-                System.err.println("Failed to retrieve column comments: " + sqlException);
-                System.err.println(sql);
+                warning("Failed to retrieve column comments: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();
@@ -697,9 +720,7 @@ public class Database {
                 }
             } catch (SQLException sqlException) {
                 // don't die just because this failed
-                System.err.println();
-                System.err.println("Failed to retrieve view column comments: " + sqlException);
-                System.err.println(sql);
+                warning("Failed to retrieve view column comments: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();
@@ -707,6 +728,20 @@ public class Database {
                     stmt.close();
             }
         }
+    }
+    
+    /**
+     * Dump a warning message out to a new line
+     * 
+     * @param msg1
+     * @param msg2
+     */
+    private void warning(String msg1, String msg2) {
+        System.out.println();
+        System.out.flush();
+        logger.warning(msg1);
+        if (msg2 != null)
+            logger.warning(msg2);
     }
 
     /**

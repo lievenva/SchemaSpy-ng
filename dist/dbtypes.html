@@ -104,14 +104,14 @@ They will be substituted with appropriate values at runtime.
  <tr>
   <td>selectTablesSql</td>
   <td>table_name</td>
-  <td>table_schema, table_comment, table_rows</td>
+  <td>table_catalog, table_schema, table_comment, table_rows</td>
   <td>Basic information about all tables in a specific schema.</td>
   <td>Database</td>
  </tr>
  <tr>
   <td>selectViewsSql</td>
   <td>view_name, view_definition</td>
-  <td>view_schema, view_comment</td>
+  <td>view_catalog, view_schema, view_comment</td>
   <td>Basic information about all views in a specific schema.</td>
   <td>Database</td>
  </tr>
@@ -179,6 +179,14 @@ They will be substituted with appropriate values at runtime.
       These details will be displayed on the view detail pages.
   </td>
   <td>Single view</td>
+ </tr>
+ <tr>
+  <td>selectColumnTypesSql</td>
+  <td>table_name, column_name, column_type</td>
+  <td>&nbsp;</td>
+  <td>Details of unusual column types such as ENUMs.
+  </td>
+  <td>Database</td>
  </tr>
  <tr>
   <td>selectTableIdsSql</td>

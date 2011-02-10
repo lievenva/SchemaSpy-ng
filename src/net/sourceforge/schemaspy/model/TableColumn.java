@@ -36,7 +36,7 @@ public class TableColumn {
     private final Table table;
     private final String name;
     private final Object id;
-    private final String type;
+    private       String type;
     private final int length;
     private final int decimalDigits;
     private final String detailedSize;
@@ -162,6 +162,15 @@ public class TableColumn {
      */
     public String getType() {
         return type;
+    }
+    
+    /**
+     * Normally only used for "special" types such as enums.
+     *
+     * @param type
+     */
+    public void setType(String type) {
+        this.type = type;
     }
 
     /**
