@@ -80,6 +80,7 @@ public class Dot {
         }
 
         version = new Version(versionText);
+        validatedRenderers.add("");
     }
 
     public static Dot getInstance() {
@@ -150,18 +151,28 @@ public class Dot {
      * @param renderer
      */
     public void setRenderer(String renderer) {
+        if (!supportsRenderer(renderer)) {
+            logger.info("renderer '" + renderer + "' is not supported by your version of dot");
+        }
+
         this.renderer = renderer;
     }
 
+    /**
+     * @see #setRenderer(String)
+     * @return the renderer to use
+     */
     public String getRenderer() {
-        return renderer != null && supportsRenderer(renderer) ? renderer
-            : (requiresGdRenderer() ? ":gd" : "");
+        if (renderer == null) {
+            setHighQuality(true);
+        }
+
+        return supportsRenderer(renderer) ? renderer : (requiresGdRenderer() ? ":gd" : "");
     }
 
     /**
-     * If <code>true</code> then generate output of "higher quality"
-     * than the default ("lower quality").
-     * Note that the default is intended to be "lower quality",
+     * If <code>true</code> then generate output of "higher quality".
+     * Note that the default is intended to be "higher quality",
      * but various installations of Graphviz may have have different abilities.
      * That is, some might not have the "lower quality" libraries and others might
      * not have the "higher quality" libraries.
@@ -171,6 +182,8 @@ public class Dot {
             setRenderer(":cairo");
         } else if (supportsRenderer(":gd")) {
             setRenderer(":gd");
+        } else {
+            setRenderer("");
         }
     }
 
