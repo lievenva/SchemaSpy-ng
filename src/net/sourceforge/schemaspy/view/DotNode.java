@@ -150,7 +150,7 @@ public class DotNode {
             buf.append("view");
         else {
             final long numRows = table.getNumRows();
-            if (displayNumRows && numRows != -1) {
+            if (displayNumRows && numRows >= 0) {
                 buf.append(NumberFormat.getInstance().format(numRows));
                 buf.append(" row");
                 if (numRows != 1)

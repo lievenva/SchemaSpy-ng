@@ -14,6 +14,14 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
 <ul>
+    <li>It's now possible to supplement your real database metadata with logical
+        tables and relationships.
+        One possible use is with systems that store some of their data
+        in non-relational data storage.
+        E.g. what I did to generate <a href=http://schemaspy.sourceforge.net/unifieddb/">
+        an ERD for the Unified Database (UDB)</a>.
+        rev 627
+    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&aid=3177548&group_id=137197&atid=737987">
         bug 3177548</a> - -pfp doesn't work when analyzing multiple schemas<br>
         When analyzing multiple schemas SchemaSpy now prompts for a 
@@ -26,7 +34,7 @@
         Thanks to Kris Zarns for reporting the issue.
     </li>
     <li>Foundation for supporting image formats other than PNG (e.g. SVG).
-        Unfortunately SVG isn't quite ready for prime time yet.
+        Unfortunately SVG isn't quite ready for prime time yet.<br>
         rev 625
     </li>
     <li>Added an optional <code>short_column_type</code> to 

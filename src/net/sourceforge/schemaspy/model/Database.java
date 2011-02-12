@@ -54,7 +54,7 @@ public class Database {
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
     private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName
-    private final Map<String, Table> combined = new CombinedMap(tables, views);
+    private final Map<String, Table> locals = new CombinedMap(tables, views);
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
@@ -85,7 +85,7 @@ public class Database {
         initColumnTypes(properties);
 
         connectTables();
-        updateFromXmlMetadata(schemaMeta);
+        updateFromXmlMetadata(schemaMeta, properties);
     }
 
     public String getName() {
@@ -468,7 +468,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = combined.get(tableName);
+                    Table table = locals.get(tableName);
                     if (table != null)
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
@@ -496,7 +496,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = combined.get(tableName);
+                    Table table = locals.get(tableName);
                     if (table != null) {
                         String columnName = rs.getString("column_name");
                         TableColumn column = table.getColumn(columnName);
@@ -530,7 +530,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = combined.get(tableName);
+                    Table table = locals.get(tableName);
                     if (table != null)
                         table.setId(rs.getObject("table_id"));
                 }
@@ -559,7 +559,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = combined.get(tableName);
+                    Table table = locals.get(tableName);
                     if (table != null) {
                         TableIndex index = table.getIndex(rs.getString("index_name"));
                         if (index != null)
@@ -599,7 +599,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = combined.get(tableName);
+                    Table table = locals.get(tableName);
                     if (table != null)
                         table.setComments(rs.getString("comments"));
                 }
@@ -672,7 +672,7 @@ public class Database {
 
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
-                    Table table = combined.get(tableName);
+                    Table table = locals.get(tableName);
                     if (table != null) {
                         TableColumn column = table.getColumn(rs.getString("column_name"));
                         if (column != null)
@@ -788,13 +788,13 @@ public class Database {
             if (properties != null)
                 remoteTable = new RemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer, properties, excludeIndirectColumns, excludeColumns);
             else
-                remoteTable = new ExplicitRemoteTable(this, remoteSchema, remoteTableName, baseContainer);
+                remoteTable = new LogicalRemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer, properties, excludeIndirectColumns, excludeColumns);
 
             if (fineEnabled)
                 logger.fine("Adding remote table " + fullName);
 
             remoteTables.put(fullName, remoteTable);
-            remoteTable.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
+            remoteTable.connectForeignKeys(locals, excludeIndirectColumns, excludeColumns);
         }
 
         return remoteTable;
@@ -973,10 +973,11 @@ public class Database {
      * @param schemaMeta
      * @throws SQLException
      */
-    private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
+    private void updateFromXmlMetadata(SchemaMeta schemaMeta, Properties properties) throws SQLException {
         if (schemaMeta != null) {
+            final Pattern excludeColumns = Config.getInstance().getColumnExclusions();
+            final Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
             final Pattern excludeNone = Pattern.compile("[^.]");
-            final Properties noProps = new Properties();
 
             description = schemaMeta.getComments();
 
@@ -990,16 +991,14 @@ public class Database {
                 Table table;
 
                 if (tableMeta.getRemoteSchema() != null || tableMeta.getRemoteCatalog() != null) {
-                    table = remoteTables.get(getRemoteTableKey(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(),
-                                                                tableMeta.getName()));
-                    if (table == null) {
-                        table = addRemoteTable(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
-                    }
+                    // will add it if it doesn't already exist
+                    table = addRemoteTable(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
                 } else {
-                    table = combined.get(tableMeta.getName());
+                    table = locals.get(tableMeta.getName());
 
                     if (table == null) {
-                        table = new Table(Database.this, getCatalog(), getSchema(), tableMeta.getName(), null, noProps, excludeNone, excludeNone);
+                        // new table defined only in XML metadata
+                        table = new LogicalTable(this, getCatalog(), getSchema(), tableMeta.getName(), tableMeta.getComments(), properties, excludeIndirectColumns, excludeColumns);
                         tables.put(table.getName(), table);
                     }
                 }
@@ -1014,10 +1013,10 @@ public class Database {
                 if (tableMeta.getRemoteCatalog() != null || tableMeta.getRemoteSchema() != null) {
                     table = remoteTables.get(getRemoteTableKey(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName()));
                 } else {
-                    table = combined.get(tableMeta.getName());
+                    table = locals.get(tableMeta.getName());
                 }
 
-                table.connect(tableMeta, combined, remoteTables);
+                table.connect(tableMeta, locals, remoteTables);
             }
         }
     }
@@ -1027,10 +1026,10 @@ public class Database {
         Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
 
         for (Table table : tables.values()) {
-            table.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
+            table.connectForeignKeys(locals, excludeIndirectColumns, excludeColumns);
         }
         for (Table view : views.values()) {
-            view.connectForeignKeys(combined, excludeIndirectColumns, excludeColumns);
+            view.connectForeignKeys(locals, excludeIndirectColumns, excludeColumns);
         }
     }
 

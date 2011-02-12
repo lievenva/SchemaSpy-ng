@@ -1,6 +1,6 @@
 /*
  * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
- * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 John Currier
  *
  * SchemaSpy is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -87,7 +87,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
                 numTableCols += table.getColumns().size();
             else
                 numViewCols += table.getColumns().size();
-            numRows += table.getNumRows();
+            numRows += table.getNumRows() > 0 ? table.getNumRows() : 0;
         }
 
         writeFooter(byName.size() - numViews, numTableCols, numViews, numViewCols, numRows, html);
@@ -224,9 +224,12 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
         if (displayNumRows) {
             html.write("  <td class='detail' align='right'>");
-            if (!table.isView())
-                html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
-            else
+            if (!table.isView()) {
+                if (table.getNumRows() >= 0)
+                    html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
+                else
+                    html.write("<span title='Row count not available'>&nbsp;</span>");
+            } else
                 html.write("<span title='Views contain no real rows'>view</span>");
             html.writeln("</td>");
         }

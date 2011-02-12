@@ -1,6 +1,6 @@
 /*
  * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
- * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 John Currier
  *
  * SchemaSpy is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -171,8 +171,10 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
                 out.writeln("</td>");
                 if (displayNumRows) {
                     out.write("  <td class='detail' align='right'>");
-                    if (!table.isView())
+                    if (table.getNumRows() >= 0)
                         out.write(String.valueOf(NumberFormat.getIntegerInstance().format(table.getNumRows())));
+                    else
+                        out.write("&nbsp;");
                     out.writeln("</td>");
                 }
                 out.writeln(" </tr>");

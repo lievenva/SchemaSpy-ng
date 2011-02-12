@@ -198,7 +198,7 @@ public class DbAnalyzer {
         List<Table> withoutIndexes = new ArrayList<Table>();
 
         for (Table table : tables) {
-            if (!table.isView() && table.getIndexes().size() == 0)
+            if (table.getIndexes().size() == 0 && !table.isView() && !table.isLogical())
                 withoutIndexes.add(table);
         }
 

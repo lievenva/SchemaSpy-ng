@@ -45,29 +45,24 @@ public class TableMeta {
 
         name = attribs.getNamedItem("name").getNodeValue();
 
-        Node commentNode = attribs.getNamedItem("comments");
-        if (commentNode != null) {
-            String tmp = commentNode.getNodeValue().trim();
+        Node node = attribs.getNamedItem("comments");
+        if (node == null)
+            node = attribs.getNamedItem("remarks");
+        if (node != null) {
+            String tmp = node.getNodeValue().trim();
             comments = tmp.length() == 0 ? null : tmp;
         } else {
             comments = null;
         }
 
-        Node remoteSchemaNode = attribs.getNamedItem("remoteSchema");
-        if (remoteSchemaNode != null) {
-            remoteSchema = remoteSchemaNode.getNodeValue().trim();
-        } else {
-            remoteSchema = null;
-        }
+        node = attribs.getNamedItem("remoteSchema");
+        remoteSchema = node == null ? null : node.getNodeValue().trim();
 
-        Node remoteCatalogNode = attribs.getNamedItem("remoteCatalog");
-        if (remoteCatalogNode != null) {
-            remoteCatalog = remoteCatalogNode.getNodeValue().trim();
-        } else {
-            remoteCatalog = null;
-        }
+        node = attribs.getNamedItem("remoteCatalog");
+        remoteCatalog = node == null ? null : node.getNodeValue().trim();
 
         logger.fine("Found XML table metadata for " + name +
+                    " remoteCatalog: " + remoteCatalog +
                     " remoteSchema: " + remoteSchema +
                     " comments: " + comments);
 

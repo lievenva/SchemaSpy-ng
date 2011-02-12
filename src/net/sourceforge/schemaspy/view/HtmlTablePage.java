@@ -296,7 +296,7 @@ public class HtmlTablePage extends HtmlFormatter {
 
     private void writeNumRows(Database db, Table table, LineWriter out) throws IOException {
         out.write("<p title='" + table.getColumns().size() + " columns'>");
-        if (displayNumRows && !table.isView()) {
+        if (displayNumRows && table.getNumRows() >= 0) {
             out.write("Table contained " + NumberFormat.getIntegerInstance().format(table.getNumRows()) + " rows at ");
         } else {
             out.write("Analyzed at ");

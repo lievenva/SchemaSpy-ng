@@ -99,7 +99,7 @@ public class Table implements Comparable<Table> {
         setComments(comments);
         initColumns(excludeIndirectColumns, excludeColumns);
         initIndexes();
-        initPrimaryKeys(db.getMetaData());
+        initPrimaryKeys();
     }
     
     /**
@@ -246,20 +246,21 @@ public class Table implements Comparable<Table> {
      * @param meta
      * @throws SQLException
      */
-    private void initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
-        if (properties == null)
-            return;
-
+    private void initPrimaryKeys() throws SQLException {
         ResultSet rs = null;
 
         try {
             if (fineEnabled)
                 logger.fine("Querying primary keys for " + getFullName());
 
-            rs = meta.getPrimaryKeys(getCatalog(), getSchema(), getName());
+            rs = db.getMetaData().getPrimaryKeys(getCatalog(), getSchema(), getName());
 
             while (rs.next())
                 setPrimaryColumn(rs);
+        } catch (SQLException exc) {
+            if (!isLogical()) {
+                throw exc;
+            }
         } finally {
             if (rs != null)
                 rs.close();
@@ -299,7 +300,7 @@ public class Table implements Comparable<Table> {
      */
     private void initColumns(Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
-
+        
         synchronized (Table.class) {
             try {
                 rs = db.getMetaData().getColumns(getCatalog(), getSchema(), getName(), "%");
@@ -307,24 +308,25 @@ public class Table implements Comparable<Table> {
                 while (rs.next())
                     addColumn(rs, excludeIndirectColumns, excludeColumns);
             } catch (SQLException exc) {
-                class ColumnInitializationFailure extends SQLException {
-                    private static final long serialVersionUID = 1L;
-
-                    public ColumnInitializationFailure(SQLException failure) {
-                        super("Failed to collect column details for " + (isView() ? "view" : "table") + " '" + getName() + "' in schema '" + getContainer() + "'");
-                        initCause(failure);
+                if (!isLogical()) {
+                    class ColumnInitializationFailure extends SQLException {
+                        private static final long serialVersionUID = 1L;
+    
+                        public ColumnInitializationFailure(SQLException failure) {
+                            super("Failed to collect column details for " + (isView() ? "view" : "table") + " '" + getName() + "' in schema '" + getContainer() + "'");
+                            initCause(failure);
+                        }
                     }
-                }
 
-                throw new ColumnInitializationFailure(exc);
+                    throw new ColumnInitializationFailure(exc);
+                }
             } finally {
                 if (rs != null)
                     rs.close();
             }
         }
 
-        if (!isView() && !isRemote())
-            initColumnAutoUpdate(false);
+        initColumnAutoUpdate(false);
     }
 
     /**
@@ -334,6 +336,9 @@ public class Table implements Comparable<Table> {
     private void initColumnAutoUpdate(boolean forceQuotes) throws SQLException {
         ResultSet rs = null;
         PreparedStatement stmt = null;
+        
+        if (isView() || isRemote())
+            return;
 
         // we've got to get a result set with all the columns in it
         // so we can ask if the columns are auto updated
@@ -366,9 +371,11 @@ public class Table implements Comparable<Table> {
             }
         } catch (SQLException exc) {
             if (forceQuotes) {
-                // don't completely choke just because we couldn't do this....
-                logger.warning("Failed to determine auto increment status: " + exc);
-                logger.warning("SQL: " + sql.toString());
+                if (!isLogical()) {
+                    // don't completely choke just because we couldn't do this....
+                    logger.warning("Failed to determine auto increment status: " + exc);
+                    logger.warning("SQL: " + sql.toString());
+                }
             } else {
                 initColumnAutoUpdate(true);
             }
@@ -439,7 +446,8 @@ public class Table implements Comparable<Table> {
                     addIndex(rs);
             }
         } catch (SQLException exc) {
-            logger.warning("Unable to extract index info for table '" + getName() + "' in schema '" + getContainer() + "': " + exc);
+            if (!isLogical())
+                logger.warning("Unable to extract index info for table '" + getName() + "' in schema '" + getContainer() + "': " + exc);
         } finally {
             if (rs != null)
                 rs.close();
@@ -920,6 +928,14 @@ public class Table implements Comparable<Table> {
     }
 
     /**
+     * Returns <code>true</code> if this table is logical (not physical), <code>false</code> otherwise
+     * @return
+     */
+    public boolean isLogical() {
+        return false;
+    }
+
+    /**
      * Returns <code>true</code> if this is a view, <code>false</code> otherwise
      *
      * @return
@@ -979,9 +995,8 @@ public class Table implements Comparable<Table> {
      * @throws SQLException
      */
     protected long fetchNumRows() {
-        // some "meta" tables don't have associated properties
-        if (properties == null) 
-            return 0;
+        if (isView() || isRemote())
+            return -1;
 
         SQLException originalFailure = null;
 
@@ -1023,12 +1038,14 @@ public class Table implements Comparable<Table> {
                 // except nested tables...try using '1' instead
                 return fetchNumRows("count(1)", false);
             } catch (SQLException try3Exception) {
-                logger.warning("Unable to extract the number of rows for table " + getName() + ", using '-1'");
-                if (originalFailure != null)
-                    logger.warning(originalFailure.toString());
-                logger.warning(try2Exception.toString());
-                if (!String.valueOf(try2Exception.toString()).equals(try3Exception.toString()))
-                    logger.warning(try3Exception.toString());
+                if (!isLogical()) {
+                    logger.warning("Unable to extract the number of rows for table " + getName() + ", using '-1'");
+                    if (originalFailure != null)
+                        logger.warning(originalFailure.toString());
+                    logger.warning(try2Exception.toString());
+                    if (!String.valueOf(try2Exception.toString()).equals(try3Exception.toString()))
+                        logger.warning(try3Exception.toString());
+                }
                 return -1;
             }
         }
@@ -1113,13 +1130,25 @@ public class Table implements Comparable<Table> {
             if (col != null) {
                 // go thru the new foreign key defs and associate them with our columns
                 for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
-                    Table parent = fk.getRemoteSchema() == null ? tables.get(fk.getTableName())
-                                                                : remoteTables.get(db.getRemoteTableKey(null, fk.getRemoteSchema(), fk.getTableName()));
+                    Table parent;
+                    
+                    if (fk.getRemoteCatalog() != null || fk.getRemoteSchema() != null) {
+                        Pattern excludeNone = Pattern.compile("[^.]");
+                        try {
+                            // adds if doesn't exist
+                            parent = db.addRemoteTable(fk.getRemoteCatalog(), fk.getRemoteSchema(), fk.getTableName(), getContainer(), properties, excludeNone, excludeNone);
+                        } catch (SQLException exc) {
+                            parent = null;
+                        }
+                    } else {
+                        parent = tables.get(fk.getTableName());
+                    }
+                    
                     if (parent != null) {
                         TableColumn parentColumn = parent.getColumn(fk.getColumnName());
     
                         if (parentColumn == null) {
-                            logger.warning(parent.getName() + '.' + fk.getColumnName() + " doesn't exist");
+                            logger.warning("Undefined column '" + parent.getName() + '.' + fk.getColumnName() + "' referenced by '" + col.getTable()+ '.' + col + "' in XML metadata");
                         } else {
                             /**
                              * Merely instantiating a foreign key constraint ties it
@@ -1214,11 +1243,14 @@ public class Table implements Comparable<Table> {
      */
     private static class ByColumnIdComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
-            if (column1.getId() == null || column2.getId() == null)
+            Object id1 = column1.getId();
+            Object id2 = column2.getId();
+            
+            if (id1 == null || id2 == null)
                 return column1.getName().compareToIgnoreCase(column2.getName());
-            if (column1.getId() instanceof Number)
-                return ((Number)column1.getId()).intValue() - ((Number)column2.getId()).intValue();
-            return column1.getId().toString().compareToIgnoreCase(column2.getId().toString());
+            if (id1 instanceof Number && id2 instanceof Number)
+                return ((Number)id1).intValue() - ((Number)id2).intValue();
+            return id1.toString().compareToIgnoreCase(id2.toString());
         }
     }
 }

@@ -99,7 +99,7 @@ public class XmlTableFormatter {
         if (table.getSchema() != null)
             DOMUtil.appendAttribute(tableNode, "schema", table.getSchema());
         DOMUtil.appendAttribute(tableNode, "name", table.getName());
-        if (table.getNumRows() != -1)
+        if (table.getNumRows() >= 0)
             DOMUtil.appendAttribute(tableNode, "numRows", String.valueOf(table.getNumRows()));
         DOMUtil.appendAttribute(tableNode, "type", table.isView() ? "VIEW" : "TABLE");
         DOMUtil.appendAttribute(tableNode, "remarks", table.getComments() == null ? "" : table.getComments());

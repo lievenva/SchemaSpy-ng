@@ -1,6 +1,6 @@
 /*
  * This file is a part of the SchemaSpy project (http://schemaspy.sourceforge.net).
- * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 John Currier
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 John Currier
  *
  * SchemaSpy is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,10 +31,11 @@ import org.w3c.dom.Node;
 public class ForeignKeyMeta {
     private final String tableName;
     private final String columnName;
+    private final String remoteCatalog;
     private final String remoteSchema;
     private final static Logger logger = Logger.getLogger(ForeignKeyMeta.class.getName());
 
-    ForeignKeyMeta(Node foreignKeyNode) {
+    public ForeignKeyMeta(Node foreignKeyNode) {
         NamedNodeMap attribs = foreignKeyNode.getAttributes();
         Node node = attribs.getNamedItem("table");
         if (node == null)
@@ -45,14 +46,12 @@ public class ForeignKeyMeta {
             throw new IllegalStateException("XML foreignKey definition requires 'column' attribute");
         columnName = node.getNodeValue();
         node = attribs.getNamedItem("remoteSchema");
-        if (node != null) {
-            remoteSchema = node.getNodeValue();
-        } else {
-            remoteSchema = null;
-        }
+        remoteSchema = node == null ? null : node.getNodeValue();
+        node = attribs.getNamedItem("remoteCatalog");
+        remoteCatalog = node == null ? null : node.getNodeValue();
 
         logger.finer("Found XML FK metadata for " + tableName + "." + columnName +
-                " remoteSchema: " + remoteSchema);
+                " remoteCatalog: " + remoteCatalog + " remoteSchema: " + remoteSchema);
     }
 
     public String getTableName() {
@@ -61,6 +60,10 @@ public class ForeignKeyMeta {
 
     public String getColumnName() {
         return columnName;
+    }
+
+    public String getRemoteCatalog() {
+        return remoteCatalog;
     }
 
     public String getRemoteSchema() {

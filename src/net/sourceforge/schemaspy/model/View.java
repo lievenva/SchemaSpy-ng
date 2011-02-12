@@ -69,11 +69,6 @@ public class View extends Table {
         return viewSql;
     }
 
-    @Override
-    protected long fetchNumRows() {
-        return 0L;
-    }
-
     /**
      * Extract the SQL that describes this view from the database
      *

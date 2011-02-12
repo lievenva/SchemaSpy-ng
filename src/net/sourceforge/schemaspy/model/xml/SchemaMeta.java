@@ -79,6 +79,8 @@ public class SchemaMeta {
         Document doc = parse(metaFile);
 
         NodeList commentsNodes = doc.getElementsByTagName("comments");
+        if (commentsNodes == null)
+            commentsNodes = doc.getElementsByTagName("remarks");
         if (commentsNodes != null && commentsNodes.getLength() > 0)
             comments = commentsNodes.item(0).getTextContent();
         else
@@ -142,12 +144,19 @@ public class SchemaMeta {
         }
 
         try {
+            logger.info("Parsing " + file);
             doc = docBuilder.parse(file);
-            validate(doc);
         } catch (SAXException exc) {
-            throw new InvalidConfigurationException(file + " failed XML validation:", exc);
+            throw new InvalidConfigurationException("Failed to parse " + file, exc);
         } catch (IOException exc) {
             throw new InvalidConfigurationException("Could not read " + file + ":", exc);
+        }
+        try {
+            validate(doc);
+        } catch (SAXException exc) {
+            logger.warning("Failed to validate " + file + ": " + exc);
+        } catch (IOException exc) {
+            logger.warning("Failed to validate " + file + ": " + exc);
         }
 
         return doc;
