@@ -35,9 +35,9 @@ import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
 
 public class HtmlFormatter {
-    protected final boolean encodeComments       = Config.getInstance().isEncodeCommentsEnabled();
-    protected final boolean displayNumRows       = Config.getInstance().isNumRowsEnabled();
-    private   final boolean isMetered            = Config.getInstance().isMeterEnabled();
+    protected final boolean encodeComments = Config.getInstance().isEncodeCommentsEnabled();
+    private   final boolean isMetered = Config.getInstance().isMeterEnabled();
+    protected final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
 
     protected HtmlFormatter() {
     }

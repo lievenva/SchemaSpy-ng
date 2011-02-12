@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
@@ -55,32 +55,39 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection<Table> tables, boolean showOrphansDiagram, LineWriter html) throws IOException {
-        Set<Table> byName = new TreeSet<Table>(new Comparator<Table>() {
+    public void write(Database database, Collection<Table> tables, Collection<Table> remotes, boolean showOrphansDiagram, LineWriter html) throws IOException {
+        Comparator<Table> sorter = new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
                 return table1.compareTo(table2);
             }
-        });
-        byName.addAll(tables);
+        };
+        // sort tables and remotes by name
+        Collection<Table> tmp = new TreeSet<Table>(sorter);
+        tmp.addAll(tables);
+        tables = tmp;
+        tmp = new TreeSet<Table>(sorter);
+        tmp.addAll(remotes);
+        remotes = tmp;
+        tmp = null;
 
         boolean showIds = false;
         int numViews = 0;
-        boolean comments = false;
+        boolean hasComments = false;
 
-        for (Table table : byName) {
+        for (Table table : tables) {
             if (table.isView())
                 ++numViews;
             showIds |= table.getId() != null;
             if (table.getComments() != null)
-                comments = true;
+                hasComments = true;
         }
 
-        writeHeader(database, byName.size() - numViews, numViews, showIds, showOrphansDiagram, comments, html);
+        writeLocalsHeader(database, tables.size() - numViews, numViews, showIds, showOrphansDiagram, hasComments, html);
 
         int numTableCols = 0;
         int numViewCols = 0;
         long numRows = 0;
-        for (Table table : byName) {
+        for (Table table : tables) {
             writeLineItem(table, showIds, html);
 
             if (!table.isView())
@@ -90,10 +97,22 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             numRows += table.getNumRows() > 0 ? table.getNumRows() : 0;
         }
 
-        writeFooter(byName.size() - numViews, numTableCols, numViews, numViewCols, numRows, html);
+        writeLocalsFooter(tables.size() - numViews, numTableCols, numViews, numViewCols, numRows, html);
+
+        if (!remotes.isEmpty()) {
+            writeRemotesHeader(database, showIds, hasComments, html);
+    
+            for (Table table : remotes) {
+                writeLineItem(table, showIds, html);
+            }
+    
+            writeRemotesFooter(html);
+        }
+
+        writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, boolean hasComments, LineWriter html) throws IOException {
+    private void writeLocalsHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, boolean hasComments, LineWriter html) throws IOException {
         List<String> javascript = new ArrayList<String>();
 
         // we can't use the hard-coded even odd technique that we use
@@ -141,7 +160,6 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.write("<br><a href='" + xmlName + ".xml' title='XML Representation'>XML Representation</a>");
         html.write("<br><a href='insertionOrder.txt' title='Useful for loading data into a database'>Insertion Order</a>&nbsp;");
         html.write("<a href='deletionOrder.txt' title='Useful for purging data from a database'>Deletion Order</a>");
-        html.write("&nbsp;(for database loading/purging scripts)");
         html.writeln("</td>");
         html.writeln(" </tr>");
         html.writeln("</table>");
@@ -189,13 +207,55 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("<tbody>");
     }
 
+    private void writeRemotesHeader(Database db, boolean showIds, boolean hasComments, LineWriter html) throws IOException {
+        html.writeln("<p><br><b>Related tables in other schemas</b>");
+        html.writeln("<table class='dataTable' border='1' rules='groups'>");
+        int numGroups = 3 + (showIds ? 1 : 0);
+        for (int i = 0; i < numGroups; ++i)
+            html.writeln("<colgroup>");
+        html.writeln("<colgroup class='comment'>");
+        html.writeln("<thead align='left'>");
+        html.writeln("<tr>");
+        html.writeln("  <th rowspan='2'>Table</th>");
+        if (showIds)
+            html.writeln("  <th align='center' valign='bottom' rowspan='2'>ID</th>");
+        html.writeln("  <th valign='bottom' colspan='2' style='text-align: center;'>In this schema</th>");
+        html.writeln("  <th class='comment' align='left' valign='bottom' rowspan='2'>Comments</th>");
+        html.writeln("</tr>");
+        html.writeln("<tr>");
+        html.writeln("  <th align='right' valign='bottom'>Children</th>");
+        html.writeln("  <th align='right' valign='bottom'>Parents</th>");
+        html.writeln("</tr>");
+        html.writeln("</thead>");
+        html.writeln("<tbody>");
+    }
+
     private void writeLineItem(Table table, boolean showIds, LineWriter html) throws IOException {
         html.write(" <tr class='" + (table.isView() ? "view" : "tbl") + "' valign='top'>");
-        html.write("  <td class='detail'><a href='tables/");
-        html.write(urlEncode(table.getName()));
-        html.write(".html'>");
-        html.write(table.getName());
-        html.writeln("</a></td>");
+        html.write("  <td class='detail'>");
+
+        String tableName = table.getName();
+        
+        if (table.isRemote() && !Config.getInstance().isOneOfMultipleSchemas()) {
+            html.write(table.getContainer());
+            html.write('.');
+            html.write(tableName);
+        } else {
+            html.write("<a href='tables/");
+            if (table.isRemote()) {
+                html.write("../../" + table.getContainer() + "/tables/");
+            }
+            html.write(urlEncode(tableName));
+            html.write(".html'>");
+            if (table.isRemote()) {
+                html.write(table.getContainer());
+                html.write('.');
+            }
+            html.write(tableName);
+            html.write("</a>");
+        }
+        
+        html.writeln("</td>");
 
         if (showIds) {
             html.write("  <td class='detail' align='right'>");
@@ -218,21 +278,24 @@ public class HtmlMainIndexPage extends HtmlFormatter {
             html.write(String.valueOf(integerFormatter.format(numRelatives)));
         html.writeln("</td>");
 
-        html.write("  <td class='detail' align='right'>");
-        html.write(String.valueOf(integerFormatter.format(table.getColumns().size())));
-        html.writeln("</td>");
-
-        if (displayNumRows) {
+        if (!table.isRemote()) {
             html.write("  <td class='detail' align='right'>");
-            if (!table.isView()) {
-                if (table.getNumRows() >= 0)
-                    html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
-                else
-                    html.write("<span title='Row count not available'>&nbsp;</span>");
-            } else
-                html.write("<span title='Views contain no real rows'>view</span>");
+            html.write(String.valueOf(integerFormatter.format(table.getColumns().size())));
             html.writeln("</td>");
+
+            if (displayNumRows) {
+                html.write("  <td class='detail' align='right'>");
+                if (!table.isView()) {
+                    if (table.getNumRows() >= 0)
+                        html.write(String.valueOf(integerFormatter.format(table.getNumRows())));
+                    else
+                        html.write("<span title='Row count not available'>&nbsp;</span>");
+                } else
+                    html.write("<span title='Views contain no real rows'>view</span>");
+                html.writeln("</td>");
+            }
         }
+
         html.write("  <td class='comment detail'>");
         String comments = table.getComments();
         if (comments != null) {
@@ -246,7 +309,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  </tr>");
     }
 
-    protected void writeFooter(int numTables, int numTableCols, int numViews, int numViewCols, long numRows, LineWriter html) throws IOException {
+    protected void writeLocalsFooter(int numTables, int numTableCols, int numViews, int numViewCols, long numRows, LineWriter html) throws IOException {
         html.writeln("  <tr>");
         html.writeln("    <td class='detail'>&nbsp;</td>");
         html.writeln("    <td class='detail'>&nbsp;</td>");
@@ -278,10 +341,13 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("  </tr>");
         html.writeln("</tbody>");
         html.writeln("</table>");
-
-        super.writeFooter(html);
     }
-
+    
+    protected void writeRemotesFooter(LineWriter html) throws IOException {
+        html.writeln("</tbody>");
+        html.writeln("</table>");
+    }
+    
     @Override
     protected boolean isMainIndex() {
         return true;

@@ -342,7 +342,7 @@ public class SchemaAnalyzer {
                     System.out.print(".");
 
                 out = new LineWriter(new File(outputDir, "index.html"), 64 * 1024, config.getCharset());
-                HtmlMainIndexPage.getInstance().write(db, tables, hasOrphans, out);
+                HtmlMainIndexPage.getInstance().write(db, tables, db.getRemoteTables(), hasOrphans, out);
                 out.close();
 
                 if (!fineEnabled)

@@ -1220,20 +1220,7 @@ public class Table implements Comparable<Table> {
         if (other == this)  // fast way out
             return 0;
 
-        int rc = getName().compareToIgnoreCase(other.getName());
-        if (rc == 0) {
-            // should only get here if we're dealing with cross-schema references (rare)
-            String ours = getContainer();
-            String theirs = other.getContainer();
-            if (ours != null && theirs != null)
-                rc = ours.compareToIgnoreCase(theirs);
-            else if (ours == null)
-                rc = -1;
-            else
-                rc = 1;
-        }
-
-        return rc;
+        return getFullName().compareToIgnoreCase(other.getFullName());
     }
 
     /**
