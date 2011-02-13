@@ -258,17 +258,20 @@ public class HtmlTablePage extends HtmlFormatter {
                 out.write('.');
                 out.write(columnTableName);
             } else {
+                if (columnTable.isRemote()) {
+                    out.write("<a href='");
+                    out.write(path);
+                    out.write("../../" + urlEncode(columnTable.getContainer()) + "/index.html'>");
+                    out.write(columnTable.getContainer());
+                    out.write("</a>.");
+                }
                 out.write("<a href='");
                 out.write(path);
                 if (columnTable.isRemote()) {
-                    out.write("../../" + columnTable.getContainer() + "/tables/");
+                    out.write("../../" + urlEncode(columnTable.getContainer()) + "/tables/");
                 }
                 out.write(urlEncode(columnTableName));
                 out.write(".html'>");
-                if (columnTable.isRemote()) {
-                    out.write(columnTable.getContainer());
-                    out.write('.');
-                }
                 out.write(columnTableName);
                 out.write("</a>");
             }

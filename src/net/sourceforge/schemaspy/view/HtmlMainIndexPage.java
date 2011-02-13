@@ -101,11 +101,11 @@ public class HtmlMainIndexPage extends HtmlFormatter {
 
         if (!remotes.isEmpty()) {
             writeRemotesHeader(database, showIds, hasComments, html);
-    
+
             for (Table table : remotes) {
                 writeLineItem(table, showIds, html);
             }
-    
+
             writeRemotesFooter(html);
         }
 
@@ -235,26 +235,27 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.write("  <td class='detail'>");
 
         String tableName = table.getName();
-        
+
         if (table.isRemote() && !Config.getInstance().isOneOfMultipleSchemas()) {
             html.write(table.getContainer());
             html.write('.');
             html.write(tableName);
         } else {
+            if (table.isRemote()) {
+                html.write("<a href='../" + urlEncode(table.getContainer()) + "/index.html'>");
+                html.write(table.getContainer());
+                html.write("</a>.");
+            }
             html.write("<a href='tables/");
             if (table.isRemote()) {
-                html.write("../../" + table.getContainer() + "/tables/");
+                html.write("../../" + urlEncode(table.getContainer()) + "/tables/");
             }
             html.write(urlEncode(tableName));
             html.write(".html'>");
-            if (table.isRemote()) {
-                html.write(table.getContainer());
-                html.write('.');
-            }
             html.write(tableName);
             html.write("</a>");
         }
-        
+
         html.writeln("</td>");
 
         if (showIds) {
@@ -342,12 +343,12 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         html.writeln("</tbody>");
         html.writeln("</table>");
     }
-    
+
     protected void writeRemotesFooter(LineWriter html) throws IOException {
         html.writeln("</tbody>");
         html.writeln("</table>");
     }
-    
+
     @Override
     protected boolean isMainIndex() {
         return true;
