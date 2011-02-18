@@ -79,7 +79,11 @@ public final class MultipleSchemaAnalyzer {
         if (schemas == null) {
             System.out.println("Analyzing schemas that match regular expression '" + schemaSpec + "':");
             System.out.println("(use -schemaSpec on command line or in .properties to exclude other schemas)");
-            populatedSchemas = getPopulatedSchemas(meta, schemaSpec, user);
+            populatedSchemas = getPopulatedSchemas(meta, schemaSpec, false);
+            if (populatedSchemas.isEmpty())
+                populatedSchemas = getPopulatedSchemas(meta, schemaSpec, true);
+            if (populatedSchemas.isEmpty())
+                populatedSchemas = Arrays.asList(new String[] {user});
         } else {
             System.out.println("Analyzing schemas:");
             populatedSchemas = schemas;
@@ -90,7 +94,7 @@ public final class MultipleSchemaAnalyzer {
         System.out.println();
 
         writeIndexPage(dbName, populatedSchemas, meta, outputDir, charset);
-        
+
         Map<String, String> env = System.getenv();
         List<String> childEnv = new ArrayList<String>();
         for (Entry<String, String> entry : env.entrySet()) {
@@ -149,13 +153,14 @@ public final class MultipleSchemaAnalyzer {
         }
     }
 
-    private List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, String user) throws SQLException {
+    private List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, boolean isCatalog) throws SQLException {
         List<String> populatedSchemas;
 
-        if (meta.supportsSchemasInTableDefinitions()) {
+        if ((!isCatalog && meta.supportsSchemasInTableDefinitions()) ||
+             (isCatalog && meta.supportsCatalogsInTableDefinitions())) {
             Pattern schemaRegex = Pattern.compile(schemaSpec);
 
-            populatedSchemas = DbAnalyzer.getPopulatedSchemas(meta, schemaSpec);
+            populatedSchemas = DbAnalyzer.getPopulatedSchemas(meta, schemaSpec, isCatalog);
             Iterator<String> iter = populatedSchemas.iterator();
             while (iter.hasNext()) {
                 String schema = iter.next();
@@ -173,7 +178,7 @@ public final class MultipleSchemaAnalyzer {
                 }
             }
         } else {
-            populatedSchemas = Arrays.asList(new String[] {user});
+            populatedSchemas = new ArrayList<String>();
         }
 
         return populatedSchemas;

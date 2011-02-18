@@ -70,7 +70,7 @@ public class Database {
         this.catalog = catalog;
         this.schema = schema;
         description = config.getDescription();
-        
+
         initTables(meta, properties, config);
         if (config.isViewsEnabled())
             initViews(meta, properties, config);
@@ -91,7 +91,7 @@ public class Database {
     public String getName() {
         return databaseName;
     }
-    
+
     public String getCatalog() {
         return catalog;
     }
@@ -292,7 +292,7 @@ public class Database {
 
         for (BasicTableMeta entry : getBasicTableMeta(metadata, false, properties, types)) {
             if (validator.isValid(entry.name, entry.type)) {
-                View view = new View(this, entry.catalog, entry.schema, entry.name, 
+                View view = new View(this, entry.catalog, entry.schema, entry.name,
                                     entry.remarks, entry.viewSql, properties,
                                     excludeIndirectColumns, excludeColumns);
                 views.put(view.getName(), view);
@@ -730,10 +730,10 @@ public class Database {
             }
         }
     }
-    
+
     /**
      * Dump a warning message out to a new line
-     * 
+     *
      * @param msg1
      * @param msg2
      */
@@ -777,14 +777,14 @@ public class Database {
         return stmt;
     }
 
-    public Table addRemoteTable(String remoteCatalog, String remoteSchema, String remoteTableName, String baseContainer, 
+    public Table addRemoteTable(String remoteCatalog, String remoteSchema, String remoteTableName, String baseContainer,
                                 Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         String fullName = getRemoteTableKey(remoteCatalog, remoteSchema, remoteTableName);
         Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
             if (fineEnabled)
                 logger.fine("Creating remote table " + fullName);
-            
+
             if (properties != null)
                 remoteTable = new RemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer, properties, excludeIndirectColumns, excludeColumns);
             else
@@ -1036,7 +1036,7 @@ public class Database {
     /**
      * Returns a 'key' that's used to identify a remote table
      * in the remoteTables map.
-     * 
+     *
      * @param cat
      * @param sch
      * @param table

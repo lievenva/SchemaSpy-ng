@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -309,6 +308,23 @@ public class DbAnalyzer {
     }
 
     /**
+     * getSchemas - returns a List of catalog names (Strings)
+     *
+     * @param meta DatabaseMetaData
+     */
+    public static List<String> getCatalogs(DatabaseMetaData meta) throws SQLException {
+        List<String> catalogs = new ArrayList<String>();
+
+        ResultSet rs = meta.getCatalogs();
+        while (rs.next()) {
+            catalogs.add(rs.getString("TABLE_CAT"));
+        }
+        rs.close();
+
+        return catalogs;
+    }
+
+    /**
      * getSchemas - returns a List of schema names (Strings)
      *
      * @param meta DatabaseMetaData
@@ -331,7 +347,7 @@ public class DbAnalyzer {
      * @param meta DatabaseMetaData
      */
     public static List<String> getPopulatedSchemas(DatabaseMetaData meta) throws SQLException {
-        return getPopulatedSchemas(meta, ".*");
+        return getPopulatedSchemas(meta, ".*", false);
     }
 
     /**
@@ -340,15 +356,13 @@ public class DbAnalyzer {
      *
      * @param meta DatabaseMetaData
      */
-    public static List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec) throws SQLException {
+    public static List<String> getPopulatedSchemas(DatabaseMetaData meta, String schemaSpec, boolean isCatalog) throws SQLException {
         Set<String> schemas = new TreeSet<String>(); // alpha sorted
         Pattern schemaRegex = Pattern.compile(schemaSpec);
         Logger logger = Logger.getLogger(DbAnalyzer.class.getName());
         boolean logging = logger.isLoggable(Level.FINE);
 
-        Iterator<String> iter = getSchemas(meta).iterator();
-        while (iter.hasNext()) {
-            String schema = iter.next().toString();
+        for (String schema : (isCatalog ? getCatalogs(meta) : getSchemas(meta))) {
             if (schemaRegex.matcher(schema).matches()) {
                 ResultSet rs = null;
                 try {

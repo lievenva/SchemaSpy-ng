@@ -423,10 +423,10 @@ public class Config
     public String getPassword() {
         if (password == null)
             password = pullParam("-p");
-        
+
         if (password == null && isPromptForPasswordEnabled())
             password = new String(PasswordReader.getInstance().readPassword("Password: "));
-        
+
         if (password == null) {
             // if -pfp is enabled when analyzing multiple schemas then
             // we don't want to send the password on the command line,
@@ -1587,7 +1587,7 @@ public class Config
                 params.add(value);
             }
         }
-        //TODO deal with -cat
+
         if (isEncodeCommentsEnabled())
             params.add("-ahic");
         if (isEvaluateAllEnabled())
