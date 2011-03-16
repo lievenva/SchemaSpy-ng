@@ -90,8 +90,8 @@ public class Table implements Comparable<Table> {
         this.schema = schema;
         this.container = schema != null ? schema : catalog != null ? catalog : db.getName();
         this.name = name;
-        this.fullName = (catalog == null && schema == null ? db.getName() + '.' : "") + 
-                        (catalog == null ? "" : catalog + '.') + 
+        this.fullName = (catalog == null && schema == null ? db.getName() + '.' : "") +
+                        (catalog == null ? "" : catalog + '.') +
                         (schema == null ? "" : schema + '.') + name;
         this.properties = properties;
         if (fineEnabled)
@@ -101,7 +101,7 @@ public class Table implements Comparable<Table> {
         initIndexes();
         initPrimaryKeys();
     }
-    
+
     /**
      * "Connect" all of this table's foreign keys to their referenced primary keys
      * (and, in some cases, do the reverse as well).
@@ -122,7 +122,7 @@ public class Table implements Comparable<Table> {
 
             while (rs.next()) {
                 addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
-                        rs.getString("PKTABLE_CAT"), rs.getString("PKTABLE_SCHEM"), 
+                        rs.getString("PKTABLE_CAT"), rs.getString("PKTABLE_SCHEM"),
                         rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"),
                         rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
                         tables, excludeIndirectColumns, excludeColumns);
@@ -300,7 +300,7 @@ public class Table implements Comparable<Table> {
      */
     private void initColumns(Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
-        
+
         synchronized (Table.class) {
             try {
                 rs = db.getMetaData().getColumns(getCatalog(), getSchema(), getName(), "%");
@@ -311,7 +311,7 @@ public class Table implements Comparable<Table> {
                 if (!isLogical()) {
                     class ColumnInitializationFailure extends SQLException {
                         private static final long serialVersionUID = 1L;
-    
+
                         public ColumnInitializationFailure(SQLException failure) {
                             super("Failed to collect column details for " + (isView() ? "view" : "table") + " '" + getName() + "' in schema '" + getContainer() + "'");
                             initCause(failure);
@@ -336,7 +336,7 @@ public class Table implements Comparable<Table> {
     private void initColumnAutoUpdate(boolean forceQuotes) throws SQLException {
         ResultSet rs = null;
         PreparedStatement stmt = null;
-        
+
         if (isView() || isRemote())
             return;
 
@@ -529,13 +529,13 @@ public class Table implements Comparable<Table> {
 
     /**
      * Returns the catalog that the table belongs to
-     * 
+     *
      * @return
      */
     public String getCatalog() {
         return catalog;
     }
-    
+
     /**
      * Returns the schema that the table belongs to
      *
@@ -544,7 +544,7 @@ public class Table implements Comparable<Table> {
     public String getSchema() {
         return schema;
     }
-    
+
     /**
      * Returns the logical 'container' that the table
      * lives in.  Basically it's the first non-<code>null</code>
@@ -565,7 +565,7 @@ public class Table implements Comparable<Table> {
     public String getName() {
         return name;
     }
-    
+
     /**
      * Returns the fully-qualified name of this table
      *
@@ -1131,7 +1131,7 @@ public class Table implements Comparable<Table> {
                 // go thru the new foreign key defs and associate them with our columns
                 for (ForeignKeyMeta fk : colMeta.getForeignKeys()) {
                     Table parent;
-                    
+
                     if (fk.getRemoteCatalog() != null || fk.getRemoteSchema() != null) {
                         Pattern excludeNone = Pattern.compile("[^.]");
                         try {
@@ -1143,10 +1143,10 @@ public class Table implements Comparable<Table> {
                     } else {
                         parent = tables.get(fk.getTableName());
                     }
-                    
+
                     if (parent != null) {
                         TableColumn parentColumn = parent.getColumn(fk.getColumnName());
-    
+
                         if (parentColumn == null) {
                             logger.warning("Undefined column '" + parent.getName() + '.' + fk.getColumnName() + "' referenced by '" + col.getTable()+ '.' + col + "' in XML metadata");
                         } else {
@@ -1155,14 +1155,14 @@ public class Table implements Comparable<Table> {
                              * into its parent and child columns (& therefore their tables)
                              */
                             @SuppressWarnings("unused")
-                            ForeignKeyConstraint unused = 
+                            ForeignKeyConstraint unused =
                                     new ForeignKeyConstraint(parentColumn, col) {
                                 @Override
                                 public String getName() {
                                     return "Defined in XML";
                                 }
                             };
-                            
+
                             // they forgot to say it was a primary key
                             if (!parentColumn.isPrimary()) {
                                 logger.warning("Assuming " + parentColumn.getTable() + "." + parentColumn + " is a primary key due to being referenced by " + col.getTable() + "." + col);
@@ -1228,11 +1228,11 @@ public class Table implements Comparable<Table> {
      * by {@link TableColumn#getId() ID} (ignored if <code>null</code>)
      * followed by {@link TableColumn#getName() Name}.
      */
-    private static class ByColumnIdComparator implements Comparator<TableColumn> {
+    public static class ByColumnIdComparator implements Comparator<TableColumn> {
         public int compare(TableColumn column1, TableColumn column2) {
             Object id1 = column1.getId();
             Object id2 = column2.getId();
-            
+
             if (id1 == null || id2 == null)
                 return column1.getName().compareToIgnoreCase(column2.getName());
             if (id1 instanceof Number && id2 instanceof Number)

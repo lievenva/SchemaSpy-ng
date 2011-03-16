@@ -348,6 +348,16 @@ SchemaSpy is now in <a href='http://www.oreilly.com/' target="_blank">O&#39;Reil
             Prompts for the password so it doesn't appear on the command line.
         </td>
       </tr>
+      <tr id="columndetailsparam">
+        <td class="param"><code>-columndetails</code></td>
+        <td class="param">
+            Specifies which details appear (and their order) on the columns tab.
+            <br>Possible values:<br>
+            <code>id table column type size nulls auto default children parents comments</code>
+            <br>Default:<br>
+            <code>"id table column type size nulls auto default"</code>.
+        </td>
+      </tr>
       <tr id="nohtmlparam">
         <td class="param"><code>-nohtml</code></td>
         <td class="param">

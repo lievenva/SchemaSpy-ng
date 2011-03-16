@@ -193,10 +193,10 @@ public class SchemaAnalyzer {
                     throw new InvalidConfigurationException("Either a schema ('-s') or a user ('-u') must be specified");
                 config.setSchema(schema);
             }
-            
-            if (catalog == null && schema == null && 
+
+            if (catalog == null && schema == null &&
                     meta.supportsCatalogsInTableDefinitions()) {
-                catalog = dbName;    
+                catalog = dbName;
                 logger.fine("catalog not specified for a database that requires one.  using dbName: '" + catalog + "'");
                 config.setCatalog(catalog);
             }
@@ -221,7 +221,7 @@ public class SchemaAnalyzer {
             //
             // create our representation of the database
             //
-            Database db = new Database(config, connection, meta, 
+            Database db = new Database(config, connection, meta,
                                     dbName, catalog, schema, properties, schemaMeta);
 
             schemaMeta = null; // done with it so let GC reclaim it
@@ -364,7 +364,7 @@ public class SchemaAnalyzer {
                 if (!fineEnabled)
                     System.out.print(".");
 
-                for (HtmlColumnsPage.ColumnInfo columnInfo : HtmlColumnsPage.getInstance().getColumnInfos()) {
+                for (HtmlColumnsPage.ColumnInfo columnInfo : HtmlColumnsPage.getInstance().getColumnInfos().values()) {
                     out = new LineWriter(new File(outputDir, columnInfo.getLocation()), 16 * 1024, config.getCharset());
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
                     out.close();

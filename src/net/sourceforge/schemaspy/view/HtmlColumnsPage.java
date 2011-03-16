@@ -22,12 +22,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
+import net.sourceforge.schemaspy.model.Table.ByColumnIdComparator;
 import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.model.TableIndex;
 import net.sourceforge.schemaspy.util.LineWriter;
@@ -61,19 +66,35 @@ public class HtmlColumnsPage extends HtmlFormatter {
      *
      * @return
      */
-    public List<ColumnInfo> getColumnInfos()
+    public Map<String, ColumnInfo> getColumnInfos()
     {
-        List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
+        // build a collection of all possible column details
+        Map<String, ColumnInfo> avails = new HashMap<String, ColumnInfo>();
+        avails.put("id", new ColumnInfo("Id", new ByColumnIdComparator()));
+        avails.put("table", new ColumnInfo("Table", new ByTableComparator()));
+        avails.put("column", new ColumnInfo("Column", new ByColumnComparator()));
+        avails.put("type", new ColumnInfo("Type", new ByTypeComparator()));
+        avails.put("size", new ColumnInfo("Size", new BySizeComparator()));
+        avails.put("nulls", new ColumnInfo("Nulls", new ByNullableComparator()));
+        avails.put("auto", new ColumnInfo("Auto", new ByAutoUpdateComparator()));
+        avails.put("default", new ColumnInfo("Default", new ByDefaultValueComparator()));
+        avails.put("children", new ColumnInfo("Children", new ByChildrenComparator()));
+        avails.put("parents", new ColumnInfo("Parents", new ByParentsComparator()));
+        avails.put("comments", new ColumnInfo("Comments", new ByCommentsComparator()));
 
-        columns.add(new ColumnInfo("Table", new ByTableComparator()));
-        columns.add(new ColumnInfo("Column", new ByColumnComparator()));
-        columns.add(new ColumnInfo("Type", new ByTypeComparator()));
-        columns.add(new ColumnInfo("Size", new BySizeComparator()));
-        columns.add(new ColumnInfo("Nulls", new ByNullableComparator()));
-        columns.add(new ColumnInfo("Auto", new ByAutoUpdateComparator()));
-        columns.add(new ColumnInfo("Default", new ByDefaultValueComparator()));
+        // now put the ones requested in the order requested
+        // LinkedHashMap maintains insertion order
+        Map<String, ColumnInfo> infos = new LinkedHashMap<String, ColumnInfo>();
 
-        return columns;
+        for (String detail : Config.getInstance().getColumnDetails()) {
+            ColumnInfo info = avails.get(detail);
+
+            if (info == null)
+                throw new IllegalArgumentException("Undefined column detail requested: '" + detail + "'. Valid details: " + avails.keySet());
+            infos.put(detail, info);
+        }
+
+        return infos;
     }
 
     public class ColumnInfo
@@ -146,7 +167,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         html.writeln("<p>");
         html.writeln("<form name='options' action=''>");
-        html.writeln(" <label for='showComments'><input type=checkbox id='showComments'>Comments</label>");
+        if (Config.getInstance().getColumnDetails().contains("comments"))
+            html.writeln(" <label for='showComments'><input type=checkbox id='showComments'>Comments</label>");
         html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
         html.writeln("</table>");
@@ -169,38 +191,65 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
     public void writeMainTableHeader(boolean hasTableIds, ColumnInfo selectedColumn, LineWriter out) throws IOException {
         boolean onColumnsPage = selectedColumn != null;
+        List<String> details = null;
         out.writeln("<a name='columns'></a>");
         out.writeln("<table id='columns' class='dataTable' border='1' rules='groups'>");
-        int numCols = 6;    // base number of columns
-        if (hasTableIds && !onColumnsPage)
-            ++numCols;      // for table id
-        if (onColumnsPage)
-            ++numCols;      // for table name
-        else
-            numCols += 2;   // for children and parents
-        for (int i = 0; i < numCols; ++i)
-            out.writeln("<colgroup>");
-        out.writeln("<colgroup class='comment'>");
+
+        if (onColumnsPage) {
+            details = new ArrayList<String>(Config.getInstance().getColumnDetails());
+            if (!hasTableIds)
+                details.remove("id");   // simplify subsequent logic by yanking it now
+
+            for (String detail : details) {
+                if (detail.equals("comments"))
+                    out.writeln("<colgroup class='comment'>");
+                else
+                    out.writeln("<colgroup>");
+            }
+        } else {
+            int numCols = hasTableIds ? 9 : 8;
+            for (int i = 0; i < numCols; ++i) {
+                out.writeln("<colgroup>");
+            }
+            out.writeln("<colgroup class='comment'>");
+        }
 
         out.writeln("<thead align='left'>");
         out.writeln("<tr>");
-        if (hasTableIds && !onColumnsPage)
-            out.writeln(getTH(selectedColumn, "ID", null, "right"));
-        if (onColumnsPage)
-            out.writeln(getTH(selectedColumn, "Table", null, null));
-        out.writeln(getTH(selectedColumn, "Column", null, null));
-        out.writeln(getTH(selectedColumn, "Type", null, null));
-        out.writeln(getTH(selectedColumn, "Size", null, null));
-        out.writeln(getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));
-        out.writeln(getTH(selectedColumn, "Auto", "Is column automatically updated?", null));
-        out.writeln(getTH(selectedColumn, "Default", "Default value", null));
-        if (!onColumnsPage) {
-            out.write("  <th title='Columns in tables that reference this column'>");
-            out.writeln("<span class='notSortedByColumn'>Children</span></th>");
-            out.write("  <th title='Columns in tables that are referenced by this column'>");
-            out.writeln("<span class='notSortedByColumn'>Parents</span></th>");
+        if (onColumnsPage) {
+            Map<String, String> headings = new HashMap<String, String>();
+            headings.put("id", getTH(selectedColumn, "ID", null, "right"));
+            headings.put("table", getTH(selectedColumn, "Table", null, null));
+            headings.put("column", getTH(selectedColumn, "Column", null, null));
+            headings.put("type", getTH(selectedColumn, "Type", null, null));
+            headings.put("size", getTH(selectedColumn, "Size", null, null));
+            headings.put("nulls", getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));
+            headings.put("auto", getTH(selectedColumn, "Auto", "Is column automatically updated?", null));
+            headings.put("default", getTH(selectedColumn, "Default", "Default value", null));
+            headings.put("children", getTH(selectedColumn, "Children", "Columns in tables that reference this column", null));
+            headings.put("parents", getTH(selectedColumn, "Parents", "Columns in tables that are referenced by this column", null));
+            headings.put("comments", "<th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
+
+            // output the headings in the order specified
+            if (details != null) {  // redundant, but keeps compiler happy
+                for (String detail : details) {
+                    out.writeln(headings.get(detail));
+                }
+            }
+        } else {
+            if (hasTableIds)
+                out.writeln(getTH(selectedColumn, "ID", null, "right"));
+            out.writeln(getTH(selectedColumn, "Column", null, null));
+            out.writeln(getTH(selectedColumn, "Type", null, null));
+            out.writeln(getTH(selectedColumn, "Size", null, null));
+            out.writeln(getTH(selectedColumn, "Nulls", "Are nulls allowed?", null));
+            out.writeln(getTH(selectedColumn, "Auto", "Is column automatically updated?", null));
+            out.writeln(getTH(selectedColumn, "Default", "Default value", null));
+            out.writeln(getTH(selectedColumn, "Children", "Columns in tables that reference this column", null));
+            out.writeln(getTH(selectedColumn, "Parents", "Columns in tables that are referenced by this column", null));
+            out.writeln("  <th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
         }
-        out.writeln("  <th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
+
         out.writeln("</tr>");
         out.writeln("</thead>");
     }
@@ -284,6 +333,25 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
+    private class ByCommentsComparator implements Comparator<TableColumn> {
+        private final Comparator<TableColumn> byType = new ByTypeComparator();
+
+        public int compare(TableColumn column1, TableColumn column2) {
+            String comment1 = column1.getComments();
+            if (comment1 == null)
+                comment1 = "";
+            String comment2 = column1.getComments();
+            if (comment2 == null)
+                comment2 = "";
+
+            int rc = comment1.compareToIgnoreCase(comment2);
+            if (rc == 0) {
+                rc = byType.compare(column1, column2);
+            }
+            return rc;
+        }
+    }
+
     private class BySizeComparator implements Comparator<TableColumn> {
         private final Comparator<TableColumn> byColumn = new ByColumnComparator();
 
@@ -321,10 +389,61 @@ public class HtmlColumnsPage extends HtmlFormatter {
     }
 
     private class ByDefaultValueComparator implements Comparator<TableColumn> {
+        private final Comparator<TableColumn> byNullable = new ByNullableComparator();
+
+        public int compare(TableColumn column1, TableColumn column2) {
+            String value1 = String.valueOf(column1.getDefaultValue());
+            String value2 = String.valueOf(column2.getDefaultValue());
+
+            int rc = value1.compareToIgnoreCase(value2);
+            if (rc == 0)
+                rc = byNullable.compare(column1, column2);
+            return rc;
+        }
+    }
+
+    private class ByChildrenComparator implements Comparator<TableColumn> {
         private final Comparator<TableColumn> byColumn = new ByColumnComparator();
 
         public int compare(TableColumn column1, TableColumn column2) {
-            int rc = String.valueOf(column1.getDefaultValue()).compareToIgnoreCase(String.valueOf(column2.getDefaultValue()));
+            Set<String> childTables1 = new TreeSet<String>();
+            Set<String> childTables2 = new TreeSet<String>();
+
+            for (TableColumn column : column1.getChildren()) {
+                if (!column.getParentConstraint(column1).isImplied())
+                    childTables1.add(column.getTable().getName());
+            }
+
+            for (TableColumn column : column2.getChildren()) {
+                if (!column.getParentConstraint(column2).isImplied())
+                    childTables2.add(column.getTable().getName());
+            }
+
+            int rc = childTables1.toString().compareToIgnoreCase(childTables2.toString());
+            if (rc == 0)
+                rc = byColumn.compare(column1, column2);
+            return rc;
+        }
+    }
+
+    private class ByParentsComparator implements Comparator<TableColumn> {
+        private final Comparator<TableColumn> byColumn = new ByColumnComparator();
+
+        public int compare(TableColumn column1, TableColumn column2) {
+            Set<String> parentTables1 = new TreeSet<String>();
+            Set<String> parentTables2 = new TreeSet<String>();
+
+            for (TableColumn column : column1.getParents()) {
+                if (!column.getChildConstraint(column1).isImplied())
+                    parentTables1.add(column.getTable().getName() + '.' + column.getTable().getSchema());
+            }
+
+            for (TableColumn column : column2.getParents()) {
+                if (!column.getChildConstraint(column2).isImplied())
+                    parentTables2.add(column.getTable().getName() + '.' + column.getTable().getSchema());
+            }
+
+            int rc = parentTables1.toString().compareToIgnoreCase(parentTables2.toString());
             if (rc == 0)
                 rc = byColumn.compare(column1, column2);
             return rc;

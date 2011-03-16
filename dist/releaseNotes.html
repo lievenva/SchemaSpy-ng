@@ -12,8 +12,19 @@
 <h3><a href='http://schemaspy.sourceforge.net'>SchemaSpy</a> Release Notes</h3>
 <ul>
 
-<li class='release'>x.x.x - xx/xx/xxxx - Subversion revision 596
+<li class='release'>x.x.x - xx/xx/xxxx - Subversion revision xxx
 <ul>
+    <li>Added a new <code>-columndetails</code> option that makes it possible
+        to specify which details appear (and their order) on the columns tab.
+        This is a list of names that can include 
+        <code>id table column type size nulls auto default children parents comments</code>
+        with a default list of 
+        <code>id table column type size nulls auto default</code>.
+        Note that <code>id</code> will only appear when run against databases
+        that require column identifiers (e.g. DB2).
+        <br>
+        rev 631
+    </li>
     <li>Can now use <code>-all</code> on databases like MySQL.  
         With MySQL you'll probably want to specify <code>-db mysql</code>
         whenever you use <code>-all</code> since a logical database is 
