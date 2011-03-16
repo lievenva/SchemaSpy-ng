@@ -14,6 +14,12 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision xxx
 <ul>
+    <li>Resolved a NullPointerException that occurred when evaluating cross-
+        catalog tables in databases that don't report schema details.
+        rev 631<br>
+        Thanks to Kris Zarns for identifying the issue and for providing a
+        test case that easily reproduced the failure.
+    </li>
     <li>Added a new <code>-columndetails</code> option that makes it possible
         to specify which details appear (and their order) on the columns tab.
         This is a list of names that can include 

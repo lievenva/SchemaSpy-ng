@@ -50,13 +50,14 @@ public class RemoteTable extends Table {
     public void connectForeignKeys(Map<String, Table> tables,
                                     Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
         ResultSet rs = null;
-        
+
         try {
             rs = db.getMetaData().getImportedKeys(getCatalog(), getSchema(), getName());
 
             while (rs.next()) {
                 String otherSchema = rs.getString("PKTABLE_SCHEM");
                 String otherCatalog = rs.getString("PKTABLE_CAT");
+
                 if (baseContainer.equals(otherSchema) || baseContainer.equals(otherCatalog)) {
                     addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
                             otherCatalog, otherSchema,
@@ -70,7 +71,7 @@ public class RemoteTable extends Table {
                 // if explicitly asking for these details then propagate the exception
                 if (Config.getInstance().isOneOfMultipleSchemas())
                     throw sqlExc;
-    
+
                 // otherwise just report the fact that we tried & couldn't
                 System.err.println("Couldn't resolve foreign keys for remote table " + getFullName() + ": " + sqlExc);
             }
