@@ -55,7 +55,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, Collection<Table> tables, Collection<Table> remotes, boolean showOrphansDiagram, LineWriter html) throws IOException {
+    public void write(Database database, Collection<Table> tables, Collection<Table> remotes, LineWriter html) throws IOException {
         Comparator<Table> sorter = new Comparator<Table>() {
             public int compare(Table table1, Table table2) {
                 return table1.compareTo(table2);
@@ -82,7 +82,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
                 hasComments = true;
         }
 
-        writeLocalsHeader(database, tables.size() - numViews, numViews, showIds, showOrphansDiagram, hasComments, html);
+        writeLocalsHeader(database, tables.size() - numViews, numViews, showIds, hasComments, html);
 
         int numTableCols = 0;
         int numViewCols = 0;
@@ -112,7 +112,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         writeFooter(html);
     }
 
-    private void writeLocalsHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasOrphans, boolean hasComments, LineWriter html) throws IOException {
+    private void writeLocalsHeader(Database db, int numberOfTables, int numberOfViews, boolean showIds, boolean hasComments, LineWriter html) throws IOException {
         List<String> javascript = new ArrayList<String>();
 
         // we can't use the hard-coded even odd technique that we use
@@ -137,7 +137,7 @@ public class HtmlMainIndexPage extends HtmlFormatter {
         javascript.add("  $('table.dataTable').alternateRowColors();");
         javascript.add("})");
 
-        writeHeader(db, null, null, hasOrphans, javascript, html);
+        writeHeader(db, null, null, javascript, html);
         html.writeln("<table width='100%'>");
         html.writeln(" <tr><td class='container'>");
         writeGeneratedBy(db.getConnectTime(), html);

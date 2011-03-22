@@ -115,6 +115,8 @@ public class Config
     private Boolean highQuality;
     private Boolean lowQuality;
     private String schemaSpec;  // used in conjunction with evaluateAll
+    private boolean hasOrphans = false;
+    private boolean hasRoutines = false;
     private boolean populating = false;
     private List<String> columnDetails;
     public static final String DOT_CHARSET = "UTF-8";
@@ -1264,9 +1266,46 @@ public class Config
         return dbHelpRequired;
     }
 
+    /**
+     * Returns the jar that we were loaded from
+     *
+     * @return
+     */
     public static String getLoadedFromJar() {
         String classpath = System.getProperty("java.class.path");
         return new StringTokenizer(classpath, File.pathSeparator).nextToken();
+    }
+
+    /**
+     * Not a true configuration item in that it's determined at runtime
+     */
+    public void setHasOrphans(boolean hasOrphans) {
+        this.hasOrphans = hasOrphans;
+    }
+
+    /**
+     * @see #setHasOrphans()
+     *
+     * @return
+     */
+    public boolean hasOrphans() {
+        return hasOrphans;
+    }
+
+    /**
+     * Not a true configuration item in that it's determined at runtime
+     */
+    public void setHasRoutines(boolean hasRoutines) {
+        this.hasRoutines = hasRoutines;
+    }
+
+    /**
+     * @see #setHasRoutines()
+     *
+     * @return
+     */
+    public boolean hasRoutines() {
+        return hasRoutines;
     }
 
     /**

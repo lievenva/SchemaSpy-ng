@@ -103,7 +103,7 @@ public class HtmlOrphansPage extends HtmlDiagramFormatter {
     }
 
     private void writeHeader(Database db, String title, boolean hasImpliedRelationships, LineWriter html) throws IOException {
-        writeHeader(db, null, title, true, html);
+        writeHeader(db, null, title, html);
         html.writeln("<table class='container' width='100%'>");
         html.writeln("<tr><td class='container'>");
         writeGeneratedBy(db.getConnectTime(), html);

@@ -130,7 +130,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         }
     }
 
-    public void write(Database database, Collection<Table> tables, ColumnInfo columnInfo, boolean showOrphansDiagram, LineWriter html) throws IOException {
+    public void write(Database database, Collection<Table> tables, ColumnInfo columnInfo, LineWriter html) throws IOException {
         Set<TableColumn> columns = new TreeSet<TableColumn>(columnInfo.getComparator());
         Set<TableColumn> primaryColumns = new HashSet<TableColumn>();
         Set<TableColumn> indexedColumns = new HashSet<TableColumn>();
@@ -144,7 +144,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
             }
         }
 
-        writeHeader(database, columns.size(), showOrphansDiagram, columnInfo, html);
+        writeHeader(database, columns.size(), columnInfo, html);
 
         HtmlTablePage formatter = HtmlTablePage.getInstance();
 
@@ -155,8 +155,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         writeFooter(html);
     }
 
-    private void writeHeader(Database db, int numberOfColumns, boolean hasOrphans, ColumnInfo selectedColumn, LineWriter html) throws IOException {
-        writeHeader(db, null, "Columns", hasOrphans, html);
+    private void writeHeader(Database db, int numberOfColumns, ColumnInfo selectedColumn, LineWriter html) throws IOException {
+        writeHeader(db, null, "Columns", html);
 
         html.writeln("<table width='100%' border='0'>");
         html.writeln("<tr><td class='container'>");

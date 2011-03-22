@@ -72,11 +72,11 @@ public class HtmlTablePage extends HtmlFormatter {
         return instance;
     }
 
-    public WriteStats write(Database db, Table table, boolean hasOrphans, File outputDir, WriteStats stats, LineWriter out) throws IOException {
+    public WriteStats write(Database db, Table table, File outputDir, WriteStats stats, LineWriter out) throws IOException {
         File diagramsDir = new File(outputDir, "diagrams");
         boolean hasImplied = generateDots(table, diagramsDir, stats);
 
-        writeHeader(db, table, null, hasOrphans, out);
+        writeHeader(db, table, null, out);
         out.writeln("<table width='100%' border='0'>");
         out.writeln("<tr valign='top'><td class='container' align='left' valign='top'>");
         writeHeader(table, hasImplied, out);

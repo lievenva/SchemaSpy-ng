@@ -304,7 +304,7 @@ public class SchemaAnalyzer {
                     impliedConstraints = new ArrayList<ImpliedForeignKeyConstraint>();
 
                 List<Table> orphans = DbAnalyzer.getOrphans(tables);
-                boolean hasOrphans = !orphans.isEmpty() && Dot.getInstance().isValid();
+                config.setHasOrphans(!orphans.isEmpty() && Dot.getInstance().isValid());
 
                 if (!fineEnabled)
                     System.out.print(".");
@@ -325,7 +325,7 @@ public class SchemaAnalyzer {
                 }
 
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
-                HtmlRelationshipsPage.getInstance().write(db, summaryDir, dotBaseFilespec, hasOrphans, hasRealRelationships, hasImplied, excludedColumns, out);
+                HtmlRelationshipsPage.getInstance().write(db, summaryDir, dotBaseFilespec, hasRealRelationships, hasImplied, excludedColumns, out);
                 out.close();
 
                 if (!fineEnabled)
@@ -336,13 +336,14 @@ public class SchemaAnalyzer {
                 orphansDir.mkdirs();
                 out = new LineWriter(new File(outputDir, dotBaseFilespec + ".html"), config.getCharset());
                 HtmlOrphansPage.getInstance().write(db, orphans, orphansDir, out);
+                orphans = null;
                 out.close();
 
                 if (!fineEnabled)
                     System.out.print(".");
 
                 out = new LineWriter(new File(outputDir, "index.html"), 64 * 1024, config.getCharset());
-                HtmlMainIndexPage.getInstance().write(db, tables, db.getRemoteTables(), hasOrphans, out);
+                HtmlMainIndexPage.getInstance().write(db, tables, db.getRemoteTables(), out);
                 out.close();
 
                 if (!fineEnabled)
@@ -351,14 +352,14 @@ public class SchemaAnalyzer {
                 List<ForeignKeyConstraint> constraints = DbAnalyzer.getForeignKeyConstraints(tables);
                 out = new LineWriter(new File(outputDir, "constraints.html"), 256 * 1024, config.getCharset());
                 HtmlConstraintsPage constraintIndexFormatter = HtmlConstraintsPage.getInstance();
-                constraintIndexFormatter.write(db, constraints, tables, hasOrphans, out);
+                constraintIndexFormatter.write(db, constraints, tables, out);
                 out.close();
 
                 if (!fineEnabled)
                     System.out.print(".");
 
                 out = new LineWriter(new File(outputDir, "anomalies.html"), 16 * 1024, config.getCharset());
-                HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, hasOrphans, out);
+                HtmlAnomaliesPage.getInstance().write(db, tables, impliedConstraints, out);
                 out.close();
 
                 if (!fineEnabled)
@@ -366,7 +367,7 @@ public class SchemaAnalyzer {
 
                 for (HtmlColumnsPage.ColumnInfo columnInfo : HtmlColumnsPage.getInstance().getColumnInfos().values()) {
                     out = new LineWriter(new File(outputDir, columnInfo.getLocation()), 16 * 1024, config.getCharset());
-                    HtmlColumnsPage.getInstance().write(db, tables, columnInfo, hasOrphans, out);
+                    HtmlColumnsPage.getInstance().write(db, tables, columnInfo, out);
                     out.close();
                 }
 
@@ -389,7 +390,7 @@ public class SchemaAnalyzer {
                         logger.fine("Writing details of " + table.getName());
 
                     out = new LineWriter(new File(outputDir, "tables/" + table.getName() + ".html"), 24 * 1024, config.getCharset());
-                    tableFormatter.write(db, table, hasOrphans, outputDir, stats, out);
+                    tableFormatter.write(db, table, outputDir, stats, out);
                     out.close();
                 }
 

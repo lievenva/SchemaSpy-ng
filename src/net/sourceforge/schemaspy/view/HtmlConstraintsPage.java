@@ -58,15 +58,15 @@ public class HtmlConstraintsPage extends HtmlFormatter {
         return instance;
     }
 
-    public void write(Database database, List<ForeignKeyConstraint> constraints, Collection<Table> tables, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(database, hasOrphans, html);
+    public void write(Database database, List<ForeignKeyConstraint> constraints, Collection<Table> tables, LineWriter html) throws IOException {
+        writeHeader(database, html);
         writeForeignKeyConstraints(constraints, html);
         writeCheckConstraints(tables, html);
         writeFooter(html);
     }
 
-    private void writeHeader(Database database, boolean hasOrphans, LineWriter html) throws IOException {
-        writeHeader(database, null, "Constraints", hasOrphans, html);
+    private void writeHeader(Database database, LineWriter html) throws IOException {
+        writeHeader(database, null, "Constraints", html);
         html.writeln("<div class='indent'>");
     }
 

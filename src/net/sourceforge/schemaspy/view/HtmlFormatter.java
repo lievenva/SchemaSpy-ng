@@ -42,7 +42,7 @@ public class HtmlFormatter {
     protected HtmlFormatter() {
     }
 
-    protected void writeHeader(Database db, Table table, String text, boolean showOrphans, List<String> javascript, LineWriter out) throws IOException {
+    protected void writeHeader(Database db, Table table, String text, List<String> javascript, LineWriter out) throws IOException {
         out.writeln("<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>");
         out.writeln("<html>");
         out.writeln("<head>");
@@ -70,7 +70,7 @@ public class HtmlFormatter {
         }
         out.writeln("</head>");
         out.writeln("<body>");
-        writeTableOfContents(showOrphans, out);
+        writeTableOfContents(out);
         out.writeln("<div class='content' style='clear:both;'>");
         out.writeln("<table width='100%' border='0' cellpadding='0'>");
         out.writeln(" <tr>");
@@ -102,8 +102,8 @@ public class HtmlFormatter {
     /**
      * Convenience method for all those formatters that don't deal with JavaScript
      */
-    protected void writeHeader(Database db, Table table, String text, boolean showOrphans, LineWriter out) throws IOException {
-        writeHeader(db, table, text, showOrphans, null, out);
+    protected void writeHeader(Database db, Table table, String text, LineWriter out) throws IOException {
+        writeHeader(db, table, text, null, out);
     }
 
     protected void writeGeneratedBy(String connectTime, LineWriter html) throws IOException {
@@ -113,22 +113,25 @@ public class HtmlFormatter {
         html.writeln("</span>");
     }
 
-    protected void writeTableOfContents(boolean showOrphans, LineWriter html) throws IOException {
+    protected void writeTableOfContents(LineWriter html) throws IOException {
         // don't forget to modify HtmlMultipleSchemasIndexPage with any changes to 'header' or 'headerHolder'
+        Config config = Config.getInstance();
         String path = getPathToRoot();
         // have to use a table to deal with a horizontal scrollbar showing up inappropriately
         html.writeln("<table id='headerHolder' cellspacing='0' cellpadding='0'><tr><td>");
         html.writeln("<div id='header'>");
         html.writeln(" <ul>");
-        if (Config.getInstance().isOneOfMultipleSchemas())
+        if (config.isOneOfMultipleSchemas())
             html.writeln("  <li><a href='" + path + "../index.html' title='All Schemas Evaluated'>Schemas</a></li>");
         html.writeln("  <li" + (isMainIndex() ? " id='current'" : "") + "><a href='" + path + "index.html' title='All tables and views in the schema'>Tables</a></li>");
         html.writeln("  <li" + (isRelationshipsPage() ? " id='current'" : "") + "><a href='" + path + "relationships.html' title='Diagram of table relationships'>Relationships</a></li>");
-        if (showOrphans)
+        if (config.hasOrphans())
             html.writeln("  <li" + (isOrphansPage() ? " id='current'" : "") + "><a href='" + path + "utilities.html' title='View of tables with neither parents nor children'>Utility&nbsp;Tables</a></li>");
         html.writeln("  <li" + (isConstraintsPage() ? " id='current'" : "") + "><a href='" + path + "constraints.html' title='Useful for diagnosing error messages that just give constraint name or number'>Constraints</a></li>");
         html.writeln("  <li" + (isAnomaliesPage() ? " id='current'" : "") + "><a href='" + path + "anomalies.html' title=\"Things that might not be quite right\">Anomalies</a></li>");
         html.writeln("  <li" + (isColumnsPage() ? " id='current'" : "") + "><a href='" + path + HtmlColumnsPage.getInstance().getColumnInfos().get("column") + "' title=\"All of the columns in the schema\">Columns</a></li>");
+        if (config.hasRoutines())
+            html.writeln("  <li" + (isRoutinesPage() ? " id='current'" : "") + "><a href='" + path + "routines.html' title='Stored Procedures / Functions'>Routines</a></li>");
         html.writeln("  <li><a href='http://sourceforge.net/donate/index.php?group_id=137197' title='Please help keep SchemaSpy alive' target='_blank'>Donate</a></li>");
         html.writeln(" </ul>");
         html.writeln("</div>");
@@ -329,13 +332,28 @@ public class HtmlFormatter {
         return false;
     }
 
-  static String urlEncode(String string){
-    try {
-      return URLEncoder.encode(string, Config.DOT_CHARSET);
-    } catch (UnsupportedEncodingException e) {
-      Logger logger = Logger.getLogger(HtmlFormatter.class.getName());
-      logger.info("Error trying to urlEncode string [" + string + "] with encoding [" + Config.DOT_CHARSET + "]");
-      return string;
+    /**
+     * Override and return true if you're the routines page
+     *
+     * @return boolean
+     */
+    protected boolean isRoutinesPage() {
+        return false;
     }
-  }
+
+    /**
+     * Encode the specified string
+     *
+     * @param string
+     * @return
+     */
+    static String urlEncode(String string) {
+        try {
+            return URLEncoder.encode(string, Config.DOT_CHARSET);
+        } catch (UnsupportedEncodingException e) {
+            Logger logger = Logger.getLogger(HtmlFormatter.class.getName());
+            logger.info("Error trying to urlEncode string [" + string + "] with encoding [" + Config.DOT_CHARSET + "]");
+            return string;
+        }
+    }
 }
