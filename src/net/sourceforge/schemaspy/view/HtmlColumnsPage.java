@@ -160,7 +160,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
 
         html.writeln("<table width='100%' border='0'>");
         html.writeln("<tr><td class='container'>");
-        writeGeneratedBy(db.getConnectTime(), html);
+        writeGeneratedOn(db.getConnectTime(), html);
         html.writeln("</td><td class='container' rowspan='2' align='right' valign='top'>");
         writeLegend(false, false, html);
         html.writeln("</td></tr>");
@@ -179,6 +179,9 @@ public class HtmlColumnsPage extends HtmlFormatter {
         if (db.getSchema() != null) {
             html.write('.');
             html.write(db.getSchema());
+        } else if (db.getCatalog() != null) {
+            html.write('.');
+            html.write(db.getCatalog());
         }
         html.write(" contains ");
         html.write(String.valueOf(numberOfColumns));

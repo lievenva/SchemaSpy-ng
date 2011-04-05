@@ -94,7 +94,7 @@ public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
         html.writeln("</table>");
         html.writeln("<table width='100%'>");
         html.writeln(" <tr><td class='container'>");
-        writeGeneratedBy(connectTime, html);
+        writeGeneratedOn(connectTime, html);
         html.writeln(" </td></tr>");
         html.writeln(" <tr>");
         html.write("  <td class='container'>");

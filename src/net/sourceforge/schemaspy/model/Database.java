@@ -55,6 +55,7 @@ public class Database {
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
     private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName
     private final Map<String, Table> locals = new CombinedMap(tables, views);
+    private final Map<String, Routine> routines = new CaseInsensitiveMap<Routine>();
     private final DatabaseMetaData meta;
     private final Connection connection;
     private final String connectTime = new SimpleDateFormat("EEE MMM dd HH:mm z yyyy").format(new Date());
@@ -83,6 +84,7 @@ public class Database {
         initViewComments(properties);
         initViewColumnComments(properties);
         initColumnTypes(properties);
+        initRoutines(properties);
 
         connectTables();
         updateFromXmlMetadata(schemaMeta, properties);
@@ -128,6 +130,10 @@ public class Database {
 
     public Collection<Table> getRemoteTables() {
         return remoteTables.values();
+    }
+
+    public Collection<Routine> getRoutines() {
+        return routines.values();
     }
 
     public Connection getConnection() {
@@ -722,6 +728,88 @@ public class Database {
             } catch (SQLException sqlException) {
                 // don't die just because this failed
                 warning("Failed to retrieve view column comments: " + sqlException, sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+            }
+        }
+    }
+
+    /**
+     * Initializes stored procedures / functions.
+     *
+     * @param properties
+     * @throws SQLException
+     */
+    private void initRoutines(Properties properties) throws SQLException {
+        String sql = properties.getProperty("selectRoutinesSql");
+
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String routineName = rs.getString("routine_name");
+                    String routineType = rs.getString("routine_type");
+                    String returnType = rs.getString("dtd_identifier");
+                    String definitionLanguage = rs.getString("routine_body");
+                    String definition = rs.getString("routine_definition");
+                    String dataAccess = rs.getString("sql_data_access");
+                    String securityType = rs.getString("security_type");
+                    boolean deterministic = rs.getBoolean("is_deterministic");
+                    String comment = getOptionalString(rs, "routine_comment");
+
+                    Routine routine = new Routine(routineName, routineType,
+                                    returnType, definitionLanguage, definition,
+                                    deterministic, dataAccess, securityType, comment);
+                    routines.put(routineName, routine);
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                warning("Failed to retrieve stored procedure/function details: " + sqlException, sql);
+            } finally {
+                if (rs != null)
+                    rs.close();
+                if (stmt != null)
+                    stmt.close();
+                rs = null;
+                stmt = null;
+            }
+        }
+
+        sql = properties.getProperty("selectRoutineParametersSql");
+
+        if (sql != null) {
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            try {
+                stmt = prepareStatement(sql, null);
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String routineName = rs.getString("specific_name");
+
+                    Routine routine = routines.get(routineName);
+                    if (routine != null) {
+                        String paramName = rs.getString("parameter_name");
+                        String type = rs.getString("dtd_identifier");
+                        String mode = rs.getString("parameter_mode");
+
+                        RoutineParameter param = new RoutineParameter(paramName, type, mode);
+                        routine.addParameter(param);
+                    }
+
+                }
+            } catch (SQLException sqlException) {
+                // don't die just because this failed
+                warning("Failed to retrieve stored procedure/function details: " + sqlException, sql);
             } finally {
                 if (rs != null)
                     rs.close();

@@ -63,6 +63,7 @@ import net.sourceforge.schemaspy.view.HtmlConstraintsPage;
 import net.sourceforge.schemaspy.view.HtmlMainIndexPage;
 import net.sourceforge.schemaspy.view.HtmlOrphansPage;
 import net.sourceforge.schemaspy.view.HtmlRelationshipsPage;
+import net.sourceforge.schemaspy.view.HtmlRoutinesPage;
 import net.sourceforge.schemaspy.view.HtmlTablePage;
 import net.sourceforge.schemaspy.view.ImageWriter;
 import net.sourceforge.schemaspy.view.StyleSheet;
@@ -305,6 +306,7 @@ public class SchemaAnalyzer {
 
                 List<Table> orphans = DbAnalyzer.getOrphans(tables);
                 config.setHasOrphans(!orphans.isEmpty() && Dot.getInstance().isValid());
+                config.setHasRoutines(!db.getRoutines().isEmpty());
 
                 if (!fineEnabled)
                     System.out.print(".");
@@ -370,6 +372,13 @@ public class SchemaAnalyzer {
                     HtmlColumnsPage.getInstance().write(db, tables, columnInfo, out);
                     out.close();
                 }
+
+                if (!fineEnabled)
+                    System.out.print(".");
+
+                out = new LineWriter(new File(outputDir, "routines.html"), 16 * 1024, config.getCharset());
+                HtmlRoutinesPage.getInstance().write(db, out);
+                out.close();
 
                 // create detailed diagrams
 
