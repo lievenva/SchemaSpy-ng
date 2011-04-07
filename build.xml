@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir="." default="rebuild" name="SchemaSpy">
   <property name="dest" value="output"/>
-  <property name="dist" value="dist"/>
-  <property name="src" value="src"/>
+  <property name="dist" value="target"/>
+  <property name="src" value="src/main/java"/>
+  <property name="resources" value="src/main/resources"/>
   <path id="project.class.path">
     <pathelement location="${dest}"/>
   </path>
@@ -12,13 +13,14 @@
     <exclude name="dependency cache/"/>
   </patternset>
   <target name="archive" depends="resource">
-    <jar compress="true" destfile="${dist}/schemaSpy.jar" manifest="${src}/META-INF/MANIFEST.MF">
+    <jar compress="true" destfile="${dist}/schemaSpy.jar">
       <fileset dir="${dest}">
         <patternset refid="dest.exclude"/>
         <include name="**/*.*"/>
       </fileset>
       <manifest>
         <attribute name="Main-Class" value="net.sourceforge.schemaspy.Main"/>
+      	<attribute name="Implementation-Build" value="Unknown"/>
       </manifest>
     </jar>
     <jar compress="true" destfile="${dist}/schemaSpy_source.jar">
@@ -34,13 +36,14 @@
   </target>
   <target name="resource">
     <copy todir="${dest}">
-      <fileset dir="${src}">
+      <fileset dir="${resources}">
         <include name="**/*.properties"/>
         <include name="**/*.css"/>
         <include name="**/*.gif"/>
         <include name="**/*.js"/>
         <include name="**/*.xsd"/>
         <include name="**/*.rev"/>
+        <include name="**/*.MF"/>
       </fileset>
     </copy>
   </target>
@@ -54,17 +57,11 @@
       debuglevel="source,lines"
       source="1.5"
       target="1.5"
+      includeAntRuntime="false"
     />
   </target>
 
-  <target name="revision" depends="compile">
-    <echo>Extracting revision information</echo>
-    <java classname="net.sourceforge.schemaspy.Revision" classpath="output">
-      <arg value="output"/>
-    </java>
-  </target>
-
-  <target name="make" depends="compile,revision,archive"/>
+  <target name="make" depends="compile,archive"/>
   <target name="rebuild" depends="clean,make"/>
   <target name="init">
     <mkdir dir="${dest}"/>
