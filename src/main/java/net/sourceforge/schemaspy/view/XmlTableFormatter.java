@@ -94,10 +94,8 @@ public class XmlTableFormatter {
         tablesNode.appendChild(tableNode);
         if (table.getId() != null)
             DOMUtil.appendAttribute(tableNode, "id", String.valueOf(table.getId()));
-        if (table.getCatalog() != null)
-            DOMUtil.appendAttribute(tableNode, "catalog", table.getCatalog());
-        if (table.getSchema() != null)
-            DOMUtil.appendAttribute(tableNode, "schema", table.getSchema());
+        DOMUtil.appendAttribute(tableNode, "catalog", table.getCatalog());
+        DOMUtil.appendAttribute(tableNode, "schema", table.getSchema());
         DOMUtil.appendAttribute(tableNode, "name", table.getName());
         if (table.getNumRows() >= 0)
             DOMUtil.appendAttribute(tableNode, "numRows", String.valueOf(table.getNumRows()));
@@ -155,10 +153,13 @@ public class XmlTableFormatter {
 
         for (TableColumn childColumn : column.getChildren()) {
             Node childNode = document.createElement("child");
+            Table table = childColumn.getTable();
             columnNode.appendChild(childNode);
             ForeignKeyConstraint constraint = column.getChildConstraint(childColumn);
             DOMUtil.appendAttribute(childNode, "foreignKey", constraint.getName());
-            DOMUtil.appendAttribute(childNode, "table", childColumn.getTable().getName());
+            DOMUtil.appendAttribute(childNode, "catalog", table.getCatalog());
+            DOMUtil.appendAttribute(childNode, "schema", table.getSchema());
+            DOMUtil.appendAttribute(childNode, "table", table.getName());
             DOMUtil.appendAttribute(childNode, "column", childColumn.getName());
             DOMUtil.appendAttribute(childNode, "implied", String.valueOf(constraint.isImplied()));
             DOMUtil.appendAttribute(childNode, "onDeleteCascade", String.valueOf(constraint.isCascadeOnDelete()));
@@ -166,10 +167,13 @@ public class XmlTableFormatter {
 
         for (TableColumn parentColumn : column.getParents()) {
             Node parentNode = document.createElement("parent");
+            Table table = parentColumn.getTable();
             columnNode.appendChild(parentNode);
             ForeignKeyConstraint constraint = column.getParentConstraint(parentColumn);
             DOMUtil.appendAttribute(parentNode, "foreignKey", constraint.getName());
-            DOMUtil.appendAttribute(parentNode, "table", parentColumn.getTable().getName());
+            DOMUtil.appendAttribute(parentNode, "catalog", table.getCatalog());
+            DOMUtil.appendAttribute(parentNode, "schema", table.getSchema());
+            DOMUtil.appendAttribute(parentNode, "table", table.getName());
             DOMUtil.appendAttribute(parentNode, "column", parentColumn.getName());
             DOMUtil.appendAttribute(parentNode, "implied", String.valueOf(constraint.isImplied()));
             DOMUtil.appendAttribute(parentNode, "onDeleteCascade", String.valueOf(constraint.isCascadeOnDelete()));

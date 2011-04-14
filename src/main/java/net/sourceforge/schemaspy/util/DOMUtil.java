@@ -56,8 +56,10 @@ public class DOMUtil {
      * @param value String
      */
     public static void appendAttribute(Node node, String name, String value) {
-        Node attribute = node.getOwnerDocument().createAttribute(name);
-        attribute.setNodeValue(value);
-        node.getAttributes().setNamedItem(attribute);
+        if (value != null) {
+            Node attribute = node.getOwnerDocument().createAttribute(name);
+            attribute.setNodeValue(value);
+            node.getAttributes().setNamedItem(attribute);
+        }
     }
 }
