@@ -14,8 +14,14 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision xxx
 <ul>
+    <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=3286264&group_id=137197">
+        bug 3286264</a> - Incomplete cross-schema relationship details in XML<br>
+        rev 637<br>
+        Thanks to Damien (Damo) for identifying the deficiency and providing a fix.
+    </li>
+    <li>Added a Maven POM and restructured the directory layout to conform to Maven standards.</li>
     <li>Resolved a NullPointerException that occurred when evaluating cross-
-        catalog tables in databases that don't report schema details.
+        catalog tables in databases that don't report schema details.<br>
         rev 631<br>
         Thanks to Kris Zarns for identifying the issue and for providing a
         test case that easily reproduced the failure.

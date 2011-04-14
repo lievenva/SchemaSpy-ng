@@ -5,10 +5,16 @@
   <!-- list pom: mvn help:effective-pom -->
   <!-- jar:      mvn clean package -->
   <!-- sign:     mvn release:prepare release:perform -->
-  <!-- mvn gpg:sign-and-deploy-file -DpomFile=target/myapp-1.0.pom
+  <!-- javadocs: mvn javadocs:jar -->
+  <!-- sources:  mvn source:jar -->
+  <!-- mvn gpg:sign-and-deploy-file
+              -DpomFile=pom.xml
               -Dfile=target/myapp-1.0.jar
               -Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/
-              -DrepositoryId=sonatype-nexus-staging -->
+              -DrepositoryId=sonatype-nexus-staging 
+              -Dgpg.passphrase="passphrase"
+       optional: -Dclassifier=sources or -Dclassifier=javadoc              
+              -->
   <!-- mvn clean deploy -Dgpg.passphrase=passphrase -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.sourceforge.schemaspy</groupId>
