@@ -959,11 +959,18 @@ public class Database {
                 "| VALUE | VALUES | VARCHAR | VARYING | VIEW" +
                 "| WHEN | WHENEVER | WHERE | WITH | WORK | WRITE" +
                 "| YEAR" +
-                "| ZONE").split("|,\\s*");
+                "| ZONE").split("[| ]+");
 
             String[] nonSql92Keywords = getMetaData().getSQLKeywords().toUpperCase().split(",\\s*");
 
-            sqlKeywords = new HashSet<String>();
+            sqlKeywords = new HashSet<String>() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean contains(Object key) {
+                    return super.contains(((String)key).toUpperCase());
+                }
+            };
             sqlKeywords.addAll(Arrays.asList(sql92Keywords));
             sqlKeywords.addAll(Arrays.asList(nonSql92Keywords));
         }
@@ -982,7 +989,7 @@ public class Database {
         // look for any character that isn't valid (then matcher.find() returns true)
         Matcher matcher = getInvalidIdentifierPattern().matcher(id);
 
-        boolean quotesRequired = matcher.find() || getSqlKeywords().contains(id.toUpperCase());
+        boolean quotesRequired = matcher.find() || getSqlKeywords().contains(id);
 
         if (quotesRequired) {
             // name contains something that must be quoted
