@@ -147,6 +147,7 @@ public class HtmlMultipleSchemasIndexPage extends HtmlFormatter {
         index.writeln(" </tr>");
     }
 
+    @Override
     protected void writeTableOfContents(LineWriter html) throws IOException {
         // have to use a table to deal with a horizontal scrollbar showing up inappropriately
         html.writeln("<table id='headerHolder' cellspacing='0' cellpadding='0'><tr><td>");
