@@ -867,6 +867,8 @@ public class Config
         if (columnExclusions == null) {
             String strExclusions = pullParam("-X");
             if (strExclusions == null)
+                strExclusions = System.getenv("schemaspy.columnExclusions");
+            if (strExclusions == null)
                 strExclusions = DEFAULT_COLUMN_EXCLUSION;
 
             columnExclusions = Pattern.compile(strExclusions);
@@ -895,6 +897,8 @@ public class Config
         if (indirectColumnExclusions == null) {
             String strExclusions = pullParam("-x");
             if (strExclusions == null)
+                strExclusions = System.getenv("schemaspy.indirectColumnExclusions");
+            if (strExclusions == null)
                 strExclusions = DEFAULT_COLUMN_EXCLUSION;
 
             indirectColumnExclusions = Pattern.compile(strExclusions);
@@ -919,6 +923,8 @@ public class Config
     public Pattern getTableInclusions() {
         if (tableInclusions == null) {
             String strInclusions = pullParam("-i");
+            if (strInclusions == null)
+                strInclusions = System.getenv("schemaspy.tableInclusions");
             if (strInclusions == null)
                 strInclusions = DEFAULT_TABLE_INCLUSION;
 
@@ -948,6 +954,8 @@ public class Config
     public Pattern getTableExclusions() {
         if (tableExclusions == null) {
             String strExclusions = pullParam("-I");
+            if (strExclusions == null)
+                strExclusions = System.getenv("schemaspy.tableExclusions");
             if (strExclusions == null)
                 strExclusions = DEFAULT_TABLE_EXCLUSION;
 
@@ -1802,24 +1810,14 @@ public class Config
         params.add(getLogLevel().toString().toLowerCase());
         params.add("-sqlFormatter");
         params.add(getSqlFormatter().getClass().getName());
-        // conditional hack to reduce likelihood of cmd interpreter
-        // expanding these into filenames
-        if (!getTableInclusions().pattern().equals(DEFAULT_TABLE_INCLUSION)) {
-            params.add("-i");
-            params.add(getTableInclusions().pattern());
-        }
-        if (!getTableExclusions().pattern().equals(DEFAULT_TABLE_EXCLUSION)) {
-            params.add("-I");
-            params.add(getTableExclusions().pattern());
-        }
-        if (!getColumnExclusions().pattern().equals(DEFAULT_COLUMN_EXCLUSION)) {
-            params.add("-x");
-            params.add(getColumnExclusions().pattern());
-        }
-        if (!getIndirectColumnExclusions().pattern().equals(DEFAULT_COLUMN_EXCLUSION)) {
-            params.add("-X");
-            params.add(getIndirectColumnExclusions().pattern());
-        }
+        params.add("-i");
+        params.add(getTableInclusions().toString());
+        params.add("-I");
+        params.add(getTableExclusions().toString());
+        params.add("-X");
+        params.add(getColumnExclusions().toString());
+        params.add("-x");
+        params.add(getIndirectColumnExclusions().toString());
         params.add("-dbthreads");
         params.add(String.valueOf(getMaxDbThreads()));
         params.add("-maxdet");

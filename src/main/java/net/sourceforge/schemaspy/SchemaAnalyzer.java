@@ -105,6 +105,7 @@ public class SchemaAnalyzer {
 
             fineEnabled = logger.isLoggable(Level.FINE);
             logger.info("Starting schema analysis");
+System.out.println(config.asList());
 
             long start = System.currentTimeMillis();
             long startDiagrammingDetails = start;
@@ -122,15 +123,12 @@ public class SchemaAnalyzer {
                 List<String> args = config.asList();
 
                 // following params will be replaced by something appropriate
-                yankParam(args, "-o");
-                yankParam(args, "-s");
-                args.remove("-all");
                 args.remove("-schemas");
                 args.remove("-schemata");
 
                 String dbName = config.getDb();
 
-                MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config.getUser(), config.getPassword(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, schemas, args, config);
                 return null;
             }
 
@@ -169,15 +167,10 @@ public class SchemaAnalyzer {
                     }
                 }
 
-                //TODO deal with -cat
-                yankParam(args, "-o");  // param will be replaced by something appropriate
-                yankParam(args, "-s");  // param will be replaced by something appropriate
-                args.remove("-all");    // param will be replaced by something appropriate
-
                 String schemaSpec = config.getSchemaSpec();
                 if (schemaSpec == null)
                     schemaSpec = properties.getProperty("schemaSpec", ".*");
-                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config.getUser(), config.getPassword(), outputDir, config.getCharset(), Config.getLoadedFromJar());
+                MultipleSchemaAnalyzer.getInstance().analyze(dbName, meta, schemaSpec, null, args, config);
                 return null;    // no database to return
             }
 
@@ -786,7 +779,7 @@ public class SchemaAnalyzer {
     }
     */
 
-    private static void yankParam(List<String> args, String paramId) {
+    static void yankParam(List<String> args, String paramId) {
         int paramIndex = args.indexOf(paramId);
         if (paramIndex >= 0) {
             args.remove(paramIndex);

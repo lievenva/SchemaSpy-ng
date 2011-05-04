@@ -54,8 +54,12 @@ public final class MultipleSchemaAnalyzer {
         return instance;
     }
 
-    public void analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas, List<String> args, String user, String password, File outputDir, String charset, String loadedFrom) throws SQLException, IOException {
+    public void analyze(String dbName, DatabaseMetaData meta, String schemaSpec, List<String> schemas,
+            List<String> args, Config config) throws SQLException, IOException {
         long start = System.currentTimeMillis();
+        String loadedFrom = Config.getLoadedFromJar();
+        File outputDir = config.getOutputDir();
+
         List<String> genericCommand = new ArrayList<String>();
         genericCommand.add("java");
         genericCommand.add("-Doneofmultipleschemas=true");
@@ -67,6 +71,19 @@ public final class MultipleSchemaAnalyzer {
             genericCommand.add("-jar");
             genericCommand.add(loadedFrom);
         }
+
+        args = new ArrayList<String>(args); // rude to modify caller's params, so make a copy
+
+        args.remove("-all");
+        SchemaAnalyzer.yankParam(args, "-o");
+        SchemaAnalyzer.yankParam(args, "-s");
+
+        // these are passed through environment variables
+        SchemaAnalyzer.yankParam(args, "-p");
+        SchemaAnalyzer.yankParam(args, "-i");
+        SchemaAnalyzer.yankParam(args, "-I");
+        SchemaAnalyzer.yankParam(args, "-x");
+        SchemaAnalyzer.yankParam(args, "-X");
 
         for (String next : args) {
             if (next.startsWith("-"))
@@ -83,7 +100,7 @@ public final class MultipleSchemaAnalyzer {
             if (populatedSchemas.isEmpty())
                 populatedSchemas = getPopulatedSchemas(meta, schemaSpec, true);
             if (populatedSchemas.isEmpty())
-                populatedSchemas = Arrays.asList(new String[] {user});
+                populatedSchemas = Arrays.asList(new String[] {config.getUser()});
         } else {
             System.out.println("Analyzing schemas:");
             populatedSchemas = schemas;
@@ -93,14 +110,23 @@ public final class MultipleSchemaAnalyzer {
             System.out.print(" " + populatedSchema);
         System.out.println();
 
-        writeIndexPage(dbName, populatedSchemas, meta, outputDir, charset);
+        writeIndexPage(dbName, populatedSchemas, meta, outputDir, config.getCharset());
 
         Map<String, String> env = System.getenv();
         List<String> childEnv = new ArrayList<String>();
         for (Entry<String, String> entry : env.entrySet()) {
             childEnv.add(entry.getKey() + '=' + entry.getValue());
         }
-        childEnv.add("schemaspy.pw=" + password);
+
+        // safer to pass password in environment so it can't be directly seen in cmd line
+        childEnv.add("schemaspy.pw=" + config.getPassword());
+
+        // some shells expand these regular expressions, so attempt to preserve them
+        // by passing in the environment
+        childEnv.add("schemaspy.tableInclusions=" + config.getTableInclusions());
+        childEnv.add("schemaspy.tableExclusions=" + config.getTableExclusions());
+        childEnv.add("schemaspy.columnExclusions=" + config.getColumnExclusions());
+        childEnv.add("schemaspy.indirectColumnExclusions=" + config.getIndirectColumnExclusions());
 
         for (String schema : populatedSchemas) {
             List<String> command = new ArrayList<String>(genericCommand);
@@ -140,9 +166,8 @@ public final class MultipleSchemaAnalyzer {
         System.out.println("Start with " + new File(outputDir, "index.html"));
     }
 
-    public void analyze(String dbName, List<String> schemas, List<String> args,
-            String user, String password, File outputDir, String charset, String loadedFromJar) throws SQLException, IOException {
-        analyze(dbName, null, null, schemas, args, user, password, outputDir, charset, loadedFromJar);
+    public void analyze(String dbName, List<String> schemas, List<String> args, Config config) throws SQLException, IOException {
+        analyze(dbName, null, null, schemas, args, config);
     }
 
    private void writeIndexPage(String dbName, List<String> populatedSchemas, DatabaseMetaData meta, File outputDir, String charset) throws IOException {
