@@ -105,7 +105,6 @@ public class SchemaAnalyzer {
 
             fineEnabled = logger.isLoggable(Level.FINE);
             logger.info("Starting schema analysis");
-System.out.println(config.asList());
 
             long start = System.currentTimeMillis();
             long startDiagrammingDetails = start;
