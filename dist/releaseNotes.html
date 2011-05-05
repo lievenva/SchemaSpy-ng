@@ -14,7 +14,15 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision xxx
 <ul>
-    <li>When dealing with multiple schemas it now passes all regular expressions 
+    <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=3296973&group_id=137197&atid=737987">
+        bug 3296973</a> - Tables not included with -i appears in relationship tab<br>
+        rev 643<br>
+        Thanks to Lennart Jonsson for reporting the issue.
+    </li>
+    <li>Refactored to no longer require database properties and column exclusions being
+        passed throughout the code.
+    </li>
+    <li>When dealing with multiple schemas all regular expressions are now passed 
         to child processes in the environment.  
         This is to resolve the problem where some operating system shells expanded
         the regular expressions as if they were file specifications.<br>

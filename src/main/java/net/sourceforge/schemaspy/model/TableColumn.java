@@ -30,6 +30,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
 
 public class TableColumn {
@@ -62,7 +63,7 @@ public class TableColumn {
      * @param rs ResultSet returned from {@link DatabaseMetaData#getColumns(String, String, String, String)}
      * @throws SQLException
      */
-    TableColumn(Table table, ResultSet rs, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+    TableColumn(Table table, ResultSet rs) throws SQLException {
         this.table = table;
 
         // names and types are typically reused *many* times in a database,
@@ -92,6 +93,9 @@ public class TableColumn {
         defaultValue = rs.getString("COLUMN_DEF");
         setComments(rs.getString("REMARKS"));
         id = new Integer(rs.getInt("ORDINAL_POSITION") - 1);
+
+        Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
+        Pattern excludeColumns = Config.getInstance().getColumnExclusions();
 
         isAllExcluded = matches(excludeColumns);
         isExcluded = isAllExcluded || matches(excludeIndirectColumns);
@@ -164,7 +168,7 @@ public class TableColumn {
     public String getType() {
         return type;
     }
-    
+
     /**
      * Normally only used for "special" types such as enums.
      *
@@ -182,7 +186,7 @@ public class TableColumn {
     public String getShortType() {
         return shortType == null ? type : shortType;
     }
-    
+
     /**
      * Abbreviated form of {@link #setType(String)}
      *

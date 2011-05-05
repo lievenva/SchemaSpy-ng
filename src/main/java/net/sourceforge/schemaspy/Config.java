@@ -98,6 +98,7 @@ public class Config
     private String font;
     private Integer fontSize;
     private String description;
+    private Properties dbProperties;
     private String dbPropertiesLoadedFrom;
     private Level logLevel;
     private SqlFormatter sqlFormatter;
@@ -693,7 +694,7 @@ public class Config
         if (maxDbThreads == null) {
             Properties properties;
             try {
-                properties = getDbProperties(getDbType());
+                properties = determineDbProperties(getDbType());
             } catch (IOException exc) {
                 throw new InvalidConfigurationException("Failed to load properties for " + getDbType() + ": " + exc)
                                 .setParamName("-type");
@@ -1317,12 +1318,34 @@ public class Config
     }
 
     /**
+     * Returns the database properties to use.
+     * These should be determined by calling {@link #determineDbProperties(String)}.
+     * @return
+     * @throws InvalidConfigurationException
+     */
+    public Properties getDbProperties() throws InvalidConfigurationException {
+        if (dbProperties == null) {
+            try {
+                dbProperties = determineDbProperties(getDbType());
+            } catch (IOException exc) {
+                throw new InvalidConfigurationException(exc);
+            }
+        }
+
+        return dbProperties;
+    }
+
+    /**
+     * Determines the database properties associated with the specified type.
+     * A call to {@link #setDbProperties(Properties)} is expected after determining
+     * the complete set of properties.
+     *
      * @param type
      * @return
      * @throws IOException
      * @throws InvalidConfigurationException if db properties are incorrectly formed
      */
-    public Properties getDbProperties(String type) throws IOException, InvalidConfigurationException {
+    public Properties determineDbProperties(String type) throws IOException, InvalidConfigurationException {
         ResourceBundle bundle = null;
 
         try {
@@ -1372,7 +1395,7 @@ public class Config
             String refdKey = include.substring(separator + 2).trim();
 
             // recursively resolve the ref'd properties file and the ref'd key
-            Properties refdProps = getDbProperties(refdType);
+            Properties refdProps = determineDbProperties(refdType);
             props.put(refdKey, refdProps.getProperty(refdKey));
         }
 
@@ -1380,7 +1403,7 @@ public class Config
         String baseDbType = (String)props.remove("extends");
         if (baseDbType != null) {
             baseDbType = baseDbType.trim();
-            Properties baseProps = getDbProperties(baseDbType);
+            Properties baseProps = determineDbProperties(baseDbType);
 
             // overlay our properties on top of the base's
             baseProps.putAll(props);
@@ -1390,12 +1413,15 @@ public class Config
         // done with this level of recursion...restore original
         dbPropertiesLoadedFrom = saveLoadedFrom;
 
+        // this won't be correct until the final recursion exits
+        dbProperties = props;
+
         return props;
     }
 
     protected String getDbPropertiesLoadedFrom() throws IOException {
         if (dbPropertiesLoadedFrom == null)
-            getDbProperties(getDbType());
+            determineDbProperties(getDbType());
         return dbPropertiesLoadedFrom;
     }
 

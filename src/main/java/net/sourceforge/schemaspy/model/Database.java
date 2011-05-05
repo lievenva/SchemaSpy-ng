@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
-import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -47,10 +46,10 @@ import net.sourceforge.schemaspy.model.xml.TableMeta;
 import net.sourceforge.schemaspy.util.CaseInsensitiveMap;
 
 public class Database {
+    private final Config config;
     private final String databaseName;
     private final String catalog;
     private final String schema;
-    private String description;
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
     private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName
@@ -64,30 +63,30 @@ public class Database {
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final boolean fineEnabled = logger.isLoggable(Level.FINE);
 
-    public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String catalog, String schema, Properties properties, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
+    public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String catalog, String schema, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
+        this.config = config;
         this.connection = connection;
         this.meta = meta;
-        databaseName = name;
+        this.databaseName = name;
         this.catalog = catalog;
         this.schema = schema;
-        description = config.getDescription();
 
-        initTables(meta, properties, config);
+        initTables(meta);
         if (config.isViewsEnabled())
-            initViews(meta, properties, config);
+            initViews(meta);
 
-        initCheckConstraints(properties);
-        initTableIds(properties);
-        initIndexIds(properties);
-        initTableComments(properties);
-        initTableColumnComments(properties);
-        initViewComments(properties);
-        initViewColumnComments(properties);
-        initColumnTypes(properties);
-        initRoutines(properties);
+        initCheckConstraints();
+        initTableIds();
+        initIndexIds();
+        initTableComments();
+        initTableColumnComments();
+        initViewComments();
+        initViewColumnComments();
+        initColumnTypes();
+        initRoutines();
 
         connectTables();
-        updateFromXmlMetadata(schemaMeta, properties);
+        updateFromXmlMetadata(schemaMeta);
     }
 
     public String getName() {
@@ -108,7 +107,7 @@ public class Database {
      * @return null if a description wasn't specified.
      */
     public String getDescription() {
-        return description;
+        return config.getDescription();
     }
 
     public Collection<Table> getTables() {
@@ -231,19 +230,16 @@ public class Database {
      * Create/initialize any tables in the schema.
 
      * @param metadata
-     * @param properties
-     * @param config
      * @throws SQLException
      */
-    private void initTables(final DatabaseMetaData metadata, final Properties properties,
-                            final Config config) throws SQLException {
+    private void initTables(final DatabaseMetaData metadata) throws SQLException {
         final Pattern include = config.getTableInclusions();
         final Pattern exclude = config.getTableExclusions();
         final int maxThreads = config.getMaxDbThreads();
 
-        String[] types = getTypes("tableTypes", "TABLE", properties);
+        String[] types = getTypes("tableTypes", "TABLE");
         NameValidator validator = new NameValidator("table", include, exclude, types);
-        List<BasicTableMeta> entries = getBasicTableMeta(metadata, true, properties, types);
+        List<BasicTableMeta> entries = getBasicTableMeta(metadata, true, types);
 
         TableCreator creator;
         if (maxThreads == 1) {
@@ -261,7 +257,7 @@ public class Database {
                 BasicTableMeta entry = entries.remove(0);
 
                 if (validator.isValid(entry.name, entry.type)) {
-                    new TableCreator().create(entry, properties);
+                    new TableCreator().create(entry);
                     break;
                 }
             }
@@ -270,7 +266,7 @@ public class Database {
         // kick off the secondary threads to do the creation in parallel
         for (BasicTableMeta entry : entries) {
             if (validator.isValid(entry.name, entry.type)) {
-                creator.create(entry, properties);
+                creator.create(entry);
             }
         }
 
@@ -282,25 +278,19 @@ public class Database {
      * Create/initialize any views in the schema.
      *
      * @param metadata
-     * @param properties
-     * @param config
      * @throws SQLException
      */
-    private void initViews(DatabaseMetaData metadata, Properties properties,
-                            Config config) throws SQLException {
+    private void initViews(DatabaseMetaData metadata) throws SQLException {
         Pattern includeTables = config.getTableInclusions();
         Pattern excludeTables = config.getTableExclusions();
-        Pattern excludeColumns = config.getColumnExclusions();
-        Pattern excludeIndirectColumns = config.getIndirectColumnExclusions();
 
-        String[] types = getTypes("viewTypes", "VIEW", properties);
+        String[] types = getTypes("viewTypes", "VIEW");
         NameValidator validator = new NameValidator("view", includeTables, excludeTables, types);
 
-        for (BasicTableMeta entry : getBasicTableMeta(metadata, false, properties, types)) {
+        for (BasicTableMeta entry : getBasicTableMeta(metadata, false, types)) {
             if (validator.isValid(entry.name, entry.type)) {
                 View view = new View(this, entry.catalog, entry.schema, entry.name,
-                                    entry.remarks, entry.viewSql, properties,
-                                    excludeIndirectColumns, excludeColumns);
+                                    entry.remarks, entry.viewSql);
                 views.put(view.getName(), view);
                 if (fineEnabled) {
                     logger.fine("Found details of view " + view.getName());
@@ -351,16 +341,14 @@ public class Database {
      *
      * @param metadata
      * @param forTables true if we're getting table data, false if getting view data
-     * @param properties
      * @return
      * @throws SQLException
      */
     private List<BasicTableMeta> getBasicTableMeta(DatabaseMetaData metadata,
                                                     boolean forTables,
-                                                    Properties properties,
                                                     String... types) throws SQLException {
         String queryName = forTables ? "selectTablesSql" : "selectViewsSql";
-        String sql = properties.getProperty(queryName);
+        String sql = Config.getInstance().getDbProperties().getProperty(queryName);
         List<BasicTableMeta> basics = new ArrayList<BasicTableMeta>();
         ResultSet rs = null;
 
@@ -433,11 +421,10 @@ public class Database {
      *
      * @param propName
      * @param defaultValue
-     * @param props
      * @return
      */
-    private String[] getTypes(String propName, String defaultValue, Properties props) {
-        String value = props.getProperty(propName, defaultValue);
+    private String[] getTypes(String propName, String defaultValue) {
+        String value = config.getDbProperties().getProperty(propName, defaultValue);
         List<String> types = new ArrayList<String>();
         for (String type : value.split(",")) {
             type = type.trim();
@@ -462,8 +449,8 @@ public class Database {
         }
     }
 
-    private void initCheckConstraints(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectCheckConstraintsSql");
+    private void initCheckConstraints() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectCheckConstraintsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -490,8 +477,8 @@ public class Database {
         }
     }
 
-    private void initColumnTypes(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectColumnTypesSql");
+    private void initColumnTypes() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectColumnTypesSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -524,8 +511,8 @@ public class Database {
         }
     }
 
-    private void initTableIds(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectTableIdsSql");
+    private void initTableIds() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectTableIdsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -553,8 +540,8 @@ public class Database {
         }
     }
 
-    private void initIndexIds(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectIndexIdsSql");
+    private void initIndexIds() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectIndexIdsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -590,11 +577,10 @@ public class Database {
      * If the SQL also returns view comments then they're plugged into the
      * appropriate views.
      *
-     * @param properties
      * @throws SQLException
      */
-    private void initTableComments(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectTableCommentsSql");
+    private void initTableComments() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectTableCommentsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -624,11 +610,10 @@ public class Database {
     /**
      * Initializes view comments.
      *
-     * @param properties
      * @throws SQLException
      */
-    private void initViewComments(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectViewCommentsSql");
+    private void initViewComments() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectViewCommentsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -663,11 +648,10 @@ public class Database {
      * If the SQL also returns view column comments then they're plugged into the
      * appropriate views.
      *
-     * @param properties
      * @throws SQLException
      */
-    private void initTableColumnComments(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectColumnCommentsSql");
+    private void initTableColumnComments() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectColumnCommentsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -700,11 +684,10 @@ public class Database {
     /**
      * Initializes view column comments.
      *
-     * @param properties
      * @throws SQLException
      */
-    private void initViewColumnComments(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectViewColumnCommentsSql");
+    private void initViewColumnComments() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectViewColumnCommentsSql");
         if (sql != null) {
             PreparedStatement stmt = null;
             ResultSet rs = null;
@@ -740,11 +723,10 @@ public class Database {
     /**
      * Initializes stored procedures / functions.
      *
-     * @param properties
      * @throws SQLException
      */
-    private void initRoutines(Properties properties) throws SQLException {
-        String sql = properties.getProperty("selectRoutinesSql");
+    private void initRoutines() throws SQLException {
+        String sql = config.getDbProperties().getProperty("selectRoutinesSql");
 
         if (sql != null) {
             PreparedStatement stmt = null;
@@ -783,7 +765,7 @@ public class Database {
             }
         }
 
-        sql = properties.getProperty("selectRoutineParametersSql");
+        sql = config.getDbProperties().getProperty("selectRoutineParametersSql");
 
         if (sql != null) {
             PreparedStatement stmt = null;
@@ -865,24 +847,23 @@ public class Database {
         return stmt;
     }
 
-    public Table addRemoteTable(String remoteCatalog, String remoteSchema, String remoteTableName, String baseContainer,
-                                Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+    public Table addRemoteTable(String remoteCatalog, String remoteSchema, String remoteTableName, String baseContainer, boolean logical) throws SQLException {
         String fullName = getRemoteTableKey(remoteCatalog, remoteSchema, remoteTableName);
         Table remoteTable = remoteTables.get(fullName);
         if (remoteTable == null) {
             if (fineEnabled)
                 logger.fine("Creating remote table " + fullName);
 
-            if (properties != null)
-                remoteTable = new RemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer, properties, excludeIndirectColumns, excludeColumns);
+            if (logical)
+                remoteTable = new LogicalRemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer);
             else
-                remoteTable = new LogicalRemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer, properties, excludeIndirectColumns, excludeColumns);
+                remoteTable = new RemoteTable(this, remoteCatalog, remoteSchema, remoteTableName, baseContainer);
 
             if (fineEnabled)
                 logger.fine("Adding remote table " + fullName);
 
             remoteTables.put(fullName, remoteTable);
-            remoteTable.connectForeignKeys(locals, excludeIndirectColumns, excludeColumns);
+            remoteTable.connectForeignKeys(locals);
         }
 
         return remoteTable;
@@ -1068,13 +1049,9 @@ public class Database {
      * @param schemaMeta
      * @throws SQLException
      */
-    private void updateFromXmlMetadata(SchemaMeta schemaMeta, Properties properties) throws SQLException {
+    private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
         if (schemaMeta != null) {
-            final Pattern excludeColumns = Config.getInstance().getColumnExclusions();
-            final Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
-            final Pattern excludeNone = Pattern.compile("[^.]");
-
-            description = schemaMeta.getComments();
+            config.setDescription(schemaMeta.getComments());
 
             // done in three passes:
             // 1: create any new tables
@@ -1087,13 +1064,13 @@ public class Database {
 
                 if (tableMeta.getRemoteSchema() != null || tableMeta.getRemoteCatalog() != null) {
                     // will add it if it doesn't already exist
-                    table = addRemoteTable(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), null, excludeNone, excludeNone);
+                    table = addRemoteTable(tableMeta.getRemoteCatalog(), tableMeta.getRemoteSchema(), tableMeta.getName(), getSchema(), true);
                 } else {
                     table = locals.get(tableMeta.getName());
 
                     if (table == null) {
                         // new table defined only in XML metadata
-                        table = new LogicalTable(this, getCatalog(), getSchema(), tableMeta.getName(), tableMeta.getComments(), properties, excludeIndirectColumns, excludeColumns);
+                        table = new LogicalTable(this, getCatalog(), getSchema(), tableMeta.getName(), tableMeta.getComments());
                         tables.put(table.getName(), table);
                     }
                 }
@@ -1111,20 +1088,17 @@ public class Database {
                     table = locals.get(tableMeta.getName());
                 }
 
-                table.connect(tableMeta, locals, remoteTables);
+                table.connect(tableMeta, locals);
             }
         }
     }
 
     private void connectTables() throws SQLException {
-        Pattern excludeColumns = Config.getInstance().getColumnExclusions();
-        Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
-
         for (Table table : tables.values()) {
-            table.connectForeignKeys(locals, excludeIndirectColumns, excludeColumns);
+            table.connectForeignKeys(locals);
         }
         for (Table view : views.values()) {
-            view.connectForeignKeys(locals, excludeIndirectColumns, excludeColumns);
+            view.connectForeignKeys(locals);
         }
     }
 
@@ -1138,25 +1112,22 @@ public class Database {
      * @return
      */
     public String getRemoteTableKey(String cat, String sch, String table) {
-        return cat + '.' + sch + '.' + table;
+        return Table.getFullName(getName(), cat, sch, table);
     }
 
     /**
      * Single-threaded implementation of a class that creates tables
      */
     private class TableCreator {
-        private final Pattern excludeColumns = Config.getInstance().getColumnExclusions();
-        private final Pattern excludeIndirectColumns = Config.getInstance().getIndirectColumnExclusions();
-
         /**
          * Create a table and put it into <code>tables</code>
          */
-        void create(BasicTableMeta tableMeta, Properties properties) throws SQLException {
-            createImpl(tableMeta, properties);
+        void create(BasicTableMeta tableMeta) throws SQLException {
+            createImpl(tableMeta);
         }
 
-        protected void createImpl(BasicTableMeta tableMeta, Properties properties) throws SQLException {
-            Table table = new Table(Database.this, tableMeta.catalog, tableMeta.schema, tableMeta.name, tableMeta.remarks, properties, excludeIndirectColumns, excludeColumns);
+        protected void createImpl(BasicTableMeta tableMeta) throws SQLException {
+            Table table = new Table(Database.this, tableMeta.catalog, tableMeta.schema, tableMeta.name, tableMeta.remarks);
             if (tableMeta.numRows != -1) {
                 table.setNumRows(tableMeta.numRows);
             }
@@ -1192,12 +1163,12 @@ public class Database {
         }
 
         @Override
-        void create(final BasicTableMeta tableMeta, final Properties properties) throws SQLException {
+        void create(final BasicTableMeta tableMeta) throws SQLException {
             Thread runner = new Thread() {
                 @Override
                 public void run() {
                     try {
-                        createImpl(tableMeta, properties);
+                        createImpl(tableMeta);
                     } catch (SQLException exc) {
                         exc.printStackTrace(); // nobody above us in call stack...dump it here
                     } finally {

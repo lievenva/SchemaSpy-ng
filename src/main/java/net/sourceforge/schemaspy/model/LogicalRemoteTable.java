@@ -19,8 +19,6 @@
 package net.sourceforge.schemaspy.model;
 
 import java.sql.SQLException;
-import java.util.Properties;
-import java.util.regex.Pattern;
 
 /**
  * A remote table (exists in another schema (logically or physically))
@@ -29,9 +27,16 @@ import java.util.regex.Pattern;
  * @author John Currier
  */
 public class LogicalRemoteTable extends RemoteTable {
-    public LogicalRemoteTable(Database db, String catalog, String schema, String name, String baseSchema,
-                                Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, catalog, schema, name, baseSchema, properties, excludeIndirectColumns, excludeColumns);
+    /**
+     * @param db
+     * @param catalog
+     * @param schema
+     * @param name
+     * @param baseSchema
+     * @throws SQLException
+     */
+    public LogicalRemoteTable(Database db, String catalog, String schema, String name, String baseSchema) throws SQLException {
+        super(db, catalog, schema, name, baseSchema);
     }
 
     /**

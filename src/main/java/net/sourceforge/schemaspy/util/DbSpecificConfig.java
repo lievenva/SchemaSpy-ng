@@ -46,7 +46,7 @@ public class DbSpecificConfig {
         type = dbType;
         Properties props;
         try {
-            props = config.getDbProperties(dbType);
+            props = config.determineDbProperties(dbType);
             description = props.getProperty("description");
             loadOptions(props);
         } catch (IOException exc) {

@@ -131,7 +131,7 @@ public class SchemaAnalyzer {
                 return null;
             }
 
-            Properties properties = config.getDbProperties(config.getDbType());
+            Properties properties = config.determineDbProperties(config.getDbType());
 
             ConnectionURLBuilder urlBuilder = new ConnectionURLBuilder(config, properties);
             if (config.getDb() == null)
@@ -214,8 +214,7 @@ public class SchemaAnalyzer {
             //
             // create our representation of the database
             //
-            Database db = new Database(config, connection, meta,
-                                    dbName, catalog, schema, properties, schemaMeta);
+            Database db = new Database(config, connection, meta, dbName, catalog, schema, schemaMeta);
 
             schemaMeta = null; // done with it so let GC reclaim it
 

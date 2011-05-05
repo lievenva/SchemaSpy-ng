@@ -21,8 +21,7 @@ package net.sourceforge.schemaspy.model;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Properties;
-import java.util.regex.Pattern;
+import net.sourceforge.schemaspy.Config;
 
 /**
  * Treat views as tables that have no rows and are represented by the SQL that
@@ -38,16 +37,11 @@ public class View extends Table {
      * @param name
      * @param remarks
      * @param viewSql
-     * @param properties
-     * @param excludeIndirectColumns
-     * @param excludeColumns
      * @throws SQLException
      */
-    public View(Database db, String catalog, String schema, 
-                String name, String remarks, String viewSql,
-                Properties properties,
-                Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, catalog, schema, name, remarks, properties, excludeIndirectColumns, excludeColumns);
+    public View(Database db, String catalog, String schema,
+                String name, String remarks, String viewSql) throws SQLException {
+        super(db, catalog, schema, name, remarks);
 
         if (viewSql == null)
             viewSql = fetchViewSql();
@@ -76,7 +70,7 @@ public class View extends Table {
      * @throws SQLException
      */
     private String fetchViewSql() throws SQLException {
-        String selectViewSql = properties.getProperty("selectViewSql");
+        String selectViewSql = Config.getInstance().getDbProperties().getProperty("selectViewSql");
         if (selectViewSql == null)
             return null;
 

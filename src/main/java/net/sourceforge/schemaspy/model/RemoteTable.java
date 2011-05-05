@@ -21,8 +21,8 @@ package net.sourceforge.schemaspy.model;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.sourceforge.schemaspy.Config;
 
 /**
@@ -33,9 +33,19 @@ import net.sourceforge.schemaspy.Config;
  */
 public class RemoteTable extends Table {
     private final String baseContainer;
+    private final static Logger logger = Logger.getLogger(RemoteTable.class.getName());
+    private final static boolean finerEnabled = logger.isLoggable(Level.FINER);
 
-    public RemoteTable(Database db, String catalog, String schema, String name, String baseContainer, Properties properties, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, catalog, schema, name, null, properties, excludeIndirectColumns, excludeColumns);
+    /**
+     * @param db
+     * @param catalog
+     * @param schema
+     * @param name
+     * @param baseContainer
+     * @throws SQLException
+     */
+    public RemoteTable(Database db, String catalog, String schema, String name, String baseContainer) throws SQLException {
+        super(db, catalog, schema, name, null);
         this.baseContainer = baseContainer;
     }
 
@@ -47,23 +57,26 @@ public class RemoteTable extends Table {
      * @throws SQLException
      */
     @Override
-    public void connectForeignKeys(Map<String, Table> tables,
-                                    Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
+    public void connectForeignKeys(Map<String, Table> tables) throws SQLException {
+        if (finerEnabled)
+            logger.finer("Connecting foreign keys to " + getFullName());
         ResultSet rs = null;
 
         try {
+            // get remote table's FKs that reference PKs in our schema
             rs = db.getMetaData().getImportedKeys(getCatalog(), getSchema(), getName());
 
             while (rs.next()) {
                 String otherSchema = rs.getString("PKTABLE_SCHEM");
                 String otherCatalog = rs.getString("PKTABLE_CAT");
 
+                // if it points back to our schema then use it
                 if (baseContainer.equals(otherSchema) || baseContainer.equals(otherCatalog)) {
                     addForeignKey(rs.getString("FK_NAME"), rs.getString("FKCOLUMN_NAME"),
                             otherCatalog, otherSchema,
                             rs.getString("PKTABLE_NAME"), rs.getString("PKCOLUMN_NAME"),
                             rs.getInt("UPDATE_RULE"), rs.getInt("DELETE_RULE"),
-                            tables, excludeIndirectColumns, excludeColumns);
+                            tables);
                 }
             }
         } catch (SQLException sqlExc) {

@@ -19,8 +19,6 @@
 package net.sourceforge.schemaspy.model;
 
 import java.sql.SQLException;
-import java.util.Properties;
-import java.util.regex.Pattern;
 
 /**
  * This is a logical (versus physical) table that represents something
@@ -29,9 +27,8 @@ import java.util.regex.Pattern;
  * @author John Currier
  */
 public class LogicalTable extends Table {
-    public LogicalTable(Database db, String catalog, String schema, String name, String comments, 
-            Properties props, Pattern excludeIndirectColumns, Pattern excludeColumns) throws SQLException {
-        super(db, catalog, schema, name, comments, props, excludeIndirectColumns, excludeColumns);
+    public LogicalTable(Database db, String catalog, String schema, String name, String comments) throws SQLException {
+        super(db, catalog, schema, name, comments);
     }
 
     /**
