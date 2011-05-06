@@ -61,7 +61,6 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
         writeUniqueNullables(DbAnalyzer.getMustBeUniqueNullableColumns(new HashSet<Table>(tables)), out);
         writeTablesWithOneColumn(DbAnalyzer.getTablesWithOneColumn(tables), out);
         writeTablesWithIncrementingColumnNames(DbAnalyzer.getTablesWithIncrementingColumnNames(tables), out);
-        writeDefaultNullStrings(DbAnalyzer.getDefaultNullStringColumns(new HashSet<Table>(tables)), out);
         writeFooter(out);
     }
 
@@ -250,13 +249,6 @@ public class HtmlAnomaliesPage extends HtmlFormatter {
             out.writeln("</table>");
         }
         writeSummary(tables.size(), out);
-        out.writeln("<p></li>");
-    }
-
-    private void writeDefaultNullStrings(List<TableColumn> uniqueNullables, LineWriter out) throws IOException {
-        out.writeln("<li>");
-        out.writeln("<b>Columns whose default value is the word 'NULL' or 'null', but the SQL NULL value may have been intended:</b>");
-        writeColumnBasedAnomaly(uniqueNullables, out);
         out.writeln("<p></li>");
     }
 
