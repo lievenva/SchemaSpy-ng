@@ -283,6 +283,31 @@ public class DbAnalyzer {
     }
 
     /**
+     * Returns a list of columns that have the word "NULL" or "null" as their default value
+     * instead of the likely candidate value null.
+     *
+     * @param tables Collection
+     * @return List
+     */
+    public static List<TableColumn> getDefaultNullStringColumns(Collection<Table> tables) {
+        List<TableColumn> defaultNullStringColumns = new ArrayList<TableColumn>();
+
+        for (Table table : tables) {
+            for (TableColumn column : table.getColumns()) {
+                Object defaultValue = column.getDefaultValue();
+                if (defaultValue != null && defaultValue instanceof String) {
+                    String defaultString = defaultValue.toString();
+                    if (defaultString.trim().equalsIgnoreCase("'null'")) {
+                        defaultNullStringColumns.add(column);
+                    }
+                }
+            }
+        }
+
+        return sortColumnsByTable(defaultNullStringColumns);
+    }
+
+    /**
      * getSchemas - returns a List of catalog names (Strings)
      *
      * @param meta DatabaseMetaData

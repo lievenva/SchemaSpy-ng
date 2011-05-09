@@ -16,10 +16,10 @@
 <ul>
     <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2965546&group_id=137197&atid=737987">
         bug 2965546</a> - Oracle DEFAULT NULL anomaly.<br>
-        Unfortunately I was unable to determine a mechanism for detecting the null-handling
-        change in behavior between various versions of JDBC (or the drivers?  or the databases?),
-        so I had to remove the detection of the anomaly. 
-        rev 644<br>
+        Changed the 'null' check to be compliant with newer versions of the JDBC drivers.
+        This should reduce the possibility of false positives while giving correct
+        results moving forward.
+        rev 645<br>
         Thanks to Vladimir Vilinski for reporting the issue.
     </li>
     <li>Resolved <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=3296973&group_id=137197&atid=737987">
