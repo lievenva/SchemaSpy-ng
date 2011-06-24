@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,6 +77,7 @@ public class Dot {
                 logger.warning("Failed to query Graphviz version information");
                 logger.warning("  with: " + getDisplayableCommand(dotCommand));
                 logger.warning("  " + validDotDoesntExist);
+                logger.log(Level.INFO, "Graphviz query failure details:", validDotDoesntExist);
             }
         }
 
