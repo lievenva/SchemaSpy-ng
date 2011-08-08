@@ -97,7 +97,7 @@ public class DotFormatter {
             if (!tablesWritten.add(relatedTable))
                 continue; // already written
 
-            nodes.put(relatedTable, new DotNode(relatedTable, true, ""));
+            nodes.put(relatedTable, new DotNode(relatedTable, "", new DotNodeConfig(false, false)));
             connectors.addAll(finder.getRelatedConnectors(relatedTable, table, true, includeImplied));
         }
 

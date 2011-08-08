@@ -14,6 +14,14 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision xxx
 <ul>
+    <li>Implemented a <a href="https://sourceforge.net/projects/schemaspy/forums/forum/462850/topic/4613005">
+        request for more compact detail pages</a>.<br>
+        Detail pages will no longer show all the columns of tables within one degree of separation of the
+        focal table.
+        This can help reduce the complexity of those diagrams significantly while only slightly reducing
+        their functionality.
+        rev 648
+    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=2965546&group_id=137197&atid=737987">
         bug 2965546</a> - Oracle DEFAULT NULL anomaly.<br>
         Changed the 'null' check to be compliant with newer versions of the JDBC drivers.
