@@ -51,7 +51,7 @@ public class DbSpecificOption {
 
     @Override
     public String toString() {
-        return description;
+        return getClass().getSimpleName() + " name: '" + getName() + "' value: '" + getValue() + "' description: '" + getDescription() + "'";
     }
 }
 

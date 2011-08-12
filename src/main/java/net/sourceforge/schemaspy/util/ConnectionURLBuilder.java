@@ -68,7 +68,9 @@ public class ConnectionURLBuilder {
         for (DbSpecificOption option : options) {
             option.setValue(getParam(args, option, config));
 
-            // replace e.g. <host> with <myDbHost>
+            logger.fine(option.toString());
+
+            // replace e.g. <host> with myDbHost
             connectionSpec = connectionSpec.replaceAll("\\<" + option.getName() + "\\>", option.getValue().toString());
         }
 
