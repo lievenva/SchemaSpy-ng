@@ -407,6 +407,10 @@ public class SchemaAnalyzer {
             // some dbNames have path info in the name...strip it
             xmlName = new File(xmlName).getName();
 
+            // some dbNames include jdbc driver details including :'s and @'s
+            String[] unusables = xmlName.split("[:@]");
+            xmlName = unusables[unusables.length - 1];
+
             if (schema != null)
                 xmlName += '.' + schema;
 
