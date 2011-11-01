@@ -14,6 +14,12 @@
 
 <li class='release'>x.x.x - xx/xx/xxxx - Subversion revision xxx
 <ul>
+    <li>Resolved <a href="https://sourceforge.net/tracker/index.php?func=detail&aid=3429895&group_id=137197&atid=737987">
+        bug 3429895</a> - java.lang.OutOfMemoryError: unable to create new native thread.<br>
+        Put in a more reasonable default maximum number of database threads. 
+        rev 653<br>
+        Thanks to Daniel Ceregatti for reporting the issue.
+    </li>
     <li>Resolved <a href="https://sourceforge.net/tracker/?func=detail&atid=737987&aid=3428311&group_id=137197">
         bug 3428311</a> - Invalid filenames used for generated XML.<br>
         Removed @ and : delineated portions of the database name when generating the XML filenames used. 

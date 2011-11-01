@@ -700,7 +700,8 @@ public class Config
                                 .setParamName("-type");
             }
 
-            int max = Integer.MAX_VALUE;
+            final int defaultMax = 15;  // not scientifically derived
+            int max = defaultMax;
             String threads = properties.getProperty("dbThreads");
             if (threads == null)
                 threads = properties.getProperty("dbthreads");
@@ -712,7 +713,7 @@ public class Config
             if (threads != null)
                 max = Integer.parseInt(threads);
             if (max < 0)
-                max = Integer.MAX_VALUE;
+                max = defaultMax;
             else if (max == 0)
                 max = 1;
 
