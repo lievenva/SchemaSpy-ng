@@ -314,7 +314,7 @@ public class Database {
         final String type;
         final String remarks;
         final String viewSql;
-        final int numRows;  // -1 if not determined
+        final long numRows;  // -1 if not determined
 
         /**
          * @param schema
@@ -324,7 +324,7 @@ public class Database {
          * @param text optional textual SQL used to create the view
          * @param numRows number of rows, or -1 if not determined
          */
-        BasicTableMeta(String catalog, String schema, String name, String type, String remarks, String text, int numRows)
+        BasicTableMeta(String catalog, String schema, String name, String type, String remarks, String text, long numRows)
         {
             this.catalog = catalog;
             this.schema = schema;
@@ -369,7 +369,7 @@ public class Database {
                     String remarks = getOptionalString(rs, clazz + "_comment");
                     String text = forTables ? null : getOptionalString(rs, "view_definition");
                     String rows = forTables ? getOptionalString(rs, "table_rows") : null;
-                    int numRows = rows == null ? -1 : Integer.parseInt(rows);
+                    long numRows = rows == null ? -1 : Long.parseLong(rows);
 
                     basics.add(new BasicTableMeta(cat, sch, name, clazz, remarks, text, numRows));
                 }
