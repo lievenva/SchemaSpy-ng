@@ -125,6 +125,14 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     }
 
     /**
+     * Is this a constraint defined in an XML metafile?
+     *
+     * @return
+     */
+    public Boolean isExplicit() {
+    	return getName() == "Defined in XML";
+    }
+    /**
      * Returns the parent table (the table that contains the referenced primary key
      * column).
      *

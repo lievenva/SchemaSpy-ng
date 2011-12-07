@@ -98,8 +98,9 @@ public class DotConnectorFinder {
             if (targetTable == null && !includeExcluded && parentColumn.isExcluded())
                 continue;
             boolean implied = column.getParentConstraint(parentColumn).isImplied();
+            boolean explicit = column.getParentConstraint(parentColumn).isExplicit();
             if (!implied || includeImplied) {
-                relatedConnectors.add(new DotConnector(parentColumn, column, implied));
+                relatedConnectors.add(new DotConnector(parentColumn, column, implied, explicit));
             }
         }
 
@@ -110,8 +111,9 @@ public class DotConnectorFinder {
             if (targetTable == null && !includeExcluded && childColumn.isExcluded())
                 continue;
             boolean implied = column.getChildConstraint(childColumn).isImplied();
+            boolean explicit = column.getChildConstraint(childColumn).isExplicit();
             if (!implied || includeImplied) {
-                relatedConnectors.add(new DotConnector(column, childColumn, implied));
+                relatedConnectors.add(new DotConnector(column, childColumn, implied, explicit));
             }
         }
 

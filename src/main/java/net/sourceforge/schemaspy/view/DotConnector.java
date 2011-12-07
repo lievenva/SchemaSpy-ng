@@ -33,6 +33,7 @@ public class DotConnector implements Comparable<DotConnector> {
     private final TableColumn childColumn;
     private final Table childTable;
     private final boolean implied;
+    private final boolean explicit;
     private final boolean bottomJustify;
     private String parentPort;
     private String childPort;
@@ -44,10 +45,11 @@ public class DotConnector implements Comparable<DotConnector> {
      * @param childColumn TableColumn
      * @param implied boolean
      */
-    public DotConnector(TableColumn parentColumn, TableColumn childColumn, boolean implied) {
+    public DotConnector(TableColumn parentColumn, TableColumn childColumn, boolean implied, boolean explicit) {
         this.parentColumn = parentColumn;
         this.childColumn = childColumn;
         this.implied = implied;
+        this.explicit = explicit;
         parentPort = parentColumn.getName();
         parentTable = parentColumn.getTable();
         childPort = childColumn.getName();
@@ -67,6 +69,10 @@ public class DotConnector implements Comparable<DotConnector> {
 
     public boolean isImplied() {
         return implied;
+    }
+
+    public boolean isExplicit() {
+        return explicit;
     }
 
     /**
@@ -143,7 +149,9 @@ public class DotConnector implements Comparable<DotConnector> {
         else
             edge.append("crowodot");// zero or more children
 
-        if (implied)
+        if (explicit)
+            edge.append(" style=dotted");
+        else if (implied)
             edge.append(" style=dashed");
         edge.append("];");
 
