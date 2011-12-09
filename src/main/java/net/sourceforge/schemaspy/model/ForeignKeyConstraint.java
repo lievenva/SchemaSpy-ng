@@ -130,7 +130,7 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
      * @return
      */
     public Boolean isExplicit() {
-    	return getName() == "Defined in XML";
+    	return getName().equals("Defined in XML");
     }
     /**
      * Returns the parent table (the table that contains the referenced primary key
