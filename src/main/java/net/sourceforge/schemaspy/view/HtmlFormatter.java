@@ -18,26 +18,48 @@
  */
 package net.sourceforge.schemaspy.view;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.xml.transform.Source;
+import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
+import org.w3c.dom.Element;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.Revision;
 import net.sourceforge.schemaspy.model.Database;
+import net.sourceforge.schemaspy.model.InvalidConfigurationException;
 import net.sourceforge.schemaspy.model.Table;
 import net.sourceforge.schemaspy.model.TableColumn;
 import net.sourceforge.schemaspy.util.Dot;
 import net.sourceforge.schemaspy.util.HtmlEncoder;
 import net.sourceforge.schemaspy.util.LineWriter;
+import net.sourceforge.schemaspy.view.StyleSheet.ParseException;
 
 public class HtmlFormatter {
     protected final boolean encodeComments = Config.getInstance().isEncodeCommentsEnabled();
     private   final boolean isMetered = Config.getInstance().isMeterEnabled();
     protected final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
+    
+    private Templates templates;
 
     protected HtmlFormatter() {
     }
@@ -82,6 +104,12 @@ public class HtmlFormatter {
         out.write("</span>");
         if (table == null && db.getDescription() != null)
             out.write("<span class='description'>" + db.getDescription().replace("\\=", "=") + "</span>");
+        
+        if (table == null) {
+            writeDocumentation(db.getDocumentation(), out);
+        } else {
+            writeDocumentation(table.getDocumentation(), out);
+        }
 
         String comments = table == null ? null : table.getComments();
         if (comments != null) {
@@ -136,6 +164,46 @@ public class HtmlFormatter {
         html.writeln(" </ul>");
         html.writeln("</div>");
         html.writeln("</td></tr></table>");
+    }
+    
+    protected void writeDocumentation(Element documentation, LineWriter html) throws IOException {
+	if (documentation != null) {
+	    DOMSource source = new DOMSource(documentation);
+	    StreamResult result = new StreamResult(html);
+
+	    if (templates == null) {
+		String docXsl = Config.getInstance().getDocumentationStyleSheet();
+		try {
+		    templates = TransformerFactory.newInstance().newTemplates(getSource(docXsl));
+		} catch (TransformerException e) {
+		    throw new InvalidConfigurationException(e);
+		}
+	    }
+
+	    try {
+		templates.newTransformer().transform(source, result);
+	    } catch (TransformerConfigurationException e) {
+		throw new InvalidConfigurationException(e);
+	    } catch (TransformerException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	    }
+	}
+    }
+    
+    private static Source getSource(String name) {
+        File file = new File(name);
+        if (file.exists())
+            return new StreamSource(file);
+        file = new File(System.getProperty("user.dir"), name);
+        if (file.exists())
+            return new StreamSource(file);
+
+        InputStream stream = HtmlFormatter.class.getClassLoader().getResourceAsStream(name);
+        if (stream == null)
+            throw new ParseException("Unable to find requested style sheet: " + name);
+
+        return new StreamSource(stream);
     }
 
     protected String getDescription(Database db, Table table, String text, boolean hoverHelp) {

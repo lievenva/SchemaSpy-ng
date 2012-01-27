@@ -30,6 +30,9 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
 
@@ -53,6 +56,7 @@ public class TableColumn {
     private boolean allowImpliedChildren = true;
     private boolean isExcluded = false;
     private boolean isAllExcluded = false;
+    private Element documentation;
     private static final Logger logger = Logger.getLogger(TableColumn.class.getName());
     private static final boolean finerEnabled = logger.isLoggable(Level.FINER);
 
@@ -320,6 +324,10 @@ public class TableColumn {
     public void setComments(String comments) {
         this.comments = (comments == null || comments.trim().length() == 0) ? null : comments.trim();
     }
+    
+    public Element getDocumentation() {
+	return documentation;
+    }
 
     /**
      * Returns <code>true</code> if this column is to be excluded from relationship diagrams.
@@ -491,6 +499,8 @@ public class TableColumn {
         String newComments = colMeta.getComments();
         if (newComments != null)
             setComments(newComments);
+        
+        documentation = colMeta.getDocumentation();
 
         if (!isPrimary() && colMeta.isPrimary()) {
             table.setPrimaryColumn(this);

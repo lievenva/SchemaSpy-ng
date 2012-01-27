@@ -3,7 +3,8 @@
     <xs:element name="schemaMeta">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="comments"/>
+                <xs:element ref="documentation" minOccurs="0"/>
+                <xs:element ref="comments" minOccurs="0"/>
                 <xs:element ref="tables"/>
             </xs:sequence>
         </xs:complexType>
@@ -14,6 +15,17 @@
             <xs:documentation>Alias for "comments".</xs:documentation>
         </xs:annotation>
     </xs:element>
+    <xs:element name="documentation" id="documentation">
+        <xs:annotation>
+            <xs:documentation>Variant of documentation in xml schema".</xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="lax"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
     <xs:element name="tables">
         <xs:complexType>
             <xs:sequence>
@@ -24,6 +36,7 @@
     <xs:element name="table">
         <xs:complexType>
             <xs:sequence>
+                <xs:element ref="documentation" minOccurs="0"/>
                 <xs:element ref="column" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="name" type="xs:string" use="required"/>
@@ -52,6 +65,7 @@
     <xs:element name="column">
         <xs:complexType>
         	<xs:sequence>
+                        <xs:element ref="documentation" minOccurs="0"/>
         		<xs:element ref="foreignKey" minOccurs="0"
         			maxOccurs="unbounded" />
         	</xs:sequence>

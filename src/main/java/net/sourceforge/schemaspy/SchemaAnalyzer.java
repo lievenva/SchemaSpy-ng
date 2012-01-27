@@ -194,7 +194,7 @@ public class SchemaAnalyzer {
                 config.setCatalog(catalog);
             }
 
-            SchemaMeta schemaMeta = config.getMeta() == null ? null : new SchemaMeta(config.getMeta(), dbName, schema);
+            SchemaMeta schemaMeta = SchemaMeta.create(config.getMeta(), dbName, schema);
             if (config.isHtmlGenerationEnabled()) {
                 new File(outputDir, "tables").mkdirs();
                 new File(outputDir, "diagrams/summary").mkdirs();
@@ -664,7 +664,7 @@ public class SchemaAnalyzer {
 
         // if a classpath has been specified then use it to find the driver,
         // otherwise use whatever was used to load this class.
-        // thanks to Bruno Leonardo Gonçalves for this implementation that he
+        // thanks to Bruno Leonardo Gonï¿½alves for this implementation that he
         // used to resolve issues when running under Maven
         if (classpath.size() > 0) {
             loader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));

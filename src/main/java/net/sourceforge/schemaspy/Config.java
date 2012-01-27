@@ -94,6 +94,7 @@ public class Config
     private Integer maxDetailedTables;
     private String driverPath;
     private String css;
+    private String docXsl;
     private String charset;
     private String font;
     private Integer fontSize;
@@ -585,6 +586,16 @@ public class Config
         }
         return css;
     }
+
+    public String getDocumentationStyleSheet() {
+	if (docXsl == null) {
+	    docXsl = pullParam("-xsl");
+	    if (docXsl == null)
+		docXsl = "doc2html.xsl";
+	}
+	return docXsl;
+    }
+
 
     /**
      * The font to use within diagrams.  Modify the .css to specify HTML fonts.
@@ -1748,6 +1759,8 @@ public class Config
         }
         params.add("-css");
         params.add(getCss());
+        params.add("-xsl");
+        params.add(getDocumentationStyleSheet());
         params.add("-charset");
         params.add(getCharset());
         params.add("-font");

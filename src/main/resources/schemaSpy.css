@@ -16,6 +16,13 @@ body  {
   padding:.4em;
 }
 
+.documentation {
+  background: #ffffff;
+  border: thin solid #000000;
+  padding: 1em;
+  font-size: 80%;
+}
+
 /* background-color must be specified for th to propagate into diagrams */
 th {
   background-color: #9BAB96;

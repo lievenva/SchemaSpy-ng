@@ -32,7 +32,7 @@ import org.w3c.dom.NodeList;
  *
  * @author John Currier
  */
-public class TableColumnMeta {
+public class TableColumnMeta extends DocumentedMeta {
     private final String name;
     private final String type;
     private final boolean isPrimary;
@@ -50,7 +50,9 @@ public class TableColumnMeta {
     private final boolean isImpliedChildrenDisabled;
     private static final Logger logger = Logger.getLogger(TableColumnMeta.class.getName());
 
-    TableColumnMeta(Node colNode) {
+    TableColumnMeta(Element colNode) {
+	super(colNode);
+      
         NamedNodeMap attribs = colNode.getAttributes();
         String tmp;
 

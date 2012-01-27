@@ -32,7 +32,7 @@ import org.w3c.dom.NodeList;
  *
  * @author John Currier
  */
-public class TableMeta {
+public class TableMeta extends DocumentedMeta {
     private final String name;
     private final String comments;
     private final List<TableColumnMeta> columns = new ArrayList<TableColumnMeta>();
@@ -40,7 +40,9 @@ public class TableMeta {
     private final String remoteSchema;
     private static final Logger logger = Logger.getLogger(TableMeta.class.getName());
 
-    TableMeta(Node tableNode) {
+    TableMeta(Element tableNode) {
+	super(tableNode);
+      
         NamedNodeMap attribs = tableNode.getAttributes();
 
         name = attribs.getNamedItem("name").getNodeValue();
@@ -66,10 +68,10 @@ public class TableMeta {
                     " remoteSchema: " + remoteSchema +
                     " comments: " + comments);
 
-        NodeList columnNodes = ((Element)tableNode.getChildNodes()).getElementsByTagName("column");
+        NodeList columnNodes = tableNode.getElementsByTagName("column");
 
         for (int i = 0; i < columnNodes.getLength(); ++i) {
-            Node colNode = columnNodes.item(i);
+            Element colNode = (Element) columnNodes.item(i);
             columns.add(new TableColumnMeta(colNode));
         }
     }

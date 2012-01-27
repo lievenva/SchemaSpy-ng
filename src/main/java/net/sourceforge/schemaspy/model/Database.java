@@ -40,6 +40,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.SchemaMeta;
 import net.sourceforge.schemaspy.model.xml.TableMeta;
@@ -62,6 +65,7 @@ public class Database {
     private Pattern invalidIdentifierPattern;
     private final Logger logger = Logger.getLogger(getClass().getName());
     private final boolean fineEnabled = logger.isLoggable(Level.FINE);
+    private Element documentation;
 
     public Database(Config config, Connection connection, DatabaseMetaData meta, String name, String catalog, String schema, SchemaMeta schemaMeta) throws SQLException, MissingResourceException {
         this.config = config;
@@ -99,6 +103,10 @@ public class Database {
 
     public String getSchema() {
         return schema;
+    }
+    
+    public Element getDocumentation() {
+	return documentation;
     }
 
     /**
@@ -1052,6 +1060,7 @@ public class Database {
     private void updateFromXmlMetadata(SchemaMeta schemaMeta) throws SQLException {
         if (schemaMeta != null) {
             config.setDescription(schemaMeta.getComments());
+            documentation = schemaMeta.getDocumentation();
 
             // done in three passes:
             // 1: create any new tables

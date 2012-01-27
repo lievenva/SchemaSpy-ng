@@ -47,36 +47,43 @@ import org.xml.sax.SAXException;
  *
  * @author John Currier
  */
-public class SchemaMeta {
+public class SchemaMeta extends DocumentedMeta {
     private final List<TableMeta> tables = new ArrayList<TableMeta>();
     private final String comments;
     private final File metaFile;
-    private final Logger logger = Logger.getLogger(getClass().getName());
-
-    public SchemaMeta(String xmlMeta, String dbName, String schema) throws InvalidConfigurationException {
+    private static final Logger logger = Logger.getLogger(SchemaMeta.class.getName());
+    
+    public static SchemaMeta create(String xmlMeta, String dbName, String schema) throws InvalidConfigurationException {
+      if (xmlMeta != null) {
         File meta = new File(xmlMeta);
         if (meta.isDirectory()) {
-            String filename = (schema == null ? dbName : schema) + ".meta.xml";
-            meta = new File(meta, filename);
-
-            if (!meta.exists()) {
-                if (Config.getInstance().isOneOfMultipleSchemas()) {
-                    // don't force all of the "one of many" schemas to have metafiles
-                    logger.info("Meta directory \"" + xmlMeta + "\" should contain a file named \"" + filename + '\"');
-                    comments = null;
-                    metaFile = null;
-                    return;
-                }
-
-                throw new InvalidConfigurationException("Meta directory \"" + xmlMeta + "\" must contain a file named \"" + filename + '\"');
+          String filename = (schema == null ? dbName : schema) + ".meta.xml";
+          meta = new File(meta, filename);
+          
+          if (!meta.exists()) {
+            if (Config.getInstance().isOneOfMultipleSchemas()) {
+              // don't force all of the "one of many" schemas to have metafiles
+              logger.info("Meta directory \"" + xmlMeta + "\" should contain a file named \"" + filename + '\"');
+              return null;
             }
+            
+            throw new InvalidConfigurationException("Meta directory \"" + xmlMeta + "\" must contain a file named \"" + filename + '\"');
+          }
         } else if (!meta.exists()) {
-            throw new InvalidConfigurationException("Specified meta file \"" + xmlMeta + "\" does not exist");
+          throw new InvalidConfigurationException("Specified meta file \"" + xmlMeta + "\" does not exist");
         }
+        Document doc = parse(meta);
+        
+        return new SchemaMeta(meta, dbName, schema, doc.getDocumentElement());
+      } else {
+        return null;
+      }
+    }
 
-        metaFile = meta;
+    SchemaMeta(File metaFile, String dbName, String schema, Element doc) {
+        super(doc);
+        this.metaFile = metaFile;
 
-        Document doc = parse(metaFile);
 
         NodeList commentsNodes = doc.getElementsByTagName("comments");
         if (commentsNodes == null)
@@ -91,7 +98,7 @@ public class SchemaMeta {
             NodeList tableNodes = ((Element)tablesNodes.item(0)).getElementsByTagName("table");
 
             for (int i = 0; i < tableNodes.getLength(); ++i) {
-                Node tableNode = tableNodes.item(i);
+                Element tableNode = (Element) tableNodes.item(i);
                 TableMeta tableMeta = new TableMeta(tableNode);
                 tables.add(tableMeta);
             }
@@ -113,12 +120,12 @@ public class SchemaMeta {
         return tables;
     }
 
-    private void validate(Document document) throws SAXException, IOException {
+    private static void validate(Document document) throws SAXException, IOException {
         // create a SchemaFactory capable of understanding WXS schemas
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
         // load a WXS schema, represented by a Schema instance
-        InputStream xsl = getClass().getResourceAsStream("/schemaspy.meta.xsd");
+        InputStream xsl = SchemaMeta.class.getResourceAsStream("/schemaspy.meta.xsd");
 
         Schema schema = factory.newSchema(new StreamSource(xsl));
 
@@ -129,7 +136,7 @@ public class SchemaMeta {
         validator.validate(new DOMSource(document));
     }
 
-    private Document parse(File file) throws InvalidConfigurationException {
+    private static Document parse(File file) throws InvalidConfigurationException {
         DocumentBuilder docBuilder;
         Document doc = null;
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

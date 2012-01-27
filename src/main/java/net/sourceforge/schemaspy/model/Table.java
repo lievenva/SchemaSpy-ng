@@ -37,6 +37,9 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.xml.ForeignKeyMeta;
 import net.sourceforge.schemaspy.model.xml.TableColumnMeta;
@@ -66,6 +69,7 @@ public class Table implements Comparable<Table> {
     private       String comments;
     private int maxChildren;
     private int maxParents;
+    private Element documentation;
     private final static Logger logger = Logger.getLogger(Table.class.getName());
     private final static boolean fineEnabled = logger.isLoggable(Level.FINE);
     private final static boolean finerEnabled = logger.isLoggable(Level.FINER);
@@ -658,6 +662,10 @@ public class Table implements Comparable<Table> {
 
         this.comments = cmts;
     }
+    
+    public Element getDocumentation() {
+	return documentation;
+    }
 
     /**
      * Returns the {@link TableColumn} with the given name, or <code>null</code>
@@ -1109,6 +1117,7 @@ public class Table implements Comparable<Table> {
         if (newComments != null) {
             comments = newComments;
         }
+        documentation = tableMeta.getDocumentation();
 
         for (TableColumnMeta colMeta : tableMeta.getColumns()) {
             TableColumn col = getColumn(colMeta.getName());
