@@ -38,6 +38,7 @@
     <copy todir="${dest}">
       <fileset dir="${resources}">
         <include name="**/*.properties"/>
+        <include name="**/*.xsl"/>
         <include name="**/*.css"/>
         <include name="**/*.gif"/>
         <include name="**/*.js"/>
