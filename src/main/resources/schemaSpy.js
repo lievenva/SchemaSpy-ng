@@ -74,11 +74,12 @@ function syncImage() {
 
 // our 'ready' handler makes the page consistent
 $(function(){
-  associate($('#implied'),         $('.impliedRelationship'));
-  associate($('#showComments'),    $('.comment'));
-  associate($('#showLegend'),      $('.legend'));
-  associate($('#showRelatedCols'), $('.relatedKey'));
-  associate($('#showConstNames'),  $('.constraint'));
+  associate($('#implied'),           $('.impliedRelationship'));
+  associate($('#showComments'),      $('.comment'));
+  associate($('#showDocumentation'), $('.documentation'));
+  associate($('#showLegend'),        $('.legend'));
+  associate($('#showRelatedCols'),   $('.relatedKey'));
+  associate($('#showConstNames'),    $('.constraint'));
 
   syncImage();
   $('#implied,#oneDegree,#twoDegrees,#showNonKeys').click(function() {

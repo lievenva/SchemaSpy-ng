@@ -27,6 +27,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.w3c.dom.Element;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.ForeignKeyConstraint;
@@ -112,10 +115,19 @@ public class HtmlTablePage extends HtmlFormatter {
                 break;
             }
         }
+        // initially show comments if any of the columns contain comments
+        boolean showDocumentationInitially = false;
+        for (TableColumn column : table.getColumns()) {
+            if (column.getDocumentation() != null) {
+                showDocumentationInitially = true;
+                break;
+            }
+        }
 
         html.writeln(" <label for='showRelatedCols'><input type=checkbox id='showRelatedCols'>Related columns</label>");
         html.writeln(" <label for='showConstNames'><input type=checkbox id='showConstNames'>Constraints</label>");
         html.writeln(" <label for='showComments'><input type=checkbox " + (showCommentsInitially  ? "checked " : "") + "id='showComments'>Comments</label>");
+        html.writeln(" <label for='showDocumentation'><input type=checkbox " + (showDocumentationInitially  ? "checked " : "") + "id='showDocumentation'>Documentation</label>");
         html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
     }
@@ -219,6 +231,12 @@ public class HtmlTablePage extends HtmlFormatter {
                     out.write(HtmlEncoder.encodeToken(comments.charAt(i)));
             else
                 out.write(comments);
+        }
+        out.writeln("</td>");
+        out.write(" <td class='documentation detail'>");
+        Element doc = column.getDocumentation();
+        if (doc != null) {
+            HtmlFormatter.writeDocumentation(doc, out);
         }
         out.writeln("</td>");
         out.writeln("</tr>");

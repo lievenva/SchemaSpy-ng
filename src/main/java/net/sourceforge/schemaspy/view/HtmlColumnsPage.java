@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.w3c.dom.Element;
+
 import net.sourceforge.schemaspy.Config;
 import net.sourceforge.schemaspy.model.Database;
 import net.sourceforge.schemaspy.model.Table;
@@ -81,6 +84,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
         avails.put("children", new ColumnInfo("Children", new ByChildrenComparator()));
         avails.put("parents", new ColumnInfo("Parents", new ByParentsComparator()));
         avails.put("comments", new ColumnInfo("Comments", new ByCommentsComparator()));
+        avails.put("documentation", new ColumnInfo("Documentation", new ByDocumentationComparator()));
 
         // now put the ones requested in the order requested
         // LinkedHashMap maintains insertion order
@@ -169,6 +173,8 @@ public class HtmlColumnsPage extends HtmlFormatter {
         html.writeln("<form name='options' action=''>");
         if (Config.getInstance().getColumnDetails().contains("comments"))
             html.writeln(" <label for='showComments'><input type=checkbox id='showComments'>Comments</label>");
+        if (Config.getInstance().getColumnDetails().contains("documentation"))
+            html.writeln(" <label for='showDocumentation'><input type=checkbox id='showDocumentation'>Documentation</label>");
         html.writeln(" <label for='showLegend'><input type=checkbox checked id='showLegend'>Legend</label>");
         html.writeln("</form>");
         html.writeln("</table>");
@@ -232,6 +238,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
             headings.put("children", getTH(selectedColumn, "Children", "Columns in tables that reference this column", null));
             headings.put("parents", getTH(selectedColumn, "Parents", "Columns in tables that are referenced by this column", null));
             headings.put("comments", "<th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
+            headings.put("documentation", "<th title='Documentation' class='documentation'><span class='notSortedByDocumentation'>Documentation</span></th>");
 
             // output the headings in the order specified
             if (details != null) {  // redundant, but keeps compiler happy
@@ -251,6 +258,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
             out.writeln(getTH(selectedColumn, "Children", "Columns in tables that reference this column", null));
             out.writeln(getTH(selectedColumn, "Parents", "Columns in tables that are referenced by this column", null));
             out.writeln("  <th title='Comments' class='comment'><span class='notSortedByColumn'>Comments</span></th>");
+            out.writeln("  <th title='Documentation' class='documentation'><span class='notSortedByDocumentation'>Documentation</span></th>");
         }
 
         out.writeln("</tr>");
@@ -343,7 +351,7 @@ public class HtmlColumnsPage extends HtmlFormatter {
             String comment1 = column1.getComments();
             if (comment1 == null)
                 comment1 = "";
-            String comment2 = column1.getComments();
+            String comment2 = column2.getComments();
             if (comment2 == null)
                 comment2 = "";
 
@@ -352,6 +360,21 @@ public class HtmlColumnsPage extends HtmlFormatter {
                 rc = byType.compare(column1, column2);
             }
             return rc;
+        }
+    }
+
+    private class ByDocumentationComparator implements Comparator<TableColumn> {
+        private final Comparator<TableColumn> byType = new ByTypeComparator();
+
+        public int compare(TableColumn column1, TableColumn column2) {
+            Element doc1 = column1.getDocumentation();
+            Element doc2 = column2.getDocumentation();
+
+            if (doc1 == null) {
+                return doc2 == null ? byType.compare(column1, column2) : 1;
+            } else {
+                return doc2 != null ? byType.compare(column1, column2) : -1;
+            }
         }
     }
 

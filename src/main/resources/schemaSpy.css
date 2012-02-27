@@ -16,7 +16,7 @@ body  {
   padding:.4em;
 }
 
-.documentation {
+.headerdoc {
   background: #ffffff;
   border: thin solid #000000;
   padding: 1em;
@@ -150,6 +150,16 @@ table {
   display: none;
   text-align: left;
   padding: 0px 4px;
+}
+
+.documentation {
+  display: none;
+  text-align: left;
+  padding: 0px 4px;
+}
+
+TD.documentation {
+  font-size: 80%;
 }
 
 .impliedNotOrphan {

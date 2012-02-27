@@ -59,7 +59,7 @@ public class HtmlFormatter {
     private   final boolean isMetered = Config.getInstance().isMeterEnabled();
     protected final boolean displayNumRows = Config.getInstance().isNumRowsEnabled();
     
-    private Templates templates;
+    private static Templates templates;
 
     protected HtmlFormatter() {
     }
@@ -106,9 +106,17 @@ public class HtmlFormatter {
             out.write("<span class='description'>" + db.getDescription().replace("\\=", "=") + "</span>");
         
         if (table == null) {
-            writeDocumentation(db.getDocumentation(), out);
+            if (db.getDocumentation() != null) {
+                out.write("<div class='headerdoc'>");
+                writeDocumentation(db.getDocumentation(), out);
+                out.writeln("</dvi>");
+            }
         } else {
-            writeDocumentation(table.getDocumentation(), out);
+            if (table.getDocumentation() != null) {
+                out.write("<div class='headerdoc'>");
+                writeDocumentation(table.getDocumentation(), out);
+                out.writeln("</dvi>");
+            }
         }
 
         String comments = table == null ? null : table.getComments();
@@ -164,46 +172,6 @@ public class HtmlFormatter {
         html.writeln(" </ul>");
         html.writeln("</div>");
         html.writeln("</td></tr></table>");
-    }
-    
-    protected void writeDocumentation(Element documentation, LineWriter html) throws IOException {
-	if (documentation != null) {
-	    DOMSource source = new DOMSource(documentation);
-	    StreamResult result = new StreamResult(html);
-
-	    if (templates == null) {
-		String docXsl = Config.getInstance().getDocumentationStyleSheet();
-		try {
-		    templates = TransformerFactory.newInstance().newTemplates(getSource(docXsl));
-		} catch (TransformerException e) {
-		    throw new InvalidConfigurationException(e);
-		}
-	    }
-
-	    try {
-		templates.newTransformer().transform(source, result);
-	    } catch (TransformerConfigurationException e) {
-		throw new InvalidConfigurationException(e);
-	    } catch (TransformerException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	    }
-	}
-    }
-    
-    private static Source getSource(String name) {
-        File file = new File(name);
-        if (file.exists())
-            return new StreamSource(file);
-        file = new File(System.getProperty("user.dir"), name);
-        if (file.exists())
-            return new StreamSource(file);
-
-        InputStream stream = HtmlFormatter.class.getClassLoader().getResourceAsStream(name);
-        if (stream == null)
-            throw new ParseException("Unable to find requested style sheet: " + name);
-
-        return new StreamSource(stream);
     }
 
     protected String getDescription(Database db, Table table, String text, boolean hoverHelp) {
@@ -430,5 +398,43 @@ public class HtmlFormatter {
             logger.info("Error trying to urlEncode string [" + string + "] with encoding [" + Config.DOT_CHARSET + "]");
             return string;
         }
+    }
+    
+    static void writeDocumentation(Element documentation, LineWriter html) throws IOException {
+        DOMSource source = new DOMSource(documentation);
+        StreamResult result = new StreamResult(html);
+
+        if (templates == null) {
+            String docXsl = Config.getInstance().getDocumentationStyleSheet();
+            try {
+                templates = TransformerFactory.newInstance().newTemplates(getSource(docXsl));
+            } catch (TransformerException e) {
+                throw new InvalidConfigurationException(e);
+            }
+        }
+
+        try {
+            templates.newTransformer().transform(source, result);
+        } catch (TransformerConfigurationException e) {
+            throw new InvalidConfigurationException(e);
+        } catch (TransformerException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+    private static Source getSource(String name) {
+        File file = new File(name);
+        if (file.exists())
+            return new StreamSource(file);
+        file = new File(System.getProperty("user.dir"), name);
+        if (file.exists())
+            return new StreamSource(file);
+
+        InputStream stream = HtmlFormatter.class.getClassLoader().getResourceAsStream(name);
+        if (stream == null)
+            throw new ParseException("Unable to find requested style sheet: " + name);
+
+        return new StreamSource(stream);
     }
 }
